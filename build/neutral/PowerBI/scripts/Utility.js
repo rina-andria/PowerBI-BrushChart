@@ -1385,77 +1385,77 @@ var jsCommon;
         var datePrefix = '/Date(';
         var dateSuffix = ')\/';
         /** Formats the date, omitting the time portion, if midnight. */
-        function formatAbsolute(date) {
-            debug.assertValue(date, 'date');
-            if (DateExtensions.isMidnight(date)) {
-                return date.toLocaleDateString();
-            }
-            return date.toLocaleString();
-        }
-        DateExtensions.formatAbsolute = formatAbsolute;
+        //export function formatAbsolute(date: Date): string {
+        //    debug.assertValue(date, 'date');
+        //    if (DateExtensions.isMidnight(date)) {
+        //        return date.toLocaleDateString();
+        //    }
+        //    return date.toLocaleString();
+        //}
         /** Formats the date, preferably showing the elapsed time if possible, falling back on an absolute date. */
-        function formatPretty(date) {
-            debug.assertValue(date, 'date');
-            if (DateExtensions.isMomentPresent()) {
-                return moment(date).fromNow();
-            }
-            return formatAbsolute(date);
-        }
-        DateExtensions.formatPretty = formatPretty;
-        var milisecondsPerHour = 3600 * 1000;
-        var millisecondsPerDay = 24 * milisecondsPerHour;
+        //export function formatPretty(date: Date): string {
+        //    debug.assertValue(date, 'date');
+        //    if (DateExtensions.isMomentPresent()) {
+        //        return moment(date).fromNow();
+        //    }
+        //    return formatAbsolute(date);
+        //}
+        //var milisecondsPerHour: number = 3600 * 1000;
+        //var millisecondsPerDay: number = 24 * milisecondsPerHour;
         /** Gets a value indicating whether the specified date has a midnight time portion. */
-        function isMidnight(date) {
-            debug.assertValue(date, 'date');
-            return (date.getTime() % millisecondsPerDay) === 0;
-        }
-        DateExtensions.isMidnight = isMidnight;
+        //export function isMidnight(date: Date) {
+        //    debug.assertValue(date, 'date');
+        //    return (date.getTime() % millisecondsPerDay) === 0;
+        //}
         /** returns the number of elapsed seconds from a given date to now. */
-        function elapsedToNow(date, units) {
-            debug.assertValue(date, 'date');
-            var from = moment(date);
-            return (moment().diff(from, units));
-        }
-        DateExtensions.elapsedToNow = elapsedToNow;
+        //export function elapsedToNow(date: Date, units: string): number {
+        //    debug.assertValue(date, 'date');
+        //    var from = moment(date);
+        //    return (moment().diff(from, units));
+        //}
         /** Returns whether moment is present */
-        function isMomentPresent() {
-            return typeof moment !== 'undefined';
-        }
-        DateExtensions.isMomentPresent = isMomentPresent;
+        //export function isMomentPresent(): boolean {
+        //    return typeof moment !== 'undefined';
+        //}
         /**
          * Parses an ISO 8601 formatted date string and creates a Date object.
          * If timezone information is not present in the date the local timezone will be assumed.
          * If the string cannot be parsed successfully the return value will be null.
          */
         function parseIsoDate(isoDate) {
-            debug.assert(isMomentPresent(), 'Moment.js should be loaded for parseIsoDate.');
-            var momentDate = moment(isoDate);
-            return momentDate.isValid() ? momentDate.toDate() : null;
+            var date = new Date(isoDate), timezoneOffset;
+            if (date.toString() === 'Invalid Date') {
+                return null;
+            }
+            timezoneOffset = date.getTimezoneOffset();
+            date.setMinutes(date.getMinutes() + timezoneOffset);
+            return date;
         }
         DateExtensions.parseIsoDate = parseIsoDate;
-        function parseUtcDate(isoDate) {
-            debug.assert(isMomentPresent(), 'Moment.js should be loaded for parseUtcDate.');
-            return moment.utc(isoDate).toDate();
-        }
-        DateExtensions.parseUtcDate = parseUtcDate;
-        function fromNow(date) {
-            return moment(date).fromNow();
-        }
-        DateExtensions.fromNow = fromNow;
-        function serializeDate(date) {
-            debug.assertValue(date, 'date');
-            return datePrefix + date.getTime().toString() + dateSuffix;
-        }
-        DateExtensions.serializeDate = serializeDate;
+        //export function parseUtcDate(isoDate: string): Date {
+        //    debug.assert(isMomentPresent(), 'Moment.js should be loaded for parseUtcDate.');
+        //    return moment.utc(isoDate).toDate();
+        //}
+        //export function fromNow(date: Date) {
+        //    return moment(date).fromNow();
+        //}
+        //export function serializeDate(date: Date): string {
+        //    debug.assertValue(date, 'date');
+        //    return datePrefix + date.getTime().toString() + dateSuffix;
+        //}
         function deserializeDate(data) {
             jsCommon.Utility.throwIfNullOrEmptyString(data, null, 'deserializeDate', 'Cannot deserialize empty string');
             jsCommon.Utility.throwIfNotTrue(data.indexOf(datePrefix) === 0 && jsCommon.StringExtensions.endsWith(data, dateSuffix), null, 'deserializeDate', 'Cannot deserialize empty string');
-            if (DateExtensions.isMomentPresent()) {
-                // Prefer to use moment, which has a more complete implementation.
-                var parsedValue = moment(data);
-                jsCommon.Utility.throwIfNotTrue(parsedValue.isValid(), null, 'deserializeDate', 'parsedValue.isValid must be true');
-                return parsedValue.toDate();
-            }
+            //if (DateExtensions.isMomentPresent()) {
+            //    // Prefer to use moment, which has a more complete implementation.
+            //    var parsedValue = moment(data);
+            //    Utility.throwIfNotTrue(
+            //        parsedValue.isValid(),
+            //        null,
+            //        'deserializeDate',
+            //        'parsedValue.isValid must be true');
+            //    return parsedValue.toDate();
+            //}
             var ticksString = data.substring(datePrefix.length, data.length - dateSuffix.length);
             jsCommon.Utility.throwIfNotTrue(/^\-?\d+$/.test(ticksString), null, 'deserializeDate', 'Cannot deserialize invalid date');
             var ticksValue = parseInt(ticksString, 10);

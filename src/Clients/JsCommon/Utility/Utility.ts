@@ -590,6 +590,14 @@ module jsCommon {
             return input.replace(/"/g, "").replace(/url\(|\)$/ig, "");
         }
 
+        /** 
+        *   Verifies image data url of images        
+        */
+        public static isValidImageDataUrl(url: string): boolean {
+            var regex: RegExp = new RegExp('data:(image\/(png|jpg|jpeg|gif|svg))');
+            return regex.test(url);
+        }
+
         /**
          Downloads a content string as a file
          @param content - Content stream
@@ -726,6 +734,16 @@ module jsCommon {
             if (isNaN(result) && !(typeof value === "number" || value === "NaN"))
                 return defaultValue;
             return result;
+        }
+
+        public static getURLParamValue(name:string) {
+            var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+            if (results == null) {
+                return null;
+            }
+            else {
+                return results[1] || 0;
+            }
         }
     }
 
@@ -1005,7 +1023,6 @@ module jsCommon {
                 default:
                     throw new Error("toSupportedArray : unsupported data type " + dataType);
             }
-
         }
 
         private toUTF8Array(str): Uint8Array {

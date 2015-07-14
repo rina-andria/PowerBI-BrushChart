@@ -23490,67 +23490,19 @@ var jsCommon;
     (function(DateExtensions) {
         var datePrefix = "/Date(";
         var dateSuffix = ")/";
-        function formatAbsolute(date) {
-            debug.assertValue(date, "date");
-            if (DateExtensions.isMidnight(date)) {
-                return date.toLocaleDateString();
-            }
-            return date.toLocaleString();
-        }
-        DateExtensions.formatAbsolute = formatAbsolute;
-        function formatPretty(date) {
-            debug.assertValue(date, "date");
-            if (DateExtensions.isMomentPresent()) {
-                return moment(date).fromNow();
-            }
-            return formatAbsolute(date);
-        }
-        DateExtensions.formatPretty = formatPretty;
-        var milisecondsPerHour = 3600 * 1e3;
-        var millisecondsPerDay = 24 * milisecondsPerHour;
-        function isMidnight(date) {
-            debug.assertValue(date, "date");
-            return date.getTime() % millisecondsPerDay === 0;
-        }
-        DateExtensions.isMidnight = isMidnight;
-        function elapsedToNow(date, units) {
-            debug.assertValue(date, "date");
-            var from = moment(date);
-            return moment().diff(from, units);
-        }
-        DateExtensions.elapsedToNow = elapsedToNow;
-        function isMomentPresent() {
-            return typeof moment !== "undefined";
-        }
-        DateExtensions.isMomentPresent = isMomentPresent;
         function parseIsoDate(isoDate) {
-            debug.assert(isMomentPresent(), "Moment.js should be loaded for parseIsoDate.");
-            var momentDate = moment(isoDate);
-            return momentDate.isValid() ? momentDate.toDate() : null;
+            var date = new Date(isoDate), timezoneOffset;
+            if (date.toString() === "Invalid Date") {
+                return null;
+            }
+            timezoneOffset = date.getTimezoneOffset();
+            date.setMinutes(date.getMinutes() + timezoneOffset);
+            return date;
         }
         DateExtensions.parseIsoDate = parseIsoDate;
-        function parseUtcDate(isoDate) {
-            debug.assert(isMomentPresent(), "Moment.js should be loaded for parseUtcDate.");
-            return moment.utc(isoDate).toDate();
-        }
-        DateExtensions.parseUtcDate = parseUtcDate;
-        function fromNow(date) {
-            return moment(date).fromNow();
-        }
-        DateExtensions.fromNow = fromNow;
-        function serializeDate(date) {
-            debug.assertValue(date, "date");
-            return datePrefix + date.getTime().toString() + dateSuffix;
-        }
-        DateExtensions.serializeDate = serializeDate;
         function deserializeDate(data) {
             jsCommon.Utility.throwIfNullOrEmptyString(data, null, "deserializeDate", "Cannot deserialize empty string");
             jsCommon.Utility.throwIfNotTrue(data.indexOf(datePrefix) === 0 && jsCommon.StringExtensions.endsWith(data, dateSuffix), null, "deserializeDate", "Cannot deserialize empty string");
-            if (DateExtensions.isMomentPresent()) {
-                var parsedValue = moment(data);
-                jsCommon.Utility.throwIfNotTrue(parsedValue.isValid(), null, "deserializeDate", "parsedValue.isValid must be true");
-                return parsedValue.toDate();
-            }
             var ticksString = data.substring(datePrefix.length, data.length - dateSuffix.length);
             jsCommon.Utility.throwIfNotTrue(/^\-?\d+$/.test(ticksString), null, "deserializeDate", "Cannot deserialize invalid date");
             var ticksValue = parseInt(ticksString, 10);
@@ -58210,7 +58162,7 @@ var powerbi;
                         MaxBingRequest: 6,
                         MaxCacheSize: 3e3,
                         MaxCacheSizeOverflow: 100,
-                        BingKey: "INSERT KEY",
+                        BingKey: "insert your key",
                         BingUrl: "https://dev.virtualearth.net/REST/v1/Locations?",
                         BingUrlGeodata: "https://platform.bing.com/geo/spatial/v1/public/Geodata?",
                         UseDoubleArrayGeodataResult: true,

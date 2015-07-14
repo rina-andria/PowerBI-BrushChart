@@ -7226,7 +7226,7 @@ var powerbitests;
             expect(scale.format(-3e6)).toBe('-3M');
         });
         it("create Year", function () {
-            var scale = valueFormatter.create({ format: '0', value: 2014 });
+            var scale = valueFormatter.create({ format: 'd', value: new Date(2010, 1) });
             expect(scale.format(2010)).toBe('2010');
             expect(scale.format(null)).toBe('(Blank)');
         });
@@ -11381,14 +11381,14 @@ var powerbitests;
                                 min: 123,
                                 max: 234,
                                 subtotal: 357,
-                                values: [123, 234]
+                                values: [0, 234]
                             },
                             {
                                 source: dataViewMetadataThreeColumn[2],
                                 min: 12,
                                 max: 88,
                                 subtotal: 100,
-                                values: [12, 88]
+                                values: [12, null]
                             }
                         ])
                     }
@@ -11396,7 +11396,7 @@ var powerbitests;
             });
             setTimeout(function () {
                 expect($('.columnChart')).toBeInDOM();
-                expect($('.column').length).toBe(4);
+                expect($('.column').length).toBe(2);
                 expect($('.data-labels').length).toBe(0);
                 done();
             }, DefaultWaitForRender);
@@ -11711,7 +11711,7 @@ var powerbitests;
             });
             setTimeout(function () {
                 expect($('.columnChart')).toBeInDOM();
-                expect($('.column').length).toBe(4);
+                expect($('.column').length).toBe(3);
                 expect($('.columnChart .axisGraphicsContext .x.axis .tick').find('text').last().text()).toBe('def');
                 done();
             }, DefaultWaitForRender);
@@ -11890,6 +11890,37 @@ var powerbitests;
                     expect($('.column').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+        it('clustered column chart with no animator should filter 0/null columns', function (done) {
+            var categoryValues = ['a', 'b', 'c', 'd', 'e'];
+            var categoryIdentities = categoryValues.map(function (d) { return powerbitests.mocks.dataViewScopeIdentity(d); });
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: metadata(dataViewMetadataThreeColumn),
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataThreeColumn[0],
+                            values: categoryValues,
+                            identity: categoryIdentities,
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataThreeColumn[1],
+                                values: [10, 0, 30, null, 0]
+                            },
+                            {
+                                source: dataViewMetadataThreeColumn[2],
+                                values: [0, 20, null, 88, 10]
+                            }
+                        ])
+                    }
+                }]
+            });
+            setTimeout(function () {
+                expect($('.columnChart')).toBeInDOM();
+                expect($('.column').length).toBe(5);
+                done();
             }, DefaultWaitForRender);
         });
         if (!interactiveChart) {
@@ -12612,6 +12643,37 @@ var powerbitests;
                 }, DefaultWaitForRender);
             }, DefaultWaitForRender);
         });
+        it('stacked column chart with no animator should filter 0/null columns', function (done) {
+            var categoryValues = ['a', 'b', 'c', 'd', 'e'];
+            var categoryIdentities = categoryValues.map(function (d) { return powerbitests.mocks.dataViewScopeIdentity(d); });
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataFourColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataFourColumn.columns[0],
+                            values: categoryValues,
+                            identity: categoryIdentities,
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataFourColumn.columns[1],
+                                values: [10, 0, 30, null, 0]
+                            },
+                            {
+                                source: dataViewMetadataFourColumn.columns[2],
+                                values: [0, 20, null, 88, 10]
+                            }
+                        ])
+                    }
+                }]
+            });
+            setTimeout(function () {
+                expect($('.columnChart')).toBeInDOM();
+                expect($('.column').length).toBe(5);
+                done();
+            }, DefaultWaitForRender);
+        });
     }
     describe("Stacked ColumnChart DOM validation", function () { return stackedColumnChartDomValidation(false); });
     describe("Interactive Stacked ColumnChart DOM validation", function () { return stackedColumnChartDomValidation(true); });
@@ -12876,6 +12938,37 @@ var powerbitests;
                     expect($('.column').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+        it('hundred percent column chart with no animator should filter 0/null columns', function (done) {
+            var categoryValues = ['a', 'b', 'c', 'd', 'e'];
+            var categoryIdentities = categoryValues.map(function (d) { return powerbitests.mocks.dataViewScopeIdentity(d); });
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataFourColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataFourColumn.columns[0],
+                            values: categoryValues,
+                            identity: categoryIdentities,
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataFourColumn.columns[1],
+                                values: [10, 0, 30, null, 0]
+                            },
+                            {
+                                source: dataViewMetadataFourColumn.columns[2],
+                                values: [0, 20, null, 88, 10]
+                            }
+                        ])
+                    }
+                }]
+            });
+            setTimeout(function () {
+                expect($('.columnChart')).toBeInDOM();
+                expect($('.column').length).toBe(5);
+                done();
             }, DefaultWaitForRender);
         });
     }
@@ -13494,6 +13587,37 @@ var powerbitests;
                 }, DefaultWaitForRender);
             }, DefaultWaitForRender);
         });
+        it('stacked bar chart with no animator should filter 0/null columns', function (done) {
+            var categoryValues = ['a', 'b', 'c', 'd', 'e'];
+            var categoryIdentities = categoryValues.map(function (d) { return powerbitests.mocks.dataViewScopeIdentity(d); });
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataFourColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataFourColumn.columns[0],
+                            values: categoryValues,
+                            identity: categoryIdentities,
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataFourColumn.columns[1],
+                                values: [10, 0, 30, null, 0]
+                            },
+                            {
+                                source: dataViewMetadataFourColumn.columns[2],
+                                values: [0, 20, null, 88, 10]
+                            }
+                        ])
+                    }
+                }]
+            });
+            setTimeout(function () {
+                expect($('.columnChart')).toBeInDOM();
+                expect($('.bar').length).toBe(5);
+                done();
+            }, DefaultWaitForRender);
+        });
     }
     describe("Stacked BarChart DOM validation", function () { return stackedBarChartDomValidation(false); });
     describe("Interactive Stacked BarChart DOM validation", function () { return stackedBarChartDomValidation(true); });
@@ -13718,6 +13842,37 @@ var powerbitests;
                     expect($('.bar').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+        it('hundred percent bar chart with no animator should filter 0/null columns', function (done) {
+            var categoryValues = ['a', 'b', 'c', 'd', 'e'];
+            var categoryIdentities = categoryValues.map(function (d) { return powerbitests.mocks.dataViewScopeIdentity(d); });
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataFourColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataFourColumn.columns[0],
+                            values: categoryValues,
+                            identity: categoryIdentities,
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataFourColumn.columns[1],
+                                values: [10, 0, 30, null, 0]
+                            },
+                            {
+                                source: dataViewMetadataFourColumn.columns[2],
+                                values: [0, 20, null, 88, 10]
+                            }
+                        ])
+                    }
+                }]
+            });
+            setTimeout(function () {
+                expect($('.columnChart')).toBeInDOM();
+                expect($('.bar').length).toBe(5);
+                done();
             }, DefaultWaitForRender);
         });
     }
@@ -14238,6 +14393,37 @@ var powerbitests;
                     expect($('.bar').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+        it('clustered bar chart with no animator should filter 0/null columns', function (done) {
+            var categoryValues = ['a', 'b', 'c', 'd', 'e'];
+            var categoryIdentities = categoryValues.map(function (d) { return powerbitests.mocks.dataViewScopeIdentity(d); });
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataFourColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataFourColumn.columns[0],
+                            values: categoryValues,
+                            identity: categoryIdentities,
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataFourColumn.columns[1],
+                                values: [10, 0, 30, null, 0]
+                            },
+                            {
+                                source: dataViewMetadataFourColumn.columns[2],
+                                values: [0, 20, null, 88, 10]
+                            }
+                        ])
+                    }
+                }]
+            });
+            setTimeout(function () {
+                expect($('.columnChart')).toBeInDOM();
+                expect($('.bar').length).toBe(5);
+                done();
             }, DefaultWaitForRender);
         });
     }
@@ -18470,8 +18656,8 @@ var powerbitests;
             setTimeout(function () {
                 var labels = $('.x.axis').children('.tick');
                 //Verify begin&end labels
-                expect(labels[0].textContent).toBe('0.00');
-                expect(labels[labels.length - 1].textContent).toBe('1,000.00');
+                expect(labels[0].textContent).toBe('0K');
+                expect(labels[labels.length - 1].textContent).toBe('1K');
                 done();
             }, DefaultWaitForRender);
         });
@@ -18542,8 +18728,8 @@ var powerbitests;
             setTimeout(function () {
                 var axisLabels = $('.axisGraphicsContext .y.axis').last().find('.tick');
                 //Verify begin&end axis labels
-                expect(axisLabels[0].textContent).toBe('-7,000.00');
-                expect(axisLabels[axisLabels.length - 1].textContent).toBe('-4,000.00');
+                expect(axisLabels[0].textContent).toBe('-7K');
+                expect(axisLabels[axisLabels.length - 1].textContent).toBe('-4K');
                 done();
             }, DefaultWaitForRender);
         });
@@ -20114,15 +20300,17 @@ var powerbitests;
                     },
                     metadata: dataViewMetadata,
                 };
-                var actualData = DonutChart.converter(dataView, true, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var expectSlices = {
                     dataPointsToDeprecate: [],
                     dataPointsToEnumerate: [],
                     dataPoints: [],
+                    unCulledDataPoints: [],
                     legendData: { title: "", dataPoints: [] },
                     hasHighlights: false,
                     dataLabelsSettings: powerbi.visuals.dataLabelUtils.getDefaultDonutLabelSettings(),
-                    legendObjectProperties: undefined
+                    legendObjectProperties: undefined,
+                    maxValue: 0,
                 };
                 expect(actualData).toEqual(expectSlices);
             });
@@ -20142,7 +20330,7 @@ var powerbitests;
                     },
                     metadata: dataViewMetadata,
                 };
-                var actualData = DonutChart.converter(dataView, true, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var selectionIds = categoryIdentities.map(function (categoryId) { return SelectionId.createWithId(categoryId); });
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
@@ -20200,7 +20388,7 @@ var powerbitests;
                     },
                     metadata: dataViewMetadata,
                 };
-                var actualData = DonutChart.converter(dataView, false, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var selectionIds = categoryIdentities.map(function (categoryId) { return SelectionId.createWithId(categoryId); });
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
@@ -20263,7 +20451,7 @@ var powerbitests;
                     },
                     metadata: dataViewMetadata1Category2Measure,
                 };
-                var actualData = DonutChart.converter(dataView, true, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
                     donutColors.getColorByScale(categoryColumnId, 'a').value,
@@ -20356,7 +20544,7 @@ var powerbitests;
                     },
                     metadata: dataViewMetadata,
                 };
-                var actualData = DonutChart.converter(dataView, false, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var selectionIds = categoryIdentities.map(function (categoryId) { return SelectionId.createWithId(categoryId); });
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
@@ -20398,73 +20586,6 @@ var powerbitests;
                 expect(actualData.legendData.title).toBe('col1');
                 expect(actualData.legendData.dataPoints[0].label).toBe('a');
             });
-            it('categorical multi-measure, no slicing', function () {
-                var dataView = {
-                    categorical: {
-                        categories: [{
-                            source: dataViewMetadata1Category2MeasureWithFormat.columns[0],
-                            values: ['a', 'b', 'c'],
-                            identity: categoryIdentities,
-                            identityFields: [categoryColumnRef],
-                        }],
-                        values: DataViewTransform.createValueColumns([
-                            {
-                                source: dataViewMetadata1Category2MeasureWithFormat.columns[1],
-                                values: [-200, null, 150]
-                            },
-                            {
-                                source: dataViewMetadata1Category2MeasureWithFormat.columns[2],
-                                values: [-300, 300, -50]
-                            }
-                        ])
-                    },
-                    metadata: dataViewMetadata1Category2MeasureWithFormat,
-                };
-                var actualData = DonutChart.converter(dataView, false, donutColors);
-                var selectionIds = categoryIdentities.map(function (categoryId) { return SelectionId.createWithId(categoryId); });
-                var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
-                var sliceColors = [
-                    donutColors.getColorByScale(categoryColumnId, 'a').value,
-                    donutColors.getColorByScale(categoryColumnId, 'b').value,
-                    donutColors.getColorByScale(categoryColumnId, 'c').value,
-                ];
-                var expectSlices = [
-                    {
-                        identity: selectionIds[0],
-                        measure: -500,
-                        measureFormat: "\$#,0;(\$#,0);\$#,0",
-                        label: 'a',
-                        value: 0.5,
-                        index: 0,
-                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($500)" }],
-                        color: sliceColors[0],
-                    },
-                    {
-                        identity: selectionIds[1],
-                        label: 'b',
-                        measure: 300,
-                        measureFormat: "\$#,0;(\$#,0);\$#,0",
-                        value: 0.3,
-                        index: 1,
-                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$300" }],
-                        color: sliceColors[1],
-                    },
-                    {
-                        identity: selectionIds[2],
-                        measure: 100,
-                        measureFormat: "\$#,0;(\$#,0);\$#,0",
-                        label: 'c',
-                        value: 0.2,
-                        index: 2,
-                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$100" }],
-                        color: sliceColors[2],
-                    }
-                ].map(buildDataPoint);
-                expect(actualData.dataPoints.map(function (value) { return value.data; })).toEqual(expectSlices);
-                // Legend
-                expect(actualData.legendData.title).toBe('col1');
-                expect(actualData.legendData.dataPoints[0].label).toBe('a');
-            });
             it('categorical multi-measure, with slicing', function () {
                 var dataView = {
                     categorical: {
@@ -20487,7 +20608,7 @@ var powerbitests;
                     },
                     metadata: dataViewMetadata1Category2Measure,
                 };
-                var actualData = DonutChart.converter(dataView, true, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
                     donutColors.getColorByScale(categoryColumnId, 'a').value,
@@ -20582,7 +20703,7 @@ var powerbitests;
                     metadata: dataViewMetadata3Measure,
                 };
                 // Slicing does not come into effect for non-categorical multi-measure
-                var actualData = DonutChart.converter(dataView, true, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var selectionIds = dataViewMetadata3Measure.columns.map(function (c) { return SelectionId.createWithMeasure(c.displayName); });
                 var sliceColors = [
                     'red',
@@ -20636,7 +20757,7 @@ var powerbitests;
                     metadata: dataViewMetadata3Measure,
                 };
                 // Slicing does not come into effect for non-categorical single-measure
-                var actualData = DonutChart.converter(dataView, true, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var selectionIds = dataViewMetadata3Measure.columns.map(function (c) { return SelectionId.createWithMeasure(c.displayName); });
                 var sliceColors = [donutColors.getColor(dataViewMetadata3Measure.columns[0].queryName).value];
                 var expectSlices = [
@@ -20674,7 +20795,7 @@ var powerbitests;
                     metadata: dataViewMetadata,
                 };
                 dataView.categorical.values.source = dataViewMetadata[1];
-                var actualData = DonutChart.converter(dataView, true, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var selectionIds = dataView.categorical.values.map(function (c) { return SelectionId.createWithId(c.identity); });
                 var columnRefId = powerbi.data.SQExprShortSerializer.serializeArray([categoryColumnRef]);
                 var sliceColors = [
@@ -20708,7 +20829,7 @@ var powerbitests;
                 expect(actualData.legendData.dataPoints[1].label).toBe('col2');
             });
             it('with highlights', function () {
-                // categorical, no slicing
+                // categorical, multi-measure slices, with highlights
                 var dataView = {
                     categorical: {
                         categories: [{
@@ -20719,67 +20840,100 @@ var powerbitests;
                         }],
                         values: DataViewTransform.createValueColumns([
                             {
-                                source: dataViewMetadata1Category2MeasureWithFormat.columns[1],
+                                source: dataViewMetadata1Category2Measure.columns[1],
                                 values: [-200, null, 150],
-                                highlights: [-100, null, 10],
+                                highlights: [-100, null, 15],
                             },
                             {
-                                source: dataViewMetadata1Category2MeasureWithFormat.columns[2],
+                                source: dataViewMetadata1Category2Measure.columns[2],
                                 values: [-300, 300, -50],
                                 highlights: [-150, 75, 50],
                             }
-                        ]),
+                        ])
                     },
-                    metadata: null,
+                    metadata: dataViewMetadata1Category2Measure,
                 };
-                var actualData = DonutChart.converter(dataView, false, donutColors);
-                var selectionIds = categoryIdentities.map(function (categoryId) { return SelectionId.createWithId(categoryId); });
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
                     donutColors.getColorByScale(categoryColumnId, 'a').value,
                     donutColors.getColorByScale(categoryColumnId, 'b').value,
                     donutColors.getColorByScale(categoryColumnId, 'c').value,
                 ];
+                var highlightDisplayName = powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName;
                 var expectSlices = [
                     {
-                        identity: selectionIds[0],
-                        measure: -500,
-                        measureFormat: "\$#,0;(\$#,0);\$#,0",
-                        label: 'a',
-                        value: 0.5,
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
+                        measure: -200,
+                        label: 'col2',
                         highlightRatio: 0.5,
+                        value: 0.2,
                         index: 0,
-                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($500)" }, { displayName: powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName, value: "($250)" }],
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "-200" }, { displayName: highlightDisplayName, value: "-100" }],
                         color: sliceColors[0],
                     },
                     {
-                        identity: selectionIds[1],
-                        label: 'b',
-                        measure: 300,
-                        measureFormat: "\$#,0;(\$#,0);\$#,0",
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col3'),
+                        measure: -300,
+                        label: 'col3',
+                        highlightRatio: 0.5,
                         value: 0.3,
-                        highlightRatio: 0.25,
+                        index: 0,
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col3", value: "-300" }, { displayName: highlightDisplayName, value: "-150" }],
+                        color: sliceColors[0],
+                    },
+                    {
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
+                        measure: 0,
+                        label: 'col2',
+                        highlightRatio: 1e-9,
+                        value: 0,
                         index: 1,
-                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$300" }, { displayName: powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName, value: "$75" }],
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "0" }],
                         color: sliceColors[1],
                     },
                     {
-                        identity: selectionIds[2],
-                        measure: 100,
-                        measureFormat: "\$#,0;(\$#,0);\$#,0",
-                        label: 'c',
-                        value: 0.2,
-                        highlightRatio: 0.3,
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col3'),
+                        measure: 300,
+                        label: 'col3',
+                        highlightRatio: 0.25,
+                        value: 0.3,
+                        index: 1,
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col3", value: "300" }, { displayName: highlightDisplayName, value: "75" }],
+                        color: sliceColors[1],
+                    },
+                    {
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col2'),
+                        label: 'col2',
+                        highlightRatio: 0.1,
+                        measure: 150,
+                        value: 0.15,
                         index: 2,
-                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$100" }, { displayName: powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName, value: "$30" }],
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "150" }, { displayName: highlightDisplayName, value: "15" }],
+                        color: sliceColors[2],
+                    },
+                    {
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col3'),
+                        label: 'col3',
+                        highlightRatio: 1,
+                        measure: -50,
+                        value: 0.05,
+                        index: 2,
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col3", value: "-50" }, { displayName: highlightDisplayName, value: "50" }],
                         color: sliceColors[2],
                     }
                 ].map(buildDataPoint);
                 expect(actualData.dataPoints.map(function (value) { return value.data; })).toEqual(expectSlices);
+                // Legend
+                expect(actualData.legendData.title).toBe('col1');
+                expect(actualData.legendData.dataPoints.length).toBe(3);
+                expect(actualData.legendData.dataPoints[0].label).toBe('a');
+                expect(actualData.legendData.dataPoints[1].label).toBe('b');
+                expect(actualData.legendData.dataPoints[2].label).toBe('c');
             });
             //validate tooltip on highlighted values, the first tooptip is regular because highlighted value is 0, another tooltips are highlighted tooltips 
-            it('with highlights - tooltip validation', function () {
-                // categorical, no slicing
+            it('with highlights - special case tooltip validation', function () {
+                // categorical, multi-measure slices, zero-highlight as special case
                 var dataView = {
                     categorical: {
                         categories: [{
@@ -20803,12 +20957,16 @@ var powerbitests;
                     },
                     metadata: null,
                 };
-                var actualData = DonutChart.converter(dataView, false, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
+                var highlightName = powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName;
                 //regular tooltip
-                expect(actualData.dataPoints[0].data.tooltipInfo).toEqual([{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($500)" }]);
+                expect(actualData.dataPoints[0].data.tooltipInfo).toEqual([{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($200)" }]);
+                expect(actualData.dataPoints[1].data.tooltipInfo).toEqual([{ displayName: "col1", value: "a" }, { displayName: "col3", value: "-300" }]);
+                expect(actualData.dataPoints[2].data.tooltipInfo).toEqual([{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$0" }]);
                 //tooltips with highlighted values
-                expect(actualData.dataPoints[1].data.tooltipInfo).toEqual([{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$300" }, { displayName: powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName, value: "$75" }]);
-                expect(actualData.dataPoints[2].data.tooltipInfo).toEqual([{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$100" }, { displayName: powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName, value: "$30" }]);
+                expect(actualData.dataPoints[3].data.tooltipInfo).toEqual([{ displayName: "col1", value: "b" }, { displayName: "col3", value: "300" }, { displayName: highlightName, value: "75" }]);
+                expect(actualData.dataPoints[4].data.tooltipInfo).toEqual([{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$150" }, { displayName: highlightName, value: "$10" }]);
+                expect(actualData.dataPoints[5].data.tooltipInfo).toEqual([{ displayName: "col1", value: "c" }, { displayName: "col3", value: "-50" }, { displayName: highlightName, value: "50" }]);
             });
             //validate tooltip that tooltip info doesn't change if data and category labels are on and off 
             it('on/off data lables - tooltip validation', function () {
@@ -20833,19 +20991,25 @@ var powerbitests;
                     },
                     metadata: null,
                 };
-                var tooltipInfo1 = [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($500)" }];
-                var tooltipInfo2 = [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$400" }];
-                var tooltipInfo3 = [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$100" }];
-                var actualData = DonutChart.converter(dataView, false, donutColors);
+                var tooltipInfo1 = [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($200)" }];
+                var tooltipInfo2 = [{ displayName: "col1", value: "a" }, { displayName: "col3", value: "-300" }];
+                var tooltipInfo3 = [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$100" }];
+                var tooltipInfo4 = [{ displayName: "col1", value: "b" }, { displayName: "col3", value: "300" }];
+                var tooltipInfo5 = [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$150" }];
+                var tooltipInfo6 = [{ displayName: "col1", value: "c" }, { displayName: "col3", value: "-50" }];
+                var actualData = DonutChart.converter(dataView, donutColors);
                 expect(actualData.dataPoints[0].data.tooltipInfo).toEqual(tooltipInfo1);
                 expect(actualData.dataPoints[1].data.tooltipInfo).toEqual(tooltipInfo2);
                 expect(actualData.dataPoints[2].data.tooltipInfo).toEqual(tooltipInfo3);
+                expect(actualData.dataPoints[3].data.tooltipInfo).toEqual(tooltipInfo4);
+                expect(actualData.dataPoints[4].data.tooltipInfo).toEqual(tooltipInfo5);
+                expect(actualData.dataPoints[5].data.tooltipInfo).toEqual(tooltipInfo6);
                 //data labels are on
                 dataViewMetadata1Category2Measure.objects = {
                     labels: { show: true },
                     categoryLabels: { show: false }
                 };
-                actualData = DonutChart.converter(dataView, false, donutColors);
+                actualData = DonutChart.converter(dataView, donutColors);
                 expect(actualData.dataPoints[0].data.tooltipInfo).toEqual(tooltipInfo1);
                 expect(actualData.dataPoints[1].data.tooltipInfo).toEqual(tooltipInfo2);
                 expect(actualData.dataPoints[2].data.tooltipInfo).toEqual(tooltipInfo3);
@@ -20854,7 +21018,7 @@ var powerbitests;
                     labels: { show: true },
                     categoryLabels: { show: true }
                 };
-                actualData = DonutChart.converter(dataView, false, donutColors);
+                actualData = DonutChart.converter(dataView, donutColors);
                 expect(actualData.dataPoints[0].data.tooltipInfo).toEqual(tooltipInfo1);
                 expect(actualData.dataPoints[1].data.tooltipInfo).toEqual(tooltipInfo2);
                 expect(actualData.dataPoints[2].data.tooltipInfo).toEqual(tooltipInfo3);
@@ -20863,13 +21027,13 @@ var powerbitests;
                     labels: { show: false },
                     categoryLabels: { show: true }
                 };
-                actualData = DonutChart.converter(dataView, false, donutColors);
+                actualData = DonutChart.converter(dataView, donutColors);
                 expect(actualData.dataPoints[0].data.tooltipInfo).toEqual(tooltipInfo1);
                 expect(actualData.dataPoints[1].data.tooltipInfo).toEqual(tooltipInfo2);
                 expect(actualData.dataPoints[2].data.tooltipInfo).toEqual(tooltipInfo3);
             });
             it('with highlights that overflow', function () {
-                // categorical, no slicing
+                // categorical, no slicing - with OverFlow
                 var dataView = {
                     categorical: {
                         categories: [{
@@ -20893,7 +21057,7 @@ var powerbitests;
                     },
                     metadata: null,
                 };
-                var actualData = DonutChart.converter(dataView, false, donutColors);
+                var actualData = DonutChart.converter(dataView, donutColors);
                 var selectionIds = categoryIdentities.map(function (categoryId) { return SelectionId.createWithId(categoryId); });
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
@@ -20901,38 +21065,72 @@ var powerbitests;
                     donutColors.getColorByScale(categoryColumnId, 'b').value,
                     donutColors.getColorByScale(categoryColumnId, 'c').value,
                 ];
+                var highlightName = powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName;
                 var expectSlices = [
                     {
-                        identity: selectionIds[0],
-                        measure: -250,
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
+                        measure: -100,
                         measureFormat: "\$#,0;(\$#,0);\$#,0",
-                        label: 'a',
-                        value: 0.4,
+                        label: 'col2',
+                        value: 0.16,
                         highlightRatio: 1.0,
                         index: 0,
-                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($250)" }, { displayName: powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName, value: "($250)" }],
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($100)" }, { displayName: highlightName, value: "($100)" }],
                         color: sliceColors[0],
                     },
                     {
-                        identity: selectionIds[1],
-                        label: 'b',
-                        measure: 75,
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col3'),
+                        measure: -150,
+                        measureFormat: undefined,
+                        label: 'col3',
+                        value: 0.24,
+                        highlightRatio: 1.0,
+                        index: 0,
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col3", value: "-150" }, { displayName: highlightName, value: "-150" }],
+                        color: sliceColors[0],
+                    },
+                    {
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
+                        label: 'col2',
+                        measure: 0,
                         measureFormat: "\$#,0;(\$#,0);\$#,0",
-                        value: 0.12,
+                        value: 0.0,
                         highlightRatio: 1.0,
                         index: 1,
-                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$75" }, { displayName: powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName, value: "$75" }],
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$0" }],
                         color: sliceColors[1],
                     },
                     {
-                        identity: selectionIds[2],
-                        measure: 300,
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col3'),
+                        label: 'col3',
+                        measure: 75,
+                        measureFormat: undefined,
+                        value: 0.12,
+                        highlightRatio: 1.0,
+                        index: 1,
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col3", value: "75" }, { displayName: highlightName, value: "75" }],
+                        color: sliceColors[1],
+                    },
+                    {
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col2'),
+                        measure: 250,
                         measureFormat: "\$#,0;(\$#,0);\$#,0",
-                        label: 'c',
-                        value: 0.48,
+                        label: 'col2',
+                        value: 0.4,
                         highlightRatio: 1.0,
                         index: 2,
-                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$300" }, { displayName: powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName, value: "$300" }],
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$250" }, { displayName: highlightName, value: "$250" }],
+                        color: sliceColors[2],
+                    },
+                    {
+                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col3'),
+                        measure: 50,
+                        measureFormat: undefined,
+                        label: 'col3',
+                        value: 0.08,
+                        highlightRatio: 1.0,
+                        index: 2,
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col3", value: "50" }, { displayName: highlightName, value: "50" }],
                         color: sliceColors[2],
                     }
                 ].map(buildDataPoint);
@@ -20966,7 +21164,7 @@ var powerbitests;
                     ])
                 }
             };
-            var actualData = DonutChart.converter(dataView, false, donutColors);
+            var actualData = DonutChart.converter(dataView, donutColors);
             expect(actualData.dataPoints[0].data.tooltipInfo).toEqual([{ displayName: 'a', value: '1' }]);
             expect(actualData.dataPoints[1].data.tooltipInfo).toEqual([{ displayName: 'b', value: '2' }]);
             expect(actualData.dataPoints[2].data.tooltipInfo).toEqual([{ displayName: 'c', value: '3' }]);
@@ -21175,10 +21373,7 @@ var powerbitests;
             });
             setTimeout(function () {
                 expect($('.donutChart')).toBeInDOM();
-                if (interactiveChart)
-                    expect($('.donutChart .slice').length).toBe(3);
-                else
-                    expect($('.donutChart .slice').length).toBe(6);
+                expect($('.donutChart .slice').length).toBe(6);
                 done();
             }, DefaultWaitForRender);
         });
@@ -21295,6 +21490,57 @@ var powerbitests;
                     var text = $(labels[i]).text().substr(-3);
                     expect(text).toEqual('...');
                 }
+                done();
+            }, DefaultWaitForRender);
+        });
+        it('pie chart culling invisible slices validation', function (done) {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataTwoColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataTwoColumn.columns[0],
+                            values: ['a', 'b', 'c'],
+                            identity: [powerbitests.mocks.dataViewScopeIdentity('a'), powerbitests.mocks.dataViewScopeIdentity('b'), powerbitests.mocks.dataViewScopeIdentity('c')],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadataTwoColumn.columns[1],
+                            values: [100, 50, 0.000001],
+                        }])
+                    }
+                }]
+            });
+            setTimeout(function () {
+                expect($('.donutChart')).toBeInDOM();
+                expect($('.donutChart .slice').length).toBe(interactiveChart ? 3 : 2);
+                done();
+            }, DefaultWaitForRender);
+        });
+        it('pie chart culling small slices validation', function (done) {
+            spyOn(hostServices, 'setWarnings').and.callThrough();
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataTwoColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataTwoColumn.columns[0],
+                            values: ['a', 'b', 'c'],
+                            identity: [powerbitests.mocks.dataViewScopeIdentity('a'), powerbitests.mocks.dataViewScopeIdentity('b'), powerbitests.mocks.dataViewScopeIdentity('c')],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadataTwoColumn.columns[1],
+                            values: [100, 50, 0.28],
+                        }])
+                    }
+                }]
+            });
+            setTimeout(function () {
+                expect($('.donutChart')).toBeInDOM();
+                expect($('.donutChart .slice').length).toBe(interactiveChart ? 3 : 2);
+                if (!interactiveChart)
+                    expect(hostServices.setWarnings).toHaveBeenCalledWith([new powerbi.visuals.SmallSlicesCulledWarning()]);
                 done();
             }, DefaultWaitForRender);
         });
@@ -35694,6 +35940,25 @@ var powerbitests;
                 done();
             }, defaultTimeout);
         });
+        it('Validate that multiRowCard displays title with Empty values', function (done) {
+            var dataWithEmptyTitle = {
+                metadata: dataViewMetadataWithTitle,
+                table: {
+                    rows: [
+                        [null, ''],
+                        [null, 'Adventure']
+                    ],
+                    columns: dataViewMetadataWithTitle.columns
+                },
+            };
+            v.onDataChanged({ dataViews: [dataWithEmptyTitle] });
+            setTimeout(function () {
+                expect($('.card .title')).toBeInDOM();
+                expect($('.title').first().text()).toBe('');
+                expect($('.title').last().text()).toBe('Adventure');
+                done();
+            }, defaultTimeout);
+        });
         it('Validate multiRowCard last card styling on dashboard', function (done) {
             element = powerbitests.helpers.testDom('400', '400');
             v.init({
@@ -38498,12 +38763,12 @@ var powerbitests;
                 width: 500
             };
             var SelectKind = powerbi.data.SelectKind;
-            var dsrResult = { "DataShapes": [{ "Id": "DS0", "SecondaryHierarchy": [{ "Id": "DM1", "Instances": [{ "Calculations": [{ "Id": "G1", "Value": "'Canada'" }] }, { "Calculations": [{ "Id": "G1", "Value": "'United States'" }] }] }], "PrimaryHierarchy": [{ "Id": "DM0", "Instances": [{ "Calculations": [{ "Id": "G0", "Value": "2012L" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "150D" }, { "Id": "M1", "Value": "30L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "100D" }, { "Id": "M1", "Value": "300L" }] }] }, { "Calculations": [{ "Id": "G0", "Value": "2011L" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "177D" }, { "Id": "M1", "Value": "25L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "149D" }, { "Id": "M1", "Value": "250L" }] }] }, { "Calculations": [{ "Id": "G0", "Value": "2010L" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "157D" }, { "Id": "M1", "Value": "28L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "144D" }, { "Id": "M1", "Value": "280L" }] }] }] }], "IsComplete": true }] };
+            var dsrResult = { "DataShapes": [{ "Id": "DS0", "SecondaryHierarchy": [{ "Id": "DM1", "Instances": [{ "Calculations": [{ "Id": "G1", "Value": "'Canada'" }] }, { "Calculations": [{ "Id": "G1", "Value": "'United States'" }] }] }], "PrimaryHierarchy": [{ "Id": "DM0", "Instances": [{ "Calculations": [{ "Id": "G0", "Value": "datetime'2012-01-01T00:00:00'" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "150D" }, { "Id": "M1", "Value": "30L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "100D" }, { "Id": "M1", "Value": "300L" }] }] }, { "Calculations": [{ "Id": "G0", "Value": "datetime'2011-01-01T00:00:00'" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "177D" }, { "Id": "M1", "Value": "25L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "149D" }, { "Id": "M1", "Value": "250L" }] }] }, { "Calculations": [{ "Id": "G0", "Value": "datetime'2010-01-01T00:00:00'" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "157D" }, { "Id": "M1", "Value": "28L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "144D" }, { "Id": "M1", "Value": "280L" }] }] }] }], "IsComplete": true }] };
             var propertyRef1 = { Entity: 't', Property: 'p1' };
             var propertyRef2 = { Entity: 't', Property: 'p2' };
             var dataView = powerbi.data.dsr.readDsr({
                 Select: [
-                    { "Kind": 1 /* Group */, "Depth": 0, "Value": "G0", "Format": "0" },
+                    { "Kind": 1 /* Group */, "Depth": 0, "Value": "G0", "Format": "yyyy", "Type": 4 },
                     { "Kind": 2 /* Measure */, "Value": "M0", "Format": "#,0.00" },
                     { "Kind": 2 /* Measure */, "Value": "M1", "Format": "#,0" },
                     { "Kind": 1 /* Group */, "SecondaryDepth": 0, "Value": "G1" }
@@ -38529,7 +38794,7 @@ var powerbitests;
             }, dsrResult, 's').dataView;
             var colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
             var scatterChartData = ScatterChart.converter(dataView, viewport, colors).dataPoints;
-            expect(scatterChartData[0].category).toBe('2012');
+            expect(scatterChartData[0].category).toBe('1/1/2012');
             expect(scatterChartData[0].x).toBe(150);
             expect(scatterChartData[0].y).toBe(30);
             expect(scatterChartData[0].fill).toBeDefined();
@@ -38548,12 +38813,12 @@ var powerbitests;
                 width: 500
             };
             var SelectKind = powerbi.data.SelectKind;
-            var dsrResult = { "DataShapes": [{ "Id": "DS0", "SecondaryHierarchy": [{ "Id": "DM1", "Instances": [{ "Calculations": [{ "Id": "G1", "Value": "'Canada'" }] }, { "Calculations": [{ "Id": "G1", "Value": "'United States'" }] }] }], "PrimaryHierarchy": [{ "Id": "DM0", "Instances": [{ "Calculations": [{ "Id": "G0", "Value": "2012L" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "150D" }, { "Id": "M1", "Value": "30L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "100D" }, { "Id": "M1", "Value": "300L" }] }] }, { "Calculations": [{ "Id": "G0", "Value": "2011L" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "177D" }, { "Id": "M1", "Value": "25L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "149D" }, { "Id": "M1", "Value": "250L" }] }] }, { "Calculations": [{ "Id": "G0", "Value": "2010L" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "157D" }, { "Id": "M1", "Value": "28L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "144D" }, { "Id": "M1", "Value": "280L" }] }] }] }], "IsComplete": true }] };
+            var dsrResult = { "DataShapes": [{ "Id": "DS0", "SecondaryHierarchy": [{ "Id": "DM1", "Instances": [{ "Calculations": [{ "Id": "G1", "Value": "'Canada'" }] }, { "Calculations": [{ "Id": "G1", "Value": "'United States'" }] }] }], "PrimaryHierarchy": [{ "Id": "DM0", "Instances": [{ "Calculations": [{ "Id": "G0", "Value": "datetime'2012-01-01T00:00:00'" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "150D" }, { "Id": "M1", "Value": "30L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "100D" }, { "Id": "M1", "Value": "300L" }] }] }, { "Calculations": [{ "Id": "G0", "Value": "datetime'2011-01-01T00:00:00'" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "177D" }, { "Id": "M1", "Value": "25L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "149D" }, { "Id": "M1", "Value": "250L" }] }] }, { "Calculations": [{ "Id": "G0", "Value": "datetime'2010-01-01T00:00:00'" }], "Intersections": [{ "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "157D" }, { "Id": "M1", "Value": "28L" }] }, { "Id": "I0", "Calculations": [{ "Id": "M0", "Value": "144D" }, { "Id": "M1", "Value": "280L" }] }] }] }], "IsComplete": true }] };
             var propertyRef1 = { Entity: 't', Property: 'p1' };
             var propertyRef2 = { Entity: 't', Property: 'p2' };
             var dataView = powerbi.data.dsr.readDsr({
                 Select: [
-                    { "Kind": 1 /* Group */, "Depth": 0, "Value": "G0", "Format": "0" },
+                    { "Kind": 1 /* Group */, "Depth": 0, "Value": "G0", "Type": 4 },
                     { "Kind": 2 /* Measure */, "Value": "M0", "Format": "#,0.00" },
                     { "Kind": 2 /* Measure */, "Value": "M1", "Format": "#,0" },
                     { "Kind": 1 /* Group */, "SecondaryDepth": 0, "Value": "G1" }
@@ -38584,7 +38849,7 @@ var powerbitests;
                 objects: { dataPoint: { defaultColor: { solid: { color: hexDefaultColorRed } } } }
             };
             var scatterChartData = ScatterChart.converter(dataView, viewport, colors, null).dataPoints;
-            expect(scatterChartData[0].category).toBe('2012');
+            expect(scatterChartData[0].category).toBe('1/1/2012');
             expect(scatterChartData[0].x).toBe(150);
             expect(scatterChartData[0].y).toBe(30);
             expect(scatterChartData[0].fill).toBe(hexDefaultColorRed);
@@ -38602,7 +38867,7 @@ var powerbitests;
             var propertyRef2 = { Entity: 't', Property: 'p2' };
             var dataView = powerbi.data.dsr.readDsr({
                 Select: [
-                    { "Kind": 1 /* Group */, "Depth": 0, "Value": "G0", "Format": "0" },
+                    { "Kind": 1 /* Group */, "Depth": 0, "Value": "G0", "Type": 4 },
                     { "Kind": 2 /* Measure */, "Value": "M0", "Format": "#,0.00" },
                     { "Kind": 2 /* Measure */, "Value": "M1", "Format": "#,0" },
                     { "Kind": 1 /* Group */, "SecondaryDepth": 0, "Value": "G1" }
@@ -40752,6 +41017,19 @@ var powerbitests;
                 done();
             }, DefaultWaitForRender);
         });
+        it('Validate scrollposition not affected by onDataChange with the same number of categories', function (done) {
+            var listView = v['listView'];
+            var renderSpy = spyOn(listView, 'render');
+            v.onDataChanged({ dataViews: [dataView] });
+            setTimeout(function () {
+                // Initial load should reset the scrollbar
+                expect(renderSpy).toHaveBeenCalledWith(true, true);
+                v.onDataChanged({ dataViews: [dataView] });
+                // Loading the same categories should NOT reset the scrollbar
+                expect(renderSpy).toHaveBeenCalledWith(true, false);
+                done();
+            }, DefaultWaitForRender);
+        });
         it('Null dataView test', function (done) {
             v.onDataChanged({ dataViews: [] });
             setTimeout(function () {
@@ -40766,7 +41044,7 @@ var powerbitests;
             };
             v.onResizing(viewport, 100);
             setTimeout(function () {
-                expect($('.slicerContainer .slicerBody').first().css('height')).toBe('160px');
+                expect($('.slicerContainer .slicerBody').first().css('height')).toBe('177px');
                 expect($('.slicerContainer .slicerBody').first().css('width')).toBe('300px');
                 expect($('.slicerContainer .headerText').first().css('width')).toBe('271px');
                 // Next Resize
@@ -40776,7 +41054,7 @@ var powerbitests;
                 };
                 v.onResizing(viewport2, 100);
                 setTimeout(function () {
-                    expect($('.slicerContainer .slicerBody').first().css('height')).toBe('110px');
+                    expect($('.slicerContainer .slicerBody').first().css('height')).toBe('127px');
                     expect($('.slicerContainer .slicerBody').first().css('width')).toBe('150px');
                     expect($('.slicerContainer .headerText').first().css('width')).toBe('121px');
                     done();

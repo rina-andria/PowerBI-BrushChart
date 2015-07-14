@@ -80,10 +80,16 @@ module jsCommon {
          * If the string cannot be parsed successfully the return value will be null.
          */
         export function parseIsoDate(isoDate: string): Date {
-            var date = new Date(isoDate);
+            var date = new Date(isoDate),
+                timezoneOffset;
+
             if (date.toString() === 'Invalid Date') {
                 return null;
             }
+
+            timezoneOffset = date.getTimezoneOffset();
+
+            date.setMinutes(date.getMinutes() + timezoneOffset);
 
             return date;
         }

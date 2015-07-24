@@ -49,6 +49,7 @@ In order to run unit tests you will also need to do the following:
   ```
   choco install chutzpah
   ```
+1. Install [Chutzpah adapter for the Visual Studio Unit Test Explorer](https://visualstudiogallery.msdn.microsoft.com/f8741f04-bae4-4900-81c7-7c9bfb9ed1fe) to run unit tests from inside of Visual Studio.
 1. Copy the [jasmine-jquery.js](https://raw.github.com/velesin/jasmine-jquery/master/lib/jasmine-jquery.js) Jasmine Extension Library file from GitHub into the following folder on your local machine.  
   ```
   "\PowerBI-visuals\src\Clients\Externals\ThirdPartyIP\JasmineJQuery\"

@@ -58,6 +58,9 @@ module powerbi.visuals {
 
         /** Specifies the maximum number of decimal places to show*/
         precision?: number;
+
+        /** Specifies the column type of the data value */
+        columnType?: ValueType;
     }
 
     export interface IValueFormatter {
@@ -187,6 +190,8 @@ module powerbi.visuals {
 
         var MaxScaledDecimalPlaces = 2;
         var MaxValueForDisplayUnitRounding = 1000;
+        var MinIntegerValueForDisplayUnits = 10000;
+        var MinPrecisionForDisplayUnits = 2;
 
         export function getFormatMetadata(format: string): powerbi.NumberFormat.NumericFormatMetadata {
             return powerbi.NumberFormat.getCustomFormatMetadata(format);
@@ -304,6 +309,25 @@ module powerbi.visuals {
         function shouldUseNumericDisplayUnits(options: ValueFormatterOptions): boolean {
             var value = options.value;
             var value2 = options.value2;
+            var format = options.format;
+            // For singleValue visuals like card, gauge we don't want to roundoff data to the nearest thousands so format the whole number / integers below 10K to not use display units 
+            if (options.formatSingleValues && format) {
+
+                if (Math.abs(value) < MinIntegerValueForDisplayUnits) {
+
+                    var isCustomFormat = !powerbi.NumberFormat.isStandardFormat(format);
+
+                    if (isCustomFormat) {
+                        var precision = powerbi.NumberFormat.getCustomFormatMetadata(format, isCustomFormat).precision;
+
+                        if (precision < MinPrecisionForDisplayUnits)
+                            return false;
+                    }
+                    else if (Double.isInteger(value))
+                        return false;
+                }
+            }
+
             if ((typeof value === 'number') || (typeof value2 === 'number')) {
                 return true;
             }

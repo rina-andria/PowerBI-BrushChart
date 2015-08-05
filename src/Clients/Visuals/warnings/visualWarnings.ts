@@ -47,9 +47,29 @@ module powerbi.visuals {
         }
     }
 
-    export class SmallSlicesCulledWarning implements IVisualWarning {
+    export class FilledMapWithoutValidGeotagCategoryWarning implements IVisualWarning {
         public get code(): string {
-            return 'SmallSlicesCulled';
+            return 'NoValidGeotaggedCategory';
+        }
+
+        public getMessages(resourceProvider: IStringResourceProvider): IVisualErrorMessage {
+            var messageKey: string = 'NoValidGeotaggedCategoryMessage';
+            var titleKey: string = 'NoValidGeotaggedCategoryKey';
+            var detailKey: string = 'NoValidGeotaggedCategoryValue';
+
+            var visualMessage: IVisualErrorMessage = {
+                message: resourceProvider.get(messageKey),
+                title: resourceProvider.get(titleKey),
+                detail: resourceProvider.get(detailKey),
+            };
+
+            return visualMessage;
+        }
+    }
+
+    export class GeometryCulledWarning implements IVisualWarning {
+        public get code(): string {
+            return 'GeometryCulledWarning';
         }
 
         public getMessages(resourceProvider: IStringResourceProvider): IVisualErrorMessage {

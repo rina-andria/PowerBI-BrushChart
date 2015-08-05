@@ -53,6 +53,12 @@
     white-space: nowrap;
 }
 
+.preTextWithEllipsis{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space:pre;
+}
+
 .skittlesNormal {
     opacity: 0;
     border: 1px solid @neutralTertiaryColor;
@@ -177,6 +183,10 @@
     font-family: @regularFontFamily;
     overflow: hidden;
     background-color: @whiteColor;
+
+    &.fullLayout {
+        top: 0; left: 0; right: 0; bottom: 0;
+    }
 }
 
 .visualDisplayTextSubDisplayText() {

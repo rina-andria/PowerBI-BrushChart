@@ -77,6 +77,8 @@ module powerbi.visuals {
         public secondSelectableDataPoints: SelectableDataPoint[];
 
         private hasColumnChart = false;
+        private mapPointerEventsDisabled = false;
+        private mapPointerTimeoutSet = false;
 
         constructor(hostServices: IVisualHostServices) {
             debug.assertValue(hostServices, 'hostServices');
@@ -220,14 +222,11 @@ module powerbi.visuals {
         }
 
         public applySelectionStateToData(dataPoints: SelectableDataPoint[]): boolean {
-            var hasSelection = false;
             for (var i = 0, len = dataPoints.length; i < len; i++) {
                 var dataPoint = dataPoints[i];
                 dataPoint.selected = this.selectedIds.some((selectedId) => selectedId.includes(dataPoint.identity));
-                if (dataPoint.selected)
-                    hasSelection = true;
             }
-            return hasSelection;
+            return this.hasSelection();
         }
 
         /**
@@ -502,12 +501,6 @@ module powerbi.visuals {
             slices.on('click', clickHandler);
             highlightSlices.on('click', clickHandler);
 
-            slices.on('mouseover', (d: DonutArcDescriptor) => behavior.mouseOver(d.data));
-            highlightSlices.on('mouseover', (d: DonutArcDescriptor) => behavior.mouseOver(d.data));
-
-            slices.on('mouseout', (d: DonutArcDescriptor) => behavior.mouseOut(d.data));
-            highlightSlices.on('mouseout', (d: DonutArcDescriptor) => behavior.mouseOut(d.data));
-
             clearCatcher.on('click', () => {
                 this.clearSelection();
                 this.sendSelectionToHost();
@@ -710,25 +703,83 @@ module powerbi.visuals {
             var clearCatcher = options.clearCatcher;
 
             var clickHandler = (d: SelectableDataPoint, i: number) => {
+                if (bubbles)
+                    bubbles.style("pointer-events", "all");
+                if (shapes)
+                    shapes.style("pointer-events", "all");
                 this.select(d);
                 behavior.select(this.hasSelection(), bubbles, slices, shapes);
                 this.sendSelectionToHost();
             };
 
+            if (!this.mapPointerEventsDisabled) {
+                if (bubbles)
+                    bubbles.style("pointer-events", "all");
+                if (slices)
+                    slices.style("pointer-events", "all");
+                if (shapes)
+                    shapes.style("pointer-events", "all");
+            }
+
             if (bubbles) {
                 bubbles.on('click', clickHandler);
+                bubbles.on('mousewheel', () => {
+                    if (!this.mapPointerEventsDisabled)
+                        bubbles.style("pointer-events", "none");
+                    this.mapPointerEventsDisabled = true;
+                    if (!this.mapPointerTimeoutSet) {
+                        this.mapPointerTimeoutSet = true;
+                        setTimeout(() => {
+                            if (bubbles)
+                                bubbles.style("pointer-events", "all");
+                            this.mapPointerEventsDisabled = false;
+                            this.mapPointerTimeoutSet = false;
+                        }, 200);
+                    }
+                });
             }
 
             if (slices) {
                 slices.on('click', (d, i: number) => {
+                    slices.style("pointer-events", "all");
+                    this.mapPointerEventsDisabled = false;
                     this.select(d.data);
                     behavior.select(this.hasSelection(), bubbles, slices, shapes);
                     this.sendSelectionToHost();
+                });
+                slices.on('mousewheel', () => {
+                    if (!this.mapPointerEventsDisabled)
+                        slices.style("pointer-events", "none");
+                    this.mapPointerEventsDisabled = true;
+                    if (!this.mapPointerTimeoutSet) {
+                        this.mapPointerTimeoutSet = true;
+                        setTimeout(() => {
+                            if (slices)
+                                slices.style("pointer-events", "all");
+                            this.mapPointerEventsDisabled = false;
+                            this.mapPointerTimeoutSet = false;
+                        }, 200);
+                    }
                 });
             }
 
             if (shapes) {
                 shapes.on('click', clickHandler);
+                shapes.on('mousewheel', () => {
+                    if (!this.mapPointerEventsDisabled) {
+                        shapes.style("pointer-events", "none");
+                    }
+                    this.mapPointerEventsDisabled = true;
+                    if (!this.mapPointerTimeoutSet) {
+                        this.mapPointerTimeoutSet = true;
+                        setTimeout(() => {
+                            if (shapes)
+                                shapes.style("pointer-events", "all");
+                            this.mapPointerEventsDisabled = false;
+                            this.mapPointerTimeoutSet = false;
+                        }, 200);
+                    }
+                });
             }
 
             clearCatcher.on('click', () => {
@@ -855,11 +906,10 @@ module powerbi.visuals {
 
                 behavior.setOptions(options);
 
-                this
-                    .makeDataPointsSelectable(options.dataPointsSelection)
-                    .makeRootSelectable(options.root)
-                    .makeDragable(options.root)
-                    .makeDragable(options.background);
+                this.makeDataPointsSelectable(options.dataPointsSelection);
+                this.makeRootSelectable(options.root);
+                this.makeDragable(options.root);
+                this.makeDragable(options.background);
 
                 behavior.selectRoot();
             }

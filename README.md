@@ -5,7 +5,7 @@ The Microsoft Power BI visuals project provides high quality data visualizations
 ## What is included
 
 1. `src` folder contains the project source code for your experiments and if you will desire to create a new visual.
-2. `src\Clients\PowerBIVisualsPlayground` is a sample application which could be used to try the existing visualization types or as an example how to run visuals you create.
+2. `src\Clients\PowerBIVisualsPlayground\index.html` is a sample application which could be used to try the existing visualization types or as an example how to run visuals you create.
 
 ## How to Engage, Contribute and Provide Feedback
 
@@ -33,27 +33,17 @@ In the meantime, you can contribute to Power BI visuals in a few different ways:
 To build the library and run the sample application you will need:
 
 - A Windows 8.1 or Windows 10 64-bit machine with at least 4 GB of RAM
-- [Visual Studio Community 2013](https://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx) (Free for use)
+- [Visual Studio Community 2015](https://www.visualstudio.com/vs-2015-product-editions) (Free for use)
  -  Be sure to install the "Microsoft Web Developer Tools" optional feature. To install, go to Add/Remove Programs, right-click on Visual Studio, select Change, then Modify. Check the "Microsoft Web Developer Tools" checkbox and finish the install.
-- [TypeScript 1.4 for Visual Studio 2013](https://visualstudiogallery.msdn.microsoft.com/2d42d8dc-e085-45eb-a30b-3f7d50d55304)
 - [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git#Installing-on-Windows)
 - [Node.js](https://nodejs.org/download/)
 
 In order to run unit tests you will also need to do the following:
 
-1. Install [Chocolatey](http://chocolatey.org) (A Machine Package Manager)
- * Make sure you open your command prompt as Administrator when you install Chocolatey.
-1. Install [Chutzpah](https://github.com/mmanela/chutzpah) (A JavaScript Test Runner)
- * Open a command prompt as Administrator and execute the following command. Type 'yes' and hit Enter when prompted to install it.
+1. Install [PhantomJS](http://phantomjs.org/) (PhantomJS is a headless WebKit scriptable with a JavaScript API. It has fast and native support for various web standards: DOM handling, CSS selector, JSON, Canvas, and SVG.)
+ * Make sure it's running from command line typing 'phantomjs'. If it's not then you need to update your system PATH variable and add the path to phantomjs.exe file.
 
-  ```
-  choco install chutzpah
-  ```
-1. Install [Chutzpah adapter for the Visual Studio Unit Test Explorer](https://visualstudiogallery.msdn.microsoft.com/f8741f04-bae4-4900-81c7-7c9bfb9ed1fe) to run unit tests from inside of Visual Studio.
-1. Copy the [jasmine-jquery.js](https://raw.github.com/velesin/jasmine-jquery/master/lib/jasmine-jquery.js) Jasmine Extension Library file from GitHub into the following folder on your local machine.  
-  ```
-  "\PowerBI-visuals\src\Clients\Externals\ThirdPartyIP\JasmineJQuery\"
-  ```
+2. Copy the [jasmine-jquery.js](https://raw.github.com/velesin/jasmine-jquery/master/lib/jasmine-jquery.js) Jasmine Extension Library file from GitHub into the following folder on your local machine "[PowerBIVisuals folder]\src\Clients\Externals\ThirdPartyIP\JasmineJQuery\" 
 
 ### Build Power BI visuals
 
@@ -74,18 +64,24 @@ cd PowerBI-visuals
 Install dev dependencies:
 
 ```
-npm install
+npm install  				# This command will install Gulp and all necessary modules
 ```
 
 Use the following commands to build and test:
 ```
-npm run build                               # Build Power BI visuals into `build` folder
-npm test                                    # Run unit tests (requires 'Chutzpah', see Prerequisites above)
+gulp build                               # Build Power BI visuals into `build` folder
+gulp test                                # Run unit tests (requires 'PhantomJS', see Prerequisites above)
 ```
 
 ### Run Sample App
 
-To run sample app open `src\PowerBIVisualsClient.sln` in Visual Studio and then run *PowerBIVisualsPlayground* project.
+To run sample app:
+
+1. Open `src\PowerBIClients.VS2015.sln` in Visual Studio then open src\Clients\PowerBIVisualsPlayground\, right click on index.html file and select 'Set As Start Page'.
+
+1. Right click on the project root folder then select 'Property Pages'. In the window opened select 'Build' and then in 'Before running startup page' select 'No Build'.
+
+1. Run.
 
 ### Copyrights
 

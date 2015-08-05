@@ -25,30 +25,29 @@
  */
 
 module powerbi.visuals {
-    export interface ColumnChartAnimationOptions {
+    export interface ColumnChartAnimationOptions extends IAnimationOptions {
         viewModel: ColumnChartData;
         series: D3.UpdateSelection;
         layout: IColumnLayout;
         itemCS: ClassAndSelector;
-        interactivityService: IInteractivityService;
         labelGraphicsContext: D3.Selection;
         labelLayout: ILabelLayout; 
         viewPort: IViewport;
     }
 
-    export interface ColumnChartAnimationResult {
-        failed: boolean;
+    export interface ColumnChartAnimationResult extends IAnimationResult {
         shapes: D3.UpdateSelection;
         dataLabels: D3.UpdateSelection;
     }
 
-    export interface IColumnChartAnimator {
-        animate(options: ColumnChartAnimationOptions): ColumnChartAnimationResult;
-    }
+    export type IColumnChartAnimator = Animator<IAnimatorOptions, ColumnChartAnimationOptions, ColumnChartAnimationResult>;
 
-    export class WebColumnChartAnimator implements IColumnChartAnimator {
+    export class WebColumnChartAnimator extends Animator<IAnimatorOptions, ColumnChartAnimationOptions, ColumnChartAnimationResult> implements IColumnChartAnimator {
         private previousViewModel: ColumnChartData;
-        private animationDuration: number = AnimatorCommon.MinervaAnimationDuration;
+
+        constructor(options?: IAnimatorOptions) {
+            super(options);
+        }
 
         public animate(options: ColumnChartAnimationOptions): ColumnChartAnimationResult {
             var result: ColumnChartAnimationResult = {

@@ -23,6 +23,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
+///<reference path="externals.d.ts"/>
+///<reference path="powerbi-visuals.d.ts"/>
+///<reference path="sampledata.ts"/>
 
 interface JQuery {
     // Demonstrates how Power BI visual creation could be implemented as jQuery plugin
@@ -136,15 +139,60 @@ module powerbi.visuals {
                 typeSelect.change(() => this.onVisualTypeSelection(typeSelect.val()));
         }
 
+
+        private static createOptionsSelect(pluginName: string, options: any): JQuery {
+            var typeSelect = $('<select>');
+
+            for (var i = 0; i < options.values.length; i++) {
+                var item = options.values[i];
+                typeSelect.append('<option ' + ((item.default) ? 'selected="selected"' : '') + '"value="' + item.value + '">' + item.displayName + '</option>');
+            }
+
+            typeSelect.change(() => this.createVisualPlugin(pluginName, {
+                                    name: options.name,
+                                    value: typeSelect.val()
+                                }));
+
+            return typeSelect;
+        }
+
+
+        private static populateVisualOptions(pluginName: string, options: any[]): void {
+
+            var optionsContainer = $('#optionsContainer');
+                        
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].type === "select") {
+                    var content: JQuery = this.createOptionsSelect(pluginName, options[i]);
+
+                    optionsContainer.append($("<span>Choose number of columns:</span>"));
+                    optionsContainer.append(content);
+                }
+            }
+        }
+
+
         private static onVisualTypeSelection(pluginName: string): void {
-            
-            $('#itemContainer').empty();
+            $('#itemContainer, #optionsContainer').empty();
             if (pluginName.length == 0) return;
-            var plugin = this.pluginService.getPlugin(pluginName);
-            if (!plugin) { $('#container').html('<div class="wrongVisualWarning">Wrong visual name <span>\'' + pluginName + '\'</span> in parameters</div>'); return;}
-            var sampleDataView = sampleData.getVisualizationData(pluginName);
-            $('#itemContainer').visual(plugin, sampleDataView);
+
+            var sampleOptions = sampleData.getVisualizationOptions(pluginName);
+            if (sampleOptions.length > 0) {
+                this.populateVisualOptions(pluginName, sampleOptions);
+            }
+
+            this.createVisualPlugin(pluginName);
         }        
+
+        private static createVisualPlugin(pluginName: string, options?: any): void {
+
+            var plugin = this.pluginService.getPlugin(pluginName);
+            if (!plugin) {
+                $('#container').html('<div class="wrongVisualWarning">Wrong visual name <span>\'' + pluginName + '\'</span> in parameters</div>'); return;
+            }
+            var sampleDataView = sampleData.getVisualizationData(pluginName, options);
+            $('#itemContainer').visual(plugin, sampleDataView);
+        }
     }   
 }
 

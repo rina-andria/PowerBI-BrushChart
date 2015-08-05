@@ -46,6 +46,7 @@
             .sprite(@slicer-checkbox);
             opacity: 0.5;
             margin-right: 5px;
+            vertical-align: middle;
         }
 
         &:hover span::before {
@@ -68,9 +69,11 @@
         color: @neutralPrimaryColor;
         font-size: 14px;
         text-overflow: ellipsis;
-        display: inline-block;
+        display: block;
         overflow: hidden;
         white-space: nowrap;
+        width: auto;
+        float: none;
     }
     .slicerItemContainer {
         // This is referred in slicer.ts to calculate total item height. Any changes to these values should also be updated in the ts file
@@ -81,9 +84,10 @@
         font-size: 14px;
         text-overflow: ellipsis;
         display: inline-block;
-        overflow-x: hidden;
+        overflow: hidden;
         white-space: nowrap;
         line-height: 1.2;
+        cursor: pointer;
     }
     .clear {
         .sprite(@slicer-reset);
@@ -95,6 +99,16 @@
 }
 
 .visual svg {
+        &.legend {
+        .navArrow{
+            fill: @neutralPrimaryColor;
+            cursor: pointer;
+            /* stroke enabled for a bigger click target, but smaller visible arrow size */
+            stroke: @whiteColor;
+            stroke-width: 2px;
+        }
+    }
+
     .showLinesOnAxis {
         path {
             display: none;
@@ -105,6 +119,10 @@
                 stroke: @chartAxisGridLineColor;
                 stroke-width: 1px;
                 padding-left: 10px;
+
+                &.zero-line {
+                    stroke: @neutralTertiaryColor;
+                }
             }
         }
     }
@@ -544,7 +562,6 @@
 
         .bi-table-cell-numeric {
             text-align: right;
-            padding: 0px 0px 0px 10px;
         }
 
         .bi-table-row {
@@ -592,6 +609,13 @@
             padding: 0px 0px 0px 0px;
         }
 
+        .bi-tablix-row-header-toplevel-static-leaf {
+            border-right-width: 1px;
+            border-right-color: #CCCCCC;
+            border-right-style: solid;
+            padding: 0px 5px 0px 10px;
+        }
+
         .bi-tablix-column-header-leaf {
             border-bottom-width: 1px;
             border-bottom-color: #CCCCCC;
@@ -612,7 +636,7 @@
         }
 
         .total {
-            font-weight: bold;
+            font-family: @boldFontFamily;
         }
 
         .scroll-bar-div {
@@ -696,7 +720,6 @@
 
         .bi-table-cell-numeric {
             text-align: right;
-            padding: 0px 0px 0px 10px;
         }
 
         .bi-table-row {
@@ -720,14 +743,15 @@
             border-top-width: 1pt;
             border-top-style: solid;
             border-top-color: #CCCCCC;
-            font-family: @semiboldFontFamily;
+            font-family: @regularFontFamily;
+            font-weight: bold;
             color: @neutralPrimaryColor;
             font-size: 11px;
             padding: 0px 5px 0px 10px;
         }
 
         .bi-tablix-header {
-            padding: 0px 0px 0px 0px;
+            padding: 0px 5px 0px 10px;
         }
 
         .bi-tablix-row-header-leaf {
@@ -742,6 +766,13 @@
             border-right-color: #CCCCCC;
             border-right-style: solid;
             padding: 0px 0px 0px 0px;
+        }
+
+        .bi-tablix-row-header-toplevel-static-leaf {
+            border-right-width: 1px;
+            border-right-color: #CCCCCC;
+            border-right-style: solid;
+            padding: 0px 5px 0px 10px;
         }
 
         .bi-tablix-column-header-leaf {
@@ -761,6 +792,7 @@
 
         .total {
             font-weight: bold;
+            font-family: @regularFontFamily;
         }
     }
 }
@@ -974,7 +1006,7 @@
 .data-labels {
     font-size: 12px;
     text-anchor: middle;
-    font-family: @semiboldFontFamily;
+    font-family: @regularSecondaryFontFamily;
     /* Enables tooltip when hovering on data label inside visual */
     pointer-events: none;
 }
@@ -984,10 +1016,11 @@
 
     .ql-container {
         padding: 0px;
+        cursor: auto;
     }
 
     .ql-editor {
-        padding: 10px;
+        line-height: normal;
     }
 }
 
@@ -1051,11 +1084,19 @@ div.ql-toolbar {
         .sprite(@left-align-text-black);
     }
 
+    .ql-format-button[data-value="left"]:hover {
+        .sprite(@left-align-text-black);
+    }
+
     .ql-format-button[data-value="right"] {
         .sprite(@right-align-text-white);
     }
 
     .ql-format-button[data-value="right"].ql-active {
+        .sprite(@right-align-text-black);
+    }
+
+    .ql-format-button[data-value="right"]:hover {
         .sprite(@right-align-text-black);
     }
 
@@ -1067,11 +1108,19 @@ div.ql-toolbar {
         .sprite(@center-align-text-black);
     }
 
+    .ql-format-button[data-value="center"]:hover {
+        .sprite(@center-align-text-black);
+    }
+
     .ql-format-button.ql-bold {
         .sprite(@bold-text-white);
     }
 
     .ql-format-button.ql-bold.ql-active {
+        .sprite(@bold-text-black);
+    }
+
+    .ql-format-button.ql-bold:hover {
         .sprite(@bold-text-black);
     }
 
@@ -1083,6 +1132,10 @@ div.ql-toolbar {
         .sprite(@italic-text-black);
     }
 
+    .ql-format-button.ql-italic:hover {
+        .sprite(@italic-text-black);
+    }
+
     .ql-format-button.ql-underline {
         .sprite(@underline-text-white);
     }
@@ -1090,12 +1143,17 @@ div.ql-toolbar {
     .ql-format-button.ql-underline.ql-active {
         .sprite(@underline-text-black);
     }
+
+    .ql-format-button.ql-underline:hover {
+        .sprite(@underline-text-black);
+    }
 }
 
 .multiRowCard {
     .card {
         .title {
-            font-size: 28px;
+            // Update the title height in multiRowCard.ts when the font size is updated
+            font-size: 18px;
             font-family: @semiboldFontFamily;   
             white-space: nowrap;    
             text-overflow: ellipsis;   

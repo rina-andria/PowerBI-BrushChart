@@ -23,6 +23,30 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
+///<reference path="visuals/animatedNumber.ts"/>
+///<reference path="cartesian/lineChart.ts"/>
+///<reference path="cartesian/columnChart.ts"/>
+///<reference path="visuals/card.ts"/>
+///<reference path="visuals/multiRowCard.ts"/>
+///<reference path="cartesian/comboChart.ts"/>
+///<reference path="cartesian/dataDotChart.ts"/>
+///<reference path="visuals/gauge.ts"/>
+///<reference path="visuals/imageVisual.ts"/>
+///<reference path="visuals/table.ts"/>
+///<reference path="visuals/matrix.ts"/>
+///<reference path="visuals/richTextbox.ts"/>
+///<reference path="visuals/sampleVisual.ts"/>
+
+///<reference path="capabilities/columnChart.capabilities.ts"/>
+///<reference path="capabilities/donutChart.capabilities.ts"/>
+///<reference path="capabilities/filledMap.capabilities.ts"/>
+///<reference path="capabilities/funnelChart.capabilities.ts"/>
+///<reference path="capabilities/lineChart.capabilities.ts"/>
+///<reference path="capabilities/map.capabilities.ts"/>
+///<reference path="capabilities/scatterChart.capabilities.ts"/>
+///<reference path="capabilities/slicer.capabilities.ts"/>
+///<reference path="capabilities/treemap.capabilities.ts"/>
+///<reference path="capabilities/waterfallChart.capabilities.ts"/>
 
 module powerbi.visuals.plugins {
     // This file registers the built-in visualizations
@@ -98,7 +122,7 @@ module powerbi.visuals.plugins {
         capabilities: ComboChart.capabilities,
         create: () => new CartesianChart({ chartType: CartesianChartType.ComboChart })
     };
-    
+
     export var dataDotChart: IVisualPlugin = {
         name: 'dataDotChart',
         capabilities: DataDotChart.capabilities,
@@ -198,7 +222,7 @@ module powerbi.visuals.plugins {
 
     export var filledMap: IVisualPlugin = {
         name: 'filledMap',
-        watermarkKey: 'map',
+        watermarkKey: 'filledMap',
         capabilities: filledMapCapabilities,
         create: () => new Map({ filledMap: true })
     };

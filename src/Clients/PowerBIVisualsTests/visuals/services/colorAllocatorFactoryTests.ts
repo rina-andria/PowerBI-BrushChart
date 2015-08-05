@@ -69,7 +69,7 @@ module powerbitests {
                 min: { value: 100, color: '#ff0000' },
                 mid: { value: 150, color: '#ffffff' },
                 max: { value: 200, color: '#0000ff' },
-            });
+            }, false);
 
             expect(colorer.color(100)).toBe('#ff0000');
         });
@@ -79,7 +79,7 @@ module powerbitests {
                 min: { value: 100, color: '#ff0000' },
                 mid: { value: 150, color: '#ffffff' },
                 max: { value: 200, color: '#0000ff' },
-            });
+            }, false);
 
             expect(colorer.color(200)).toBe('#0000ff');
         });
@@ -89,7 +89,7 @@ module powerbitests {
                 min: { value: 100, color: '#ff0000' },
                 mid: { value: 170, color: '#ffffff' },
                 max: { value: 200, color: '#0000ff' },
-            });
+            }, false);
 
             expect(colorer.color(170)).toBe('#ffffff');
         });
@@ -99,7 +99,7 @@ module powerbitests {
                 min: { value: 100, color: '#ff0000' },
                 mid: { value: 176, color: '#ffffff' },
                 max: { value: 200, color: '#0000ff' },
-            });
+            }, false);
 
             expect(colorer.color(178)).toBe('#eaeaff');
         });
@@ -109,7 +109,7 @@ module powerbitests {
                 min: { value: 100, color: '#ff0000' },
                 mid: { value: 176, color: '#ffffff' },
                 max: { value: 200, color: '#0000ff' },
-            });
+            }, false);
 
             expect(colorer.color(170)).toBe('#ffebeb');
         });
@@ -129,10 +129,24 @@ module powerbitests {
                 min: { value: 100, color: '#ff0000' },
                 mid: { value: 150, color: '#ffffff' },
                 max: { value: 200, color: '#008000' },
-            });
+            }, false);
 
             expect(colorer.color(0)).toBe('#ff0000');
             expect(colorer.color(300)).toBe('#008000');
+        });
+
+        it('LinearGradient3: splitted scales',() => {
+            var colorer = visuals.createColorAllocatorFactory().linearGradient3({
+                min: { value: -50, color: '#ffff00' },
+                mid: { value: 0, color: '#ffffff' },
+                max: { value: 2000, color: '#0000ff' },
+            }, true);
+
+            expect(colorer.color(-50)).toBe('#ffff00');
+            expect(colorer.color(-25)).toBe('#ffff80');
+            expect(colorer.color(0)).toBe('#ffffff');
+            expect(colorer.color(1000)).toBe('#8080ff');
+            expect(colorer.color(2000)).toBe('#0000ff');
         });
     });
 }

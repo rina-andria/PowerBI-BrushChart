@@ -27,12 +27,16 @@
 module powerbitests {
     import DataViewTransform = powerbi.data.DataViewTransform;
     import FunnelChart = powerbi.visuals.FunnelChart;
-    import DataShapeUtility = powerbi.data.dsr.DataShapeUtility;
-    import SemanticType = powerbi.data.SemanticType;
+    import ValueType = powerbi.ValueType;
+    import PrimitiveType = powerbi.PrimitiveType;
     import EventType = powerbitests.helpers.ClickEventType;
     import SelectionId = powerbi.visuals.SelectionId;
+    import ColorConvertor = powerbitests.utils.ColorUtility.convertFromRGBorHexToHex;
 
-    var DefaultRenderTime = 10;
+    var labelColor = powerbi.visuals.dataLabelUtils.defaultLabelColor;
+    var defaultInsideLabelColor = '#ffffff';
+
+    powerbitests.mocks.setLocale();
 
     describe("FunnelChart", () => {
 
@@ -61,7 +65,6 @@ module powerbitests {
         var colors: powerbi.IDataColorPalette;
 
         beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
             colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
         });
 
@@ -103,11 +106,11 @@ module powerbitests {
             var actualData = FunnelChart.converter(dataView, colors);
 
             expect(actualData.slices[0].color).toBe("#FF0000");
-            expect(actualData.slices[0].labelFill).toBe("#FF0000");
+            expect(actualData.slices[0].labelFill).toBe(labelColor);
             expect(actualData.slices[1].color).toBe("#00FF00");
-            expect(actualData.slices[1].labelFill).toBe("#00FF00");
+            expect(actualData.slices[1].labelFill).toBe(labelColor);
             expect(actualData.slices[2].color).toBe("#0000FF");
-            expect(actualData.slices[2].labelFill).toBe("#0000FF");
+            expect(actualData.slices[2].labelFill).toBe(labelColor);
         });
 
         it('Check default color is applied',() => {
@@ -138,7 +141,7 @@ module powerbitests {
 
             actualData.slices.forEach(slice => {
                 expect(slice.color).toEqual(defaultDataPointColor);
-                expect(slice.labelFill).toEqual(defaultDataPointColor);
+                expect(slice.labelFill).toEqual(labelColor);
             });
         });
 
@@ -180,7 +183,7 @@ module powerbitests {
                         categoryOrMeasureIndex: 0,
                         tooltipInfo: [{ displayName: "col2", value: "100" }],
                         color: "#FF0000",
-                        labelFill: "#FF0000",
+                        labelFill: labelColor,
                     }, {
                         value: 300,
                         label: 'col3',
@@ -190,11 +193,12 @@ module powerbitests {
                         categoryOrMeasureIndex: 1,
                         tooltipInfo: [{ displayName: "col2", value: "300" }],
                         color: "#00FF00",
-                        labelFill: "#00FF00",
+                        labelFill: labelColor,
                     }],
                 valuesMetadata: [dataViewMetadata.columns[0], dataViewMetadata.columns[1]],
                 hasHighlights: false,
                 highlightsOverflow: false,
+                canShowDataLabels: true,
                 dataLabelsSettings: powerbi.visuals.dataLabelUtils.getDefaultFunnelLabelSettings(),
             };
             expect(actualData).toEqual(expectedData);
@@ -227,7 +231,7 @@ module powerbitests {
                 SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
                 SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
                 SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col2')];
-            var sliceColor = colors.getColor('').value;
+            var sliceColor = colors.getColorByIndex(0).value;
 
             var expectedData: powerbi.visuals.FunnelData = {
                 slices: [
@@ -240,7 +244,7 @@ module powerbitests {
                         categoryOrMeasureIndex: 0,
                         tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "100" }],
                         color: sliceColor,
-                        labelFill: sliceColor,
+                        labelFill: labelColor,
                     }, {
                         value: 200,
                         label: 'b',
@@ -250,7 +254,7 @@ module powerbitests {
                         categoryOrMeasureIndex: 1,
                         tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "200" }],
                         color: sliceColor,
-                        labelFill: sliceColor,
+                        labelFill: labelColor,
                     }, {
                         value: 700,
                         label: 'c',
@@ -260,12 +264,13 @@ module powerbitests {
                         categoryOrMeasureIndex: 2,
                         tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "700" }],
                         color: sliceColor,
-                        labelFill: sliceColor,
+                        labelFill: labelColor,
                     }],
 
                 valuesMetadata: [dataViewMetadata.columns[1]],
                 hasHighlights: false,
                 highlightsOverflow: false,
+                canShowDataLabels: true,
                 dataLabelsSettings: powerbi.visuals.dataLabelUtils.getDefaultFunnelLabelSettings(),
             };
             expect(actualData).toEqual(expectedData);
@@ -351,7 +356,7 @@ module powerbitests {
                 SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
                 SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
             ];
-            var sliceColor = colors.getColor('').value;
+            var sliceColor = colors.getColorByIndex(0).value;
 
             var expectedData: powerbi.visuals.FunnelData = {
                 slices: [
@@ -364,7 +369,7 @@ module powerbitests {
                         key: selectionIds[0].getKey(),
                         tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "400" }],
                         color: sliceColor,
-                        labelFill: sliceColor,
+                        labelFill: labelColor,
                     }, {
                         value: 700,
                         label: 'b',
@@ -374,11 +379,12 @@ module powerbitests {
                         key: selectionIds[1].getKey(),
                         tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "700" }],
                         color: sliceColor,
-                        labelFill: sliceColor,
+                        labelFill: labelColor,
                     }],
                 valuesMetadata: [dataViewMetadata.columns[1], dataViewMetadata.columns[2]],
                 hasHighlights: false,
                 highlightsOverflow: false,
+                canShowDataLabels: true,
                 dataLabelsSettings: powerbi.visuals.dataLabelUtils.getDefaultFunnelLabelSettings(),
 
             };
@@ -414,7 +420,7 @@ module powerbitests {
             var selectionIds: SelectionId[] = [
                 SelectionId.createWithMeasure("col2"),
                 SelectionId.createWithMeasure("col3")];
-            var sliceColor = colors.getColor('').value;
+            var sliceColor = colors.getColorByIndex(0).value;
 
             var expectedData: powerbi.visuals.FunnelData = {
                 slices: [
@@ -427,7 +433,7 @@ module powerbitests {
                         categoryOrMeasureIndex: 0,
                         tooltipInfo: [{ displayName: "col2", value: "600" }],
                         color: sliceColor,
-                        labelFill: sliceColor,
+                        labelFill: labelColor,
                     }, {
                         value: 600,
                         label: 'col3',
@@ -437,11 +443,12 @@ module powerbitests {
                         categoryOrMeasureIndex: 1,
                         tooltipInfo: [{ displayName: "col2", value: "600" }],
                         color: sliceColor,
-                        labelFill: sliceColor,
+                        labelFill: labelColor,
                     }],
                 valuesMetadata: [dataViewMetadata.columns[1], dataViewMetadata.columns[2]],
                 hasHighlights: false,
                 highlightsOverflow: false,
+                canShowDataLabels: true,
                 dataLabelsSettings: powerbi.visuals.dataLabelUtils.getDefaultFunnelLabelSettings(),
             };
             expect(actualData).toEqual(expectedData);
@@ -450,9 +457,9 @@ module powerbitests {
         it('non-categorical multi-measure tooltip values test',() => {
             var dataViewMetadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'a', isMeasure: true },
-                    { displayName: 'b', isMeasure: true },
-                    { displayName: 'c', isMeasure: true }
+                    { displayName: 'a', queryName: 'a', isMeasure: true },
+                    { displayName: 'b', queryName: 'b', isMeasure: true },
+                    { displayName: 'c', queryName: 'c', isMeasure: true }
                 ]
             };
 
@@ -489,11 +496,11 @@ module powerbitests {
         var hostServices: powerbi.IVisualHostServices;
         var dataViewMetadataCategorySeriesColumns: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'Squad', properties: { "Category": true }, type: DataShapeUtility.describeDataType(SemanticType.String) },
-                { displayName: 'Period', properties: { "Series": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                { displayName: null, groupName: '201501', isMeasure: true, properties: { "Values": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                { displayName: null, groupName: '201502', isMeasure: true, properties: { "Values": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                { displayName: null, groupName: '201503', isMeasure: true, properties: { "Values": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) }
+                { displayName: 'Squad', properties: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                { displayName: 'Period', properties: { "Series": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+                { displayName: null, groupName: '201501', isMeasure: true, properties: { "Values": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+                { displayName: null, groupName: '201502', isMeasure: true, properties: { "Values": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+                { displayName: null, groupName: '201503', isMeasure: true, properties: { "Values": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }
             ]
         };
         var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'Squad' });
@@ -673,7 +680,8 @@ module powerbitests {
             });
         });
 
-        it('funnel chart category multi-select', (done) => {
+        it('funnel chart category multi-select',(done) => {
+            //powerbitests.mocks.setLocale();
             v.onDataChanged(interactiveDataViewOptions);
 
             setTimeout(() => {
@@ -689,30 +697,24 @@ module powerbitests {
                     {
                         data: [
                             {
-                                data: [interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]]
+                                data: [interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]],                    
                             }
                         ]
                     });
-
+                
                 (<any>bars.last()).d3Click(0, 0, EventType.CtrlKey);
 
-                expect(bars[0].style.fillOpacity).toBe(DefaultOpacity);
+                //expect(bars[0].style.fillOpacity).toBe(DefaultOpacity);
                 expect(bars[1].style.fillOpacity).toBe(DefaultOpacity);
                 expect(hostServices.onSelect).toHaveBeenCalledWith(
-                    {
+                {
                         data: [
                             {
-                                data: [
-                                    interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0],
-                                ],
-                            }, {
-                                data: [
-                                    interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[1],
-                                ]
-                            }
+                                data: [interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]],
+                            },
                         ]
                     });
-
+                
                 done();
             });
         });
@@ -798,15 +800,6 @@ module powerbitests {
         };
         var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'col1' });
 
-        // because of different representations of the color (rgb, hex), "going through" the browser and getting its adjusted color value
-        function adjustColor(colorToAdjust) {
-            var dummy = $('<div/>');
-
-            // Set the color of the div to the color, and read it back.
-            $(dummy).css('color', colorToAdjust);
-            return $(dummy).css('color');
-        }
-
         beforeEach(() => {
             element = powerbitests.helpers.testDom('500', '500');
             v = powerbi.visuals.visualPluginFactory.create().getPlugin('funnel').create();
@@ -852,7 +845,7 @@ module powerbitests {
                 expect($('.funnelChart .innerTextGroup').find('text').length).toBe(3);
                 expect($('.funnelChart .innerTextGroup').find('text').first().text()).toBe('$100');
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Funnel partial highlight', (done) => {
@@ -891,7 +884,7 @@ module powerbitests {
                     .toBeGreaterThan(+$('.funnelBar')[0].attributes.getNamedItem('y').value);
                 expect($('.funnelChart .axis').find('text').length).toBe(3);
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Funnel partial highlight with overflow', (done) => {
@@ -930,7 +923,7 @@ module powerbitests {
                     .toBeLessThan(+$('.funnelBar')[0].attributes.getNamedItem('y').value);
                 expect($('.funnelChart .axis').find('text').length).toBe(3);
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Ensure Max Width is respected', (done) => {
@@ -960,7 +953,7 @@ module powerbitests {
                 var rect = $('.funnelChart').find('.funnelBar').first();
                 expect(rect.attr('width')).toBeLessThan(40);
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Ensure Labels that do not fit in the bar are shown outside and are the bar fill color', (done) => {
@@ -1004,19 +997,19 @@ module powerbitests {
                 expect($(labels[1]).attr('x')).not.toEqual($(labels[2]).attr('x'));
 
                 // Check that the first label is inside and white
-                expect(adjustColor($(labels[0]).css('fill'))).toEqual(adjustColor('#FFFFFF'));
+                expect(ColorConvertor($(labels[0]).css('fill'))).toEqual(defaultInsideLabelColor);
                 expect($(labels[0]).attr('x')).toBeGreaterThan(firstBarY + translate);
                 expect($(labels[0]).attr('x')).toBeLessThan(firstBarY + firstBarHeight + translate);
 
                 // Check that the last label is outside and equal to fill color
-                expect(adjustColor($(labels[2]).css('fill'))).toEqual(adjustColor($('.funnelChart').find('.funnelBar').eq(2).css('fill')));
+                expect(ColorConvertor($(labels[2]).css('fill'))).toEqual(ColorConvertor(labelColor));
                 expect($(labels[2]).attr('x')).toBeGreaterThan(lastBarY + lastBarHeight + translate);
 
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
-        it('Ensure Labels hide when viewport forces bars to be smaller than min hight', (done) => {
+        it('Ensure Labels hide when viewport forces bars to be smaller than min height', (done) => {
             var dataView: powerbi.DataView = {
                 metadata: dataViewMetadata,
                 categorical: {
@@ -1045,14 +1038,14 @@ module powerbitests {
                 expect($('.funnelChart g').length).toBe(9);
                 expect($('.funnelChart .axis').find('text').length).toBe(6);
                 expect($('.funnelChart .innerTextGroup text').length).toBe(6);
-                v.onResizing({ height: 50, width: 100 }, 0);
+                v.onResizing({ height: 50, width: 100 });
                 setTimeout(() => {
                     expect($('.funnelChart g').length).toBe(3);
                     expect($('.funnelChart .axis').find('text').length).toBe(0);
                     expect($('.funnelChart .innerTextGroup text').length).toBe(0);
                     done();
-                }, DefaultRenderTime);
-            }, DefaultRenderTime);
+                }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
         });
 
         it('Default labels validation', (done) => {
@@ -1094,8 +1087,8 @@ module powerbitests {
                 var lastBarHeight = +$('.funnelChart').find('.funnelBar').last().attr('height');
 
                 expect(labels.length).toBe(3);
-                expect(adjustColor($(labels[0]).css('fill'))).toEqual(adjustColor('#FFFFFF'));
-                expect(adjustColor($(labels[2]).css('fill'))).toEqual(adjustColor($('.funnelChart').find('.funnelBar').last().css('fill')));
+                expect(ColorConvertor($(labels[0]).css('fill'))).toEqual(defaultInsideLabelColor);
+                expect(ColorConvertor($(labels[2]).css('fill'))).toEqual(labelColor);
                 expect($(labels[0]).css('fill-opacity')).toEqual('1');
                 expect($(labels[1]).css('fill-opacity')).toEqual('1');
                 expect($(labels[2]).css('fill-opacity')).toEqual('1');
@@ -1110,7 +1103,7 @@ module powerbitests {
                 expect($(labels[2]).attr('x')).toBeGreaterThan(lastBarY + lastBarHeight);
 
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Validate label colors and positioning', (done) => {
@@ -1147,21 +1140,21 @@ module powerbitests {
                 var firstBarHeight = +$('.funnelChart').find('.funnelBar').first().attr('height');
 
                 // The first label should be white and should be inside the bar.
-                expect($(labels[0]).text()).toEqual('$2000');
-                expect(adjustColor($(labels[0]).css('fill'))).toEqual(adjustColor('#FFFFFF'));
+                expect($(labels[0]).text()).toEqual('$2K');
+                expect(ColorConvertor($(labels[0]).css('fill'))).toEqual(defaultInsideLabelColor);
                 expect($(labels[0]).attr('x')).toBeGreaterThan(firstBarY + translate);
                 expect($(labels[0]).attr('x')).toBeLessThan(firstBarY + firstBarHeight + translate);
 
                 // The third label should be the same as the fill color and should be outside the bar.
                 var thirdBarY = +$('.funnelChart').find('.funnelBar').eq(2).attr('y');
                 var thirdBarHeight = +$('.funnelChart').find('.funnelBar').eq(2).attr('height');
-
-                expect($(labels[2]).text()).toEqual('$20');
-                expect(adjustColor($(labels[2]).css('fill'))).toEqual(adjustColor($('.funnelChart').find('.funnelBar').eq(2).css('fill')));
+                //Data labels precision = 0
+                expect($(labels[2]).text()).toEqual('$0K');
+                expect(ColorConvertor($(labels[2]).css('fill'))).toEqual(ColorConvertor(labelColor));
                 expect($(labels[2]).attr('x')).toBeGreaterThan(thirdBarY + thirdBarHeight + translate);
 
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Change labels position validation', (done) => {
@@ -1198,14 +1191,14 @@ module powerbitests {
                 var firstBar = firstBarTranslated + firstBarWidth;
 
                 expect(labels.length).toBe(3);
-                expect(adjustColor($(labels[0]).css('fill'))).toEqual(adjustColor('#FFFFFF'));
-                expect(adjustColor($(labels[1]).css('fill'))).toEqual(adjustColor('#FFFFFF'));
-                expect(adjustColor($(labels[2]).css('fill'))).toEqual(adjustColor('#FFFFFF'));
+                expect(ColorConvertor($(labels[0]).css('fill'))).toEqual(ColorConvertor(defaultInsideLabelColor));
+                expect(ColorConvertor($(labels[1]).css('fill'))).toEqual(ColorConvertor(defaultInsideLabelColor));
+                expect(ColorConvertor($(labels[2]).css('fill'))).toEqual(ColorConvertor(defaultInsideLabelColor));
                 //Check that the labels position is inside
                 expect($(labels[0]).attr('x')).toBeGreaterThan(firstBarTranslated);
                 expect($(labels[0]).attr('x')).toBeLessThan(firstBar);
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Change labels color validation', (done) => {
@@ -1241,11 +1234,13 @@ module powerbitests {
             setTimeout(() => {
                 var labels = $('.funnelChart .innerTextGroup text');
                 expect(labels.length).toBe(3);
-                expect(adjustColor($(labels[0]).css('fill'))).toEqual(adjustColor(color));
-                expect(adjustColor($(labels[1]).css('fill'))).toEqual(adjustColor(color));
-                expect(adjustColor($(labels[2]).css('fill'))).toEqual(adjustColor(color));
+                //inside labels are white
+                expect(ColorConvertor($(labels[0]).css('fill'))).toEqual(ColorConvertor(defaultInsideLabelColor));
+                expect(ColorConvertor($(labels[1]).css('fill'))).toEqual(ColorConvertor(defaultInsideLabelColor));
+                //outside labels are changed
+                expect(ColorConvertor($(labels[2]).css('fill'))).toEqual(ColorConvertor(color.toLowerCase()));
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Hide labels validation', (done) => {
@@ -1278,7 +1273,7 @@ module powerbitests {
                 var labels = $('.funnelChart .innerTextGroup text');
                 expect(labels.length).toBe(0);
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Funnel highlighted values - validate labels',(done) => {
@@ -1346,13 +1341,13 @@ module powerbitests {
             setTimeout(() => {
                 var labels = $('.funnelChart .innerTextGroup text');
                 expect(labels.length).toBe(3);
-                expect(adjustColor($(labels[0]).css('fill'))).toEqual(adjustColor('#FFFFFF'));
+                expect(ColorConvertor($(labels[0]).css('fill'))).toEqual(defaultInsideLabelColor);
                 expect($(labels[0]).text()).toEqual('$100');
                 expect($(labels[1]).text()).toEqual('$200');
                 expect($(labels[2]).text()).toEqual('$700');
 
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('labels should support display units with no precision', (done) => {
@@ -1388,7 +1383,7 @@ module powerbitests {
                 //var labels = $('.funnelChart .innerTextGroup text');
                 expect($('.funnelChart .innerTextGroup text').first().text()).toBe('$2K');
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('labels should support display units with precision', (done) => {
@@ -1424,7 +1419,7 @@ module powerbitests {
                 //var labels = $('.funnelChart .innerTextGroup text');
                 expect($('.funnelChart .innerTextGroup text').first().text()).toBe('$1.56K');
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
     });
 
@@ -1440,14 +1435,8 @@ module powerbitests {
         var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'col1' });
 
         beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
-        });
-
-        beforeEach(() => {
             element = powerbitests.helpers.testDom('500', '500');
-            v = powerbi.visuals.visualPluginFactory.createMinerva({
-                heatMap: false,
-            }).getPlugin('funnel').create();
+            v = powerbi.visuals.visualPluginFactory.createMinerva({}).getPlugin('funnel').create();
             v.init({
                 element: element,
                 host: powerbitests.mocks.createVisualHostServices(),
@@ -1530,6 +1519,128 @@ module powerbitests {
 
             done();
         });
+
+        it('funnel highlight animation - suppressAnimations', (done) => {
+            var categoryIdentities = [
+                mocks.dataViewScopeIdentity("John Domo"),
+                mocks.dataViewScopeIdentity("Delta Force"),
+                mocks.dataViewScopeIdentity("Jean Tablau"),
+            ];
+            var dataViewNoHighlights: powerbi.DataView = {
+                metadata: dataViewMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadata.columns[0],
+                        values: ['John Domo', 'Delta Force', 'Jean Tablau'],
+                        identity: categoryIdentities,
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([{
+                        source: dataViewMetadata.columns[1],
+                        values: [100, 200, 700],
+                        subtotal: 1000
+                    }])
+                }
+            };
+            var dataViewHighlightsA: powerbi.DataView = {
+                metadata: dataViewMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadata.columns[0],
+                        values: ['John Domo', 'Delta Force', 'Jean Tablau'],
+                        identity: categoryIdentities,
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([{
+                        source: dataViewMetadata.columns[1],
+                        values: [100, 200, 700],
+                        highlights: [50, 140, 420],
+                        subtotal: 1000
+                    }])
+                }
+            };
+            var dataViewHighlightsB: powerbi.DataView = {
+                metadata: dataViewMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadata.columns[0],
+                        values: ['John Domo', 'Delta Force', 'Jean Tablau'],
+                        identity: categoryIdentities,
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([{
+                        source: dataViewMetadata.columns[1],
+                        values: [100, 200, 700],
+                        highlights: [75, 40, 220],
+                        subtotal: 1000
+                    }])
+                }
+            };
+
+            var animator = <powerbi.visuals.WebFunnelAnimator>(<FunnelChart>v).animator;
+            spyOn(animator, 'animate').and.callThrough();
+
+            v.onDataChanged({ suppressAnimations: true, dataViews: [dataViewNoHighlights] });
+            v.onDataChanged({ suppressAnimations: true, dataViews: [dataViewHighlightsA] });
+            v.onDataChanged({ suppressAnimations: true, dataViews: [dataViewHighlightsB] });
+            v.onDataChanged({ suppressAnimations: true, dataViews: [dataViewNoHighlights] });
+
+            expect(animator).toBeTruthy();
+            expect(animator.animate).not.toHaveBeenCalled();
+
+            done();
+        });
+
+        it('funnel highlight animation - small viewport forcing small bars also hides category and data labels',(done) => {
+            var categoryIdentities = [
+                mocks.dataViewScopeIdentity("John Domo"),
+                mocks.dataViewScopeIdentity("Delta Force"),
+                mocks.dataViewScopeIdentity("Jean Tablau"),
+                mocks.dataViewScopeIdentity('Bugs Bunny'),
+                mocks.dataViewScopeIdentity('Mickey Mouse'),
+                mocks.dataViewScopeIdentity('Donald Duck'),
+                mocks.dataViewScopeIdentity('VRM Jones'),
+            ];
+
+            var dataViewHighlights: powerbi.DataView = {
+                metadata: dataViewMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadata.columns[0],
+                        values: ['John Domo', 'Delta Force', 'Jean Tablau', 'Bugs Bunny', 'Mickey Mouse', 'Donald Duck', 'VRM Jones'],
+                        identity: categoryIdentities,
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([{
+                        source: dataViewMetadata.columns[1],
+                        values: [100, 200, 300, 400, 500, 600, 700],
+                        highlights: [50, 140, 420, 563],
+                        subtotal: 2800
+                    }])
+                }
+            };
+
+            var animator = <powerbi.visuals.WebFunnelAnimator>(<FunnelChart>v).animator;
+            spyOn(animator, 'animate').and.callThrough();
+
+            v.onDataChanged({ dataViews: [dataViewHighlights] });
+            
+            expect(animator).toBeTruthy();
+            expect(animator.animate).toHaveBeenCalled();
+
+            setTimeout(() => {
+                expect($('.funnelChart g').length).toBe(10);
+                expect($('.funnelChart .axis').find('text').length).toBe(7);
+                expect($('.funnelChart .innerTextGroup text').length).toBe(7);
+                v.onResizing({ height: 50, width: 100 });
+                setTimeout(() => {
+                    expect($('.funnelChart g').length).toBe(3);
+                    expect($('.funnelChart .axis').find('text').length).toBe(0);
+                    expect($('.funnelChart .innerTextGroup text').length).toBe(0);
+                    done();
+                }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
     });
 
     describe("Enumerate Objects", () => {
@@ -1538,25 +1649,24 @@ module powerbitests {
             columns: [
                 {
                     displayName: 'col1',
-                    type: DataShapeUtility.describeDataType(SemanticType.String)
+                    queryName: 'col1',
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
                 },
                 {
                     displayName: 'col2',
-                    type: DataShapeUtility.describeDataType(SemanticType.Number),
+                    queryName: 'col2',
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
                     isMeasure: true
                 },
                 {
                     displayName: 'col3',
-                    type: DataShapeUtility.describeDataType(SemanticType.Number),
+                    queryName: 'col3',
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
                     isMeasure: true
                 }
             ]
         };
         var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'col1' });
-
-        beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
-        });
 
         beforeEach(() => {
             element = powerbitests.helpers.testDom('500', '500');
@@ -1642,9 +1752,9 @@ module powerbitests {
 
             var dataViewGradientMetadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'col1' },
-                    { displayName: 'col2', isMeasure: true },
-                    { displayName: 'col3', isMeasure: true, roles: { 'Gradient': true } }
+                    { displayName: 'col1', queryName: 'col1' },
+                    { displayName: 'col2', queryName: 'col2', isMeasure: true },
+                    { displayName: 'col3', queryName: 'col3', isMeasure: true, roles: { 'Gradient': true } }
                 ]
             };
 

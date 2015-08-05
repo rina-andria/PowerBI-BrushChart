@@ -95,7 +95,7 @@ module powerbi.visuals {
         }
 
         public static createWithId(id: DataViewScopeIdentity, highlight: boolean = false): SelectionId {
-            var selector: powerbi.data.Selector = null;
+            var selector: Selector = null;
             if (id) {
                 selector = {
                     data: [id]
@@ -105,9 +105,11 @@ module powerbi.visuals {
         }
 
         public static createWithMeasure(measureId: string, highlight: boolean = false): SelectionId {
-            var selector: powerbi.data.Selector = {};
-            if (measureId)
-                selector.metadata = measureId;
+            debug.assertValue(measureId, 'measureId');
+
+            var selector: Selector = {
+                metadata: measureId
+            };
             return new SelectionId(selector, highlight);
         }
 
@@ -124,7 +126,7 @@ module powerbi.visuals {
         }
 
         public static createWithIds(id1: DataViewScopeIdentity, id2: DataViewScopeIdentity, highlight: boolean = false): SelectionId {
-            var selector: powerbi.data.Selector = null;
+            var selector: Selector = null;
             var selectorData = SelectionId.idArray(id1, id2);
             if (selectorData)
                 selector = { data: selectorData };
@@ -133,7 +135,7 @@ module powerbi.visuals {
         }
 
         public static createWithIdsAndMeasure(id1: DataViewScopeIdentity, id2: DataViewScopeIdentity, measureId: string, highlight: boolean = false): SelectionId {
-            var selector: powerbi.data.Selector = {};
+            var selector: Selector = {};
             var selectorData = SelectionId.idArray(id1, id2);
             if (selectorData)
                 selector.data = selectorData;

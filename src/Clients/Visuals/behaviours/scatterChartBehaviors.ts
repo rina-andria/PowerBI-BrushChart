@@ -25,7 +25,7 @@
  */
 
 module powerbi.visuals {
-    export enum DragType {
+    export const enum DragType {
         Drag,
         DragEnd
     }

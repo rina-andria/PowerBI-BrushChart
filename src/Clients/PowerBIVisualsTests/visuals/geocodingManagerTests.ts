@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+// tslint rule disabled because of tslint (version >= v2.2.0-beta) thinks that 'GeocodingManager' is unused var.
+/* tslint:disable:no-unused-variable */
 import GeocodingManager = powerbi.visuals.BI.Services.GeocodingManager;
 
 describe("GeocodingManagerTests", () => {

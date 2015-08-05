@@ -247,7 +247,7 @@ module powerbi.visuals {
         }
 
         export function drawDefaultLabels(series: D3.UpdateSelection, context: D3.Selection, layout: ILabelLayout, viewPort: IViewport, isAnimator: boolean = false, animationDuration?: number): D3.UpdateSelection {
-            if (series && series.data().length > 0) {
+            if (series) {
                 var seriesData = series.data();
                 var dataPoints: LineChartDataPoint[] = [];
 
@@ -256,6 +256,9 @@ module powerbi.visuals {
                 }
 
                 return dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, context, layout, viewPort, isAnimator, animationDuration);
+            }
+            else {
+                dataLabelUtils.cleanDataLabels(context);
             }
         }
 
@@ -272,6 +275,27 @@ module powerbi.visuals {
             }
 
             scale.domain(scaledDomain);
+        }
+
+        export function calculatePosition(d: ColumnChartDataPoint, axisOptions: ColumnAxisOptions): number {
+            var xScale = axisOptions.xScale;
+            var yScale = axisOptions.yScale;
+            var scaledY0 = yScale(0);
+            var scaledX0 = xScale(0);
+            switch (d.chartType) {
+                case ColumnChartType.stackedBar:
+                case ColumnChartType.hundredPercentStackedBar:
+                    return scaledX0 + Math.abs(AxisHelper.diffScaled(xScale, 0, d.valueAbsolute)) +
+                        AxisHelper.diffScaled(xScale, d.position - d.valueAbsolute, 0) + dataLabelUtils.defaultColumnLabelMargin;
+                case ColumnChartType.clusteredBar:
+                    return scaledX0 + AxisHelper.diffScaled(xScale, Math.max(0, d.value), 0) + dataLabelUtils.defaultColumnLabelMargin;
+                case ColumnChartType.stackedColumn:
+                case ColumnChartType.hundredPercentStackedColumn:
+                    return scaledY0 + AxisHelper.diffScaled(yScale, d.position, 0) - dataLabelUtils.defaultColumnLabelMargin;
+                case ColumnChartType.clusteredColumn:
+                    return scaledY0 + AxisHelper.diffScaled(yScale, Math.max(0, d.value), 0) - dataLabelUtils.defaultColumnLabelMargin;
+            }
+
         }
     }
 
@@ -340,8 +364,7 @@ module powerbi.visuals {
             size: number,
             scaleRange: number[],
             forcedTickCount?: number,
-            forcedYDomain?: any[]
-            ): IAxisProperties {
+            forcedYDomain?: any[]): IAxisProperties {
             var valueDomain = calcValueDomain(data.series, is100Pct),
                 min = valueDomain.min,
                 max = valueDomain.max;
@@ -361,7 +384,10 @@ module powerbi.visuals {
 
             ColumnUtil.normalizeInfinityInScale(scale);
 
-            var yTickValues: any[] = AxisHelper.getRecommendedTickValuesForALinearRange(bestTickCount, scale);
+            var dataType: ValueType = AxisHelper.getCategoryValueType(data.valuesMetadata[0], true);
+            var formatString = valueFormatter.getFormatString(data.valuesMetadata[0], columnChartProps.general.formatString);
+            var minTickInterval = AxisHelper.getMinTickValueInterval(formatString, dataType);
+            var yTickValues: any[] = AxisHelper.getRecommendedTickValuesForALinearRange(bestTickCount, scale, minTickInterval);
 
             var d3Axis = d3.svg.axis()
                 .scale(scale)

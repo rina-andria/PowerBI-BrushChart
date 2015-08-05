@@ -38,9 +38,9 @@ module powerbi.visuals {
             this.x = x || 0;
             this.y = y || 0;
         }
-	}
+    }
 
-	export interface IRect {
+    export interface IRect {
         left: number;
         top: number;
         width: number;
@@ -449,7 +449,7 @@ module powerbi.visuals.BI.Services.GeocodingManager {
         public key: string;
         private _cacheHits: number;
 
-        constructor(query: string = "", category: string  = "") {
+        constructor(query: string = "", category: string = "") {
             this.query = query;
             this.category = category;
             this.key = (this.query + "/" + this.category).toLowerCase();
@@ -587,7 +587,7 @@ module powerbi.visuals.BI.Services.GeocodingManager {
             }
 
             activeRequests++;
-			makeRequest(geocodeQueue.shift());
+            makeRequest(geocodeQueue.shift());
         }
     }
 

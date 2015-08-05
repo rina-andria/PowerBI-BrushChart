@@ -27,41 +27,63 @@
 module powerbi.visuals.sampleData {
 
     import DataViewTransform = powerbi.data.DataViewTransform;
-    import DataShapeUtility = powerbi.data.dsr.DataShapeUtility;
-    import SemanticType = powerbi.data.SemanticType;
+    import ValueType = powerbi.ValueType;
+    import PrimitiveType = powerbi.PrimitiveType;
 
     // predefined data views for different Powre BI visualization elements
     var dataViewForVisual = {
-        'default': [createDefaultDataView()],
-        'gauge': [createGaugeDataView()],
-        'table': [createTableDataView()],
-        'matrix': [createMatrixThreeMeasuresThreeRowGroupsDataView()],
-        'image': [createImageDataView()],
-        'treemap': [createTreeMapDataView()],
-        'textbox': [createTextBoxDataView()],
-        'cheerMeter': [createCheerMeterDataView()],
-        'comboChart': createComboChartsView(),
-        'dataDotClusteredColumnComboChart': createComboChartsView(),
-        'dataDotStackedColumnComboChart': createComboChartsView(),
-        'lineStackedColumnComboChart': createComboChartsView(),
-        'lineClusteredColumnComboChart': createComboChartsView(),
-        
+        'default': createDefaultDataView,
+        'gauge': createGaugeDataView,
+        'table': createTableDataView,
+        'matrix': createMatrixThreeMeasuresThreeRowGroupsDataView,
+        'image': createImageDataView,
+        'treemap': createTreeMapDataView,
+        'textbox': createTextBoxDataView,
+        'cheerMeter': createCheerMeterDataView,
+        'comboChart': createComboChartsView,
+        'dataDotClusteredColumnComboChart': createComboChartsView,
+        'dataDotStackedColumnComboChart': createComboChartsView,
+        'lineStackedColumnComboChart': createComboChartsView,
+        'lineClusteredColumnComboChart': createComboChartsView,
+    }
+
+    // predefined options for different Powre BI visualization elements
+    var optionsForVisual = {
+        'default': createDefaultOptions,
+        'treemap': createTreeMapOptions,
+    }
+
+
+    /**
+     * Returns sample data view for a visualization element specified.
+     */
+    export function getVisualizationData(pluginName: string, options?: any): DataView[] {
+                
+        if (pluginName in dataViewForVisual) {
+            return dataViewForVisual[pluginName](options);
+        }
+
+        return dataViewForVisual.default();
     }
 
     /**
      * Returns sample data view for a visualization element specified.
      */
-    export function getVisualizationData(pluginName: string): DataView[] {
+    export function getVisualizationOptions(pluginName: string): any[] {
 
-        
-        if (pluginName in dataViewForVisual) {
-            return dataViewForVisual[pluginName];
+        if (pluginName in optionsForVisual) {
+            return optionsForVisual[pluginName]();
         }
 
-        return dataViewForVisual.default;
+        return optionsForVisual.default();
     }
 
-    function createDefaultDataView(): DataView {
+
+    function createDefaultOptions(): any[]{
+        return [];
+    }
+
+    function createDefaultDataView(): DataView[] {
 
         var fieldExpr = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: "table1", column: "country" });
 
@@ -116,7 +138,7 @@ module powerbi.visuals.sampleData {
             return [countryName, columns[0].values[idx], columns[1].values[idx]];
         });
 
-        return {
+        return [{
             metadata: dataViewMetadata,
             categorical: {
                 categories: [{
@@ -131,7 +153,7 @@ module powerbi.visuals.sampleData {
                 columns: dataViewMetadata.columns,
             },
             single: { value: 559.43 }
-        };
+        }];
     }
 
     function createComboChartsView(): DataView[]{
@@ -278,7 +300,7 @@ module powerbi.visuals.sampleData {
 
  
 
-    function createGaugeDataView(): DataView {
+    function createGaugeDataView(): DataView[] {
         var gaugeDataViewMetadata: powerbi.DataViewMetadata = {
             columns: [
                 {
@@ -303,7 +325,7 @@ module powerbi.visuals.sampleData {
             measures: [0],
         };
 
-        return {
+        return [{
             metadata: gaugeDataViewMetadata,
             single: { value: 500 },
             categorical: {
@@ -322,7 +344,7 @@ module powerbi.visuals.sampleData {
                         values: [200],
                     }])
             }
-        };
+        }];
     }
 
     function createImageDataView(): DataView {
@@ -336,11 +358,11 @@ module powerbi.visuals.sampleData {
         };
     }
 
-    function createTableDataView(): DataView {
+    function createTableDataView(): DataView[] {
 
-        var dataTypeNumber = DataShapeUtility.describeDataType(SemanticType.Number);
-        var dataTypeString = DataShapeUtility.describeDataType(SemanticType.String);
-        var dataTypeWebUrl = DataShapeUtility.describeDataType(SemanticType.String, 'WebUrl');
+        var dataTypeNumber = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double);
+        var dataTypeString = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text);
+        var dataTypeWebUrl = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text, 'WebUrl');
 
 
         var groupSource1: DataViewMetadataColumn = { displayName: 'group1', type: dataTypeString, index: 0 };
@@ -352,7 +374,7 @@ module powerbi.visuals.sampleData {
         var measureSource2: DataViewMetadataColumn = { displayName: 'measure2', type: dataTypeNumber, isMeasure: true, index: 4, objects: { general: { formatString: '#.00' } } };
         var measureSource3: DataViewMetadataColumn = { displayName: 'measure3', type: dataTypeNumber, isMeasure: true, index: 5, objects: { general: { formatString: '#' } } };
 
-        return {
+        return [{
             metadata: { columns: [groupSource1, measureSource1, groupSource2, measureSource2, groupSource3, measureSource3] },
             table: {
                 columns: [groupSource1, measureSource1, groupSource2, measureSource2, groupSource3, measureSource3],
@@ -366,14 +388,14 @@ module powerbi.visuals.sampleData {
                     ['C', 118, 'cc', 119, 'cc1', 120],
                 ]
             }
-        };
+        }];
     }
 
-    function createMatrixThreeMeasuresThreeRowGroupsDataView(): DataView{
+    function createMatrixThreeMeasuresThreeRowGroupsDataView(): DataView[] {
 
-        var dataTypeNumber = DataShapeUtility.describeDataType(SemanticType.Number);
-        var dataTypeString = DataShapeUtility.describeDataType(SemanticType.String);
-        var dataTypeWebUrl = DataShapeUtility.describeDataType(SemanticType.String, 'WebUrl');
+        var dataTypeNumber = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double);
+        var dataTypeString = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text);
+        var dataTypeWebUrl = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text, 'WebUrl');
 
         var measureSource1: DataViewMetadataColumn = { displayName: 'measure1', type: dataTypeNumber, isMeasure: true, index: 3, objects: { general: { formatString: '#.0' } } };
         var measureSource2: DataViewMetadataColumn = { displayName: 'measure2', type: dataTypeNumber, isMeasure: true, index: 4, objects: { general: { formatString: '#.00' } } };
@@ -527,49 +549,68 @@ module powerbi.visuals.sampleData {
             ]
         };
 
-        return {
+        return [{
             metadata: { columns: [rowGroupSource1, rowGroupSource2, rowGroupSource3], segment: {} },
             matrix: matrixThreeMeasuresThreeRowGroups
-        };
+        }];
     }
 
-    function createTreeMapDataView(): DataView {
+    function createTreeMapOptions(): any[]{
+        return [{
+            type: "select",
+            name: "columns",
+            displayName: "Number of columns",
+            values: [
+                { displayName: '2', value: "2" },
+                { displayName: '3', value: "3" },
+                { displayName: '4', value: "4" },
+                { displayName: '5', value: "5" },
+                { displayName: '6', value: "6", default: true },
+            ]             
+        }];
+    }
+
+
+    function createTreeMapDataView(options?: any): DataView[] {
         var treeMapMetadata: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'EventCount', queryName: 'select1', isMeasure: true, properties: { "Y": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                { displayName: 'MedalCount', queryName: 'select2', isMeasure: true, properties: { "Y": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) }
+                { displayName: 'EventCount', queryName: 'select1', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+                { displayName: 'MedalCount', queryName: 'select2', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }
             ]
         };
 
-        return {
+        var columns = [
+            { displayName: 'Program Files', queryName: 'select1', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+            { displayName: 'Documents and Settings', queryName: 'select2', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+            { displayName: 'Windows', queryName: 'select3', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+            { displayName: 'Recovery', queryName: 'select4', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+            { displayName: 'Users', queryName: 'select5', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+            { displayName: 'ProgramData', queryName: 'select6', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+        ];
+                      
+        var maxValue = columns.length;
+        if (options && (options.name === "columns")) {
+            maxValue = <number>options.value;
+        } 
+
+        var values = [];
+  
+        for (var i = 0; i < maxValue; i++) {        
+            values.push({
+                source: columns[i],
+                values: [Math.round(Math.random() * 1000)]
+            });
+        }
+        
+        return [{
             metadata: treeMapMetadata,
             categorical: {
-                values: DataViewTransform.createValueColumns([
-                    {
-                        source: { displayName: 'Program Files', queryName: 'select1', isMeasure: true, properties: { "Y": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                        values: [410]
-                    }, {
-                        source: { displayName: 'Documents and Settings', queryName: 'select2', isMeasure: true, properties: { "Y": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                        values: [210]
-                    }, {
-                        source: { displayName: 'Windows', queryName: 'select3', isMeasure: true, properties: { "Y": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                        values: [510]
-                    }, {
-                        source: { displayName: 'Recovery', queryName: 'select4', isMeasure: true, properties: { "Y": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                        values: [40]
-                    }, {
-                        source: { displayName: 'Users', queryName: 'select5', isMeasure: true, properties: { "Y": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                        values: [80]
-                    }, {
-                        source: { displayName: 'ProgramData', queryName: 'select6', isMeasure: true, properties: { "Y": true }, type: DataShapeUtility.describeDataType(SemanticType.Number) },
-                        values: [110]
-                    }
-                ])
+                values: DataViewTransform.createValueColumns(values)
             }
-        };
+        }];
     }
 
-    function createTextBoxDataView(): DataView {
+    function createTextBoxDataView(): DataView[] {
 
         var textBoxcontent: TextboxDataViewObject = {
             paragraphs: [{
@@ -588,15 +629,15 @@ module powerbi.visuals.sampleData {
             }]
         };
 
-        return {
+        return [{
             metadata: {
                 columns: [],
                 objects: { general: textBoxcontent },
             }
-        };
+        }];
     }
 
-    function createCheerMeterDataView(): DataView {
+    function createCheerMeterDataView(): DataView[] {
 
         var fieldExpr = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: "table1", column: "teams" });
 
@@ -630,7 +671,7 @@ module powerbi.visuals.sampleData {
 
         var dataValues: DataViewValueColumns = DataViewTransform.createValueColumns(columns);
 
-        return {
+        return [{
             metadata: dataViewMetadata,
             categorical: {
                 categories: [{
@@ -660,15 +701,7 @@ module powerbi.visuals.sampleData {
                 }],
                 values: dataValues,
             },
-        };
+        }];
     }
-
-    function createComboChart(): DataView[] {
-       
-        var dataView = createDefaultDataView();
-
-        return  [dataView, dataView] ;
-    }
-  
- 
+     
 }

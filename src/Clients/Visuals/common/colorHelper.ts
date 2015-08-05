@@ -31,27 +31,33 @@ module powerbi.visuals {
         private fillProp: DataViewObjectPropertyIdentifier;
         private defaultDataPointColor: string;
         private colors: IDataColorPalette;
+        private defaultColorScale: IColorScale;
 
         constructor(colors: IDataColorPalette, fillProp: DataViewObjectPropertyIdentifier, defaultDataPointColor?: string) {
             this.colors = colors;
             this.fillProp = fillProp;
             this.defaultDataPointColor = defaultDataPointColor;
+            this.defaultColorScale = colors.getNewColorScale();
         }
 
         /**
          * Gets the color for the given series value. If no explicit color or default color has been set then the color is
+         * allocated from the color scale for this series.
          */
         public getColorForSeriesValue(objects: DataViewObjects, fieldIds: powerbi.data.SQExpr[], value: string): string {
             return (this.fillProp && DataViewObjects.getFillColor(objects, this.fillProp))
                 || this.defaultDataPointColor
-                || this.colors.getColorByScale(SQExprShortSerializer.serializeArray(fieldIds || []), value).value;
+                || this.colors.getColorScaleByKey(SQExprShortSerializer.serializeArray(fieldIds || [])).getColor(value).value;
         }
 
         /** Gets the color for the given measure. */
-        public getColorForMeasure(objects: DataViewObjects, queryName: string): string {
+        public getColorForMeasure(objects: DataViewObjects, measureKey: any): string {
+            // Note, this allocates the color from the scale regardless of if we use it or not which helps keep colors stable.
+            var scaleColor = this.defaultColorScale.getColor(measureKey).value;
+
             return (this.fillProp && DataViewObjects.getFillColor(objects, this.fillProp))
                 || this.defaultDataPointColor
-                || this.colors.getColor(queryName).value;
+                || scaleColor;
         }
 
         public static normalizeSelector(selector: data.Selector, isSingleSeries?: boolean): data.Selector {

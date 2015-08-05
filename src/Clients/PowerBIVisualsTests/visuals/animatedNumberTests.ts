@@ -42,7 +42,6 @@ module powerbitests {
         var v: AnimatedNumber, element: JQuery;
 
         beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
 
             element = powerbitests.helpers.testDom('200', '300');
             v = new AnimatedNumber();

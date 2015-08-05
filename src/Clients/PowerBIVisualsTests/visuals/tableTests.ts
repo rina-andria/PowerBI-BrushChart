@@ -28,34 +28,34 @@ module powerbitests {
     import CompiledDataViewMapping = powerbi.data.CompiledDataViewMapping;
     import CompiledDataViewRoleForMapping = powerbi.data.CompiledDataViewRoleForMapping;
     import CompiledSubtotalType = powerbi.data.CompiledSubtotalType;
-    import DataShapeUtility = powerbi.data.dsr.DataShapeUtility;
     import DataView = powerbi.DataView;
     import DataViewTable = powerbi.DataViewTable;
     import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
-    import SemanticType = powerbi.data.SemanticType;
     import Table = powerbi.visuals.Table;
     import TableDataViewObjects = powerbi.visuals.TableDataViewObjects;
     import TableHierarchyNavigator = powerbi.visuals.TableHierarchyNavigator;
     import valueFormatter = powerbi.visuals.valueFormatter;
+    import ValueType = powerbi.ValueType;
+    import PrimitiveType = powerbi.PrimitiveType;
 
     var DefaultWaitForRender = 500;
 
-    var dataTypeNumber = DataShapeUtility.describeDataType(SemanticType.Number);
-    var dataTypeString = DataShapeUtility.describeDataType(SemanticType.String);
-    var dataTypeWebUrl = DataShapeUtility.describeDataType(SemanticType.String, 'WebUrl');
+    powerbitests.mocks.setLocale();
 
-    var groupSource1: DataViewMetadataColumn = { displayName: 'group1', type: dataTypeString, index: 0 };
-    var groupSource2: DataViewMetadataColumn = { displayName: 'group2', type: dataTypeString, index: 1 };
-    var groupSource3: DataViewMetadataColumn = { displayName: 'group3', type: dataTypeString, index: 2 };
-    var groupSourceWebUrl: DataViewMetadataColumn = { displayName: 'groupWebUrl', type: dataTypeWebUrl, index: 0 };
+    var dataTypeNumber = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double);
+    var dataTypeString = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text);
+    var dataTypeWebUrl = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text, 'WebUrl');
 
-    var measureSource1: DataViewMetadataColumn = { displayName: 'measure1', type: dataTypeNumber, isMeasure: true, index: 3, objects: { general: { formatString: '#.0' } } };
-    var measureSource2: DataViewMetadataColumn = { displayName: 'measure2', type: dataTypeNumber, isMeasure: true, index: 4, objects: { general: { formatString: '#.00' } } };
-    var measureSource3: DataViewMetadataColumn = { displayName: 'measure3', type: dataTypeNumber, isMeasure: true, index: 5, objects: { general: { formatString: '#' } } };
+    var groupSource1: DataViewMetadataColumn = { displayName: 'group1', queryName: 'group1', type: dataTypeString, index: 0 };
+    var groupSource2: DataViewMetadataColumn = { displayName: 'group2', queryName: 'group2', type: dataTypeString, index: 1 };
+    var groupSource3: DataViewMetadataColumn = { displayName: 'group3', queryName: 'group3', type: dataTypeString, index: 2 };
+    var groupSourceWebUrl: DataViewMetadataColumn = { displayName: 'groupWebUrl', queryName: 'groupWebUrl', type: dataTypeWebUrl, index: 0 };
 
-    var webPluginService = new powerbi.visuals.visualPluginFactory.MinervaVisualPluginService({
-        heatMap: false,
-    });
+    var measureSource1: DataViewMetadataColumn = { displayName: 'measure1', queryName: 'measure1', type: dataTypeNumber, isMeasure: true, index: 3, objects: { general: { formatString: '#.0' } } };
+    var measureSource2: DataViewMetadataColumn = { displayName: 'measure2', queryName: 'measure2', type: dataTypeNumber, isMeasure: true, index: 4, objects: { general: { formatString: '#.00' } } };
+    var measureSource3: DataViewMetadataColumn = { displayName: 'measure3', queryName: 'measure3', type: dataTypeNumber, isMeasure: true, index: 5, objects: { general: { formatString: '#' } } };
+
+    var webPluginService = new powerbi.visuals.visualPluginFactory.MinervaVisualPluginService({});
 
     var tableTotals: TableDataViewObjects = {
         general: {
@@ -436,6 +436,12 @@ module powerbitests {
                 var columnInAnotherTable = tableThreeGroupsThreeMeasuresInterleaved.table.columns[4];
 
                 expect(navigator.getIndex(columnInAnotherTable)).toBe(-1);
+            });
+            it('returns -1 if it is null',() => {
+                var dataView = tableTwoGroups;
+                var navigator = createNavigator(dataView);
+
+                expect(navigator.getIndex(null)).toBe(-1);
             });
         });
         describe('isLeaf', () => {
@@ -864,7 +870,7 @@ module powerbitests {
             v['tablixControl'] = control;
             v['element']['visible'] = () => { return false; };
 
-            v.onResizing({ width: 100, height: 100 }, 0);
+            v.onResizing({ width: 100, height: 100 });
 
             expect(controlSpy).not.toHaveBeenCalled();
         });
@@ -878,9 +884,32 @@ module powerbitests {
             v['element']['visible'] = () => { return false; };
             v['isInteractive'] = false;
 
-            v.onResizing({ width: 100, height: 100 }, 0);
+            v.onResizing({ width: 100, height: 100 });
 
             expect(controlSpy).toHaveBeenCalled();
+        });
+
+        it('ShouldClearControl noSort', (done) => {
+            v.onDataChanged({ dataViews: [tableOneGroup] });
+            var refreshSpy = spyOn(v, "refreshControl").and.callFake(() => { });
+
+            v.onDataChanged({ dataViews: [tableOneGroup] });
+            setTimeout(() => {
+                expect(refreshSpy).toHaveBeenCalledWith(true);
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('ShouldClearControl sort', (done) => {
+            v.onDataChanged({ dataViews: [tableOneGroup] });
+            var refreshSpy = spyOn(v, "refreshControl").and.callFake(() => { });
+            v['waitingForSort'] = true;
+            v.onDataChanged({ dataViews: [tableOneGroup] });
+
+            setTimeout(() => {
+                expect(refreshSpy).toHaveBeenCalledWith(false);
+                done();
+            }, DefaultWaitForRender);
         });
     });
 
@@ -896,7 +925,6 @@ module powerbitests {
             EmptyHeaderCell = '\xa0';
 
         beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
 
             groupSource1.index = 0;
             groupSource2.index = 1;
@@ -974,7 +1002,7 @@ module powerbitests {
                 validateTable(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    ['', ColumnHeaderClassName, ''],
+                    ['', ColumnHeaderClassName + NumericCellClassName, ''],
                     ['', LastRowClassName + NumericCellClassName]
                 ];
 
@@ -1093,7 +1121,7 @@ module powerbitests {
         });
 
         it('5x9 table (group instances and measure values) with totals', (done) => {
-
+            powerbitests.mocks.setLocale();
             var dataView = tableTwoGroupsThreeMeasures;
             measureSource1.index = 2;
             measureSource2.index = 3;
@@ -1138,13 +1166,13 @@ module powerbitests {
                     ['', dataView.table.rows[4][0], dataView.table.rows[4][1], cellValue5, cellValue12, cellValue19],
                     ['', dataView.table.rows[5][0], dataView.table.rows[5][1], cellValue6, cellValue13, cellValue20],
                     ['', dataView.table.rows[6][0], dataView.table.rows[6][1], cellValue7, cellValue14, cellValue21],
-                    ['', 'TableTotalLabel', '', total1, total2, total3, '']
+                    ['', 'Total', '', total1, total2, total3, '']
                 ];
 
                 validateTable(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    ['', ColumnHeaderClassName, ColumnHeaderClassName, ColumnHeaderClassName, ColumnHeaderClassName, ColumnHeaderClassName, ''],
+                    ['', ColumnHeaderClassName, ColumnHeaderClassName, ColumnHeaderClassName + NumericCellClassName, ColumnHeaderClassName + NumericCellClassName, ColumnHeaderClassName + NumericCellClassName, ''],
                     ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
                     ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
                     ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
@@ -1188,7 +1216,7 @@ module powerbitests {
                 validateTable(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    ['', ColumnHeaderClassName, ColumnHeaderClassName, ''],
+                    ['', ColumnHeaderClassName + NumericCellClassName, ColumnHeaderClassName, ''],
                     ['', RowClassName + NumericCellClassName, RowClassName],
                     ['', RowClassName + NumericCellClassName, RowClassName],
                     ['', LastRowClassName + NumericCellClassName, LastRowClassName],
@@ -1277,10 +1305,10 @@ module powerbitests {
                 validateClassNames(expectedClassNames);
 
                 var expectedChildTags: string[][] = [
-                    [, , , ],
-                    [, 'A'],
-                    [, , ],
-                    [, 'A']
+                    [undefined, undefined, undefined],
+                    [undefined, 'A'],
+                    [undefined, undefined],
+                    [undefined, 'A']
                 ];
 
                 validateChildTag(expectedChildTags);
@@ -1451,7 +1479,6 @@ module powerbitests {
             EmptyHeaderCell = '\xa0';
 
         beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
 
             groupSource1.index = 0;
             groupSource2.index = 1;
@@ -1529,7 +1556,7 @@ module powerbitests {
                 validateTable(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    ['', ColumnHeaderClassName],
+                    ['', ColumnHeaderClassName + NumericCellClassName],
                     ['', LastRowClassName + NumericCellClassName]
                 ];
 
@@ -1672,34 +1699,42 @@ module powerbitests {
                 var cellValue12: string = formatter(dataView.table.rows[4][3], measureSource2);
                 var cellValue13: string = formatter(dataView.table.rows[5][3], measureSource2);
                 var cellValue14: string = formatter(dataView.table.rows[6][3], measureSource2);
+                var cellValue15: string = formatter(dataView.table.rows[0][4], measureSource3);
+                var cellValue16: string = formatter(dataView.table.rows[1][4], measureSource3);
+                var cellValue17: string = formatter(dataView.table.rows[2][4], measureSource3);
+                var cellValue18: string = formatter(dataView.table.rows[3][4], measureSource3);
+                var cellValue19: string = formatter(dataView.table.rows[4][4], measureSource3);
+                var cellValue20: string = formatter(dataView.table.rows[5][4], measureSource3);
+                var cellValue21: string = formatter(dataView.table.rows[6][4], measureSource3);
 
                 var total1: string = formatter(dataView.table.totals[2], measureSource1);
                 var total2: string = formatter(dataView.table.totals[3], measureSource2);
+                var total3: string = formatter(dataView.table.totals[4], measureSource3);
 
                 var expectedCells: string[][] = [
-                    ['', groupSource1.displayName, groupSource2.displayName, measureSource1.displayName, measureSource2.displayName],
-                    ['', dataView.table.rows[0][0], dataView.table.rows[0][1], cellValue1, cellValue8],
-                    ['', dataView.table.rows[1][0], dataView.table.rows[1][1], cellValue2, cellValue9],
-                    ['', dataView.table.rows[2][0], dataView.table.rows[2][1], cellValue3, cellValue10],
-                    ['', dataView.table.rows[3][0], dataView.table.rows[3][1], cellValue4, cellValue11],
-                    ['', dataView.table.rows[4][0], dataView.table.rows[4][1], cellValue5, cellValue12],
-                    ['', dataView.table.rows[5][0], dataView.table.rows[5][1], cellValue6, cellValue13],
-                    ['', dataView.table.rows[6][0], dataView.table.rows[6][1], cellValue7, cellValue14],
-                    ['', 'TableTotalLabel', '', total1, total2]
+                    ['', groupSource1.displayName, groupSource2.displayName, measureSource1.displayName, measureSource2.displayName, measureSource3.displayName],
+                    ['', dataView.table.rows[0][0], dataView.table.rows[0][1], cellValue1, cellValue8, cellValue15],
+                    ['', dataView.table.rows[1][0], dataView.table.rows[1][1], cellValue2, cellValue9, cellValue16],
+                    ['', dataView.table.rows[2][0], dataView.table.rows[2][1], cellValue3, cellValue10, cellValue17],
+                    ['', dataView.table.rows[3][0], dataView.table.rows[3][1], cellValue4, cellValue11, cellValue18],
+                    ['', dataView.table.rows[4][0], dataView.table.rows[4][1], cellValue5, cellValue12, cellValue19],
+                    ['', dataView.table.rows[5][0], dataView.table.rows[5][1], cellValue6, cellValue13, cellValue20],
+                    ['', dataView.table.rows[6][0], dataView.table.rows[6][1], cellValue7, cellValue14, cellValue21],
+                    ['', 'Total', '', total1, total2, total3]
                 ];
 
                 validateTable(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    ['', ColumnHeaderClassName, ColumnHeaderClassName, ColumnHeaderClassName, ColumnHeaderClassName],
-                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
-                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
-                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
-                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
-                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
-                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
-                    ['', LastRowClassName, LastRowClassName, LastRowClassName + NumericCellClassName, LastRowClassName + NumericCellClassName],
-                    ['', FooterClassName, FooterClassName, FooterClassName + NumericCellClassName, FooterClassName + NumericCellClassName]
+                    ['', ColumnHeaderClassName, ColumnHeaderClassName, ColumnHeaderClassName + NumericCellClassName, ColumnHeaderClassName + NumericCellClassName, ColumnHeaderClassName + NumericCellClassName],
+                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
+                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
+                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
+                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
+                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
+                    ['', RowClassName, RowClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName, RowClassName + NumericCellClassName],
+                    ['', LastRowClassName, LastRowClassName, LastRowClassName + NumericCellClassName, LastRowClassName + NumericCellClassName, LastRowClassName + NumericCellClassName],
+                    ['', FooterClassName, FooterClassName, FooterClassName + NumericCellClassName, FooterClassName + NumericCellClassName, FooterClassName + NumericCellClassName]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -1735,7 +1770,7 @@ module powerbitests {
                 validateTable(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    ['', ColumnHeaderClassName, ColumnHeaderClassName],
+                    ['', ColumnHeaderClassName + NumericCellClassName, ColumnHeaderClassName],
                     ['', RowClassName + NumericCellClassName, RowClassName],
                     ['', RowClassName + NumericCellClassName, RowClassName],
                     ['', LastRowClassName + NumericCellClassName, LastRowClassName],
@@ -1824,10 +1859,10 @@ module powerbitests {
                 validateClassNames(expectedClassNames);
 
                 var expectedChildTags: string[][] = [
-                    [, , ],
-                    [, 'A'],
-                    [, , ],
-                    [, 'A']
+                    [undefined, undefined],
+                    [undefined, 'A'],
+                    [undefined, undefined],
+                    [undefined, 'A']
                 ];
 
                 validateChildTag(expectedChildTags);
@@ -1845,7 +1880,6 @@ module powerbitests {
         var element: JQuery;
 
         beforeEach((done) => {
-            powerbitests.helpers.suppressDebugAssertFailure();
             element = powerbitests.helpers.testDom('800', '800');
             element['visible'] = () => { return true; };
             done();

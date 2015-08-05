@@ -27,6 +27,9 @@
 module powerbitests {
     import MultiRowCard = powerbi.visuals.MultiRowCard;
     import ValueType = powerbi.ValueType;
+    import PrimitiveType = powerbi.PrimitiveType;
+
+    var dataTypeWebUrl = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text, 'WebUrl');
 
     describe("MultiRowCard", () => {
         it('MultiRowCard_registered_capabilities', () => {
@@ -45,14 +48,13 @@ module powerbitests {
             expect(MultiRowCard.capabilities.suppressDefaultTitle).toBe(true);
         });
 
-        it('FormatString property should match calculated',() => {
+        it('FormatString property should match calculated', () => {
             expect(powerbi.data.DataViewObjectDescriptors.findFormatString(MultiRowCard.capabilities.objects)).toEqual(MultiRowCard.formatStringProp);
         });
     });
 
     describe("MultiRowCard DOM tests", () => {
         var v: MultiRowCard, element: JQuery;
-        var defaultTimeout: number = 30;
         var hostServices = powerbitests.mocks.createVisualHostServices();
 
         var dataViewMetadata: powerbi.DataViewMetadata = {
@@ -60,6 +62,20 @@ module powerbitests {
                 { displayName: 'value', type: ValueType.fromDescriptor({ numeric: true }) },
                 { displayName: 'date', type: ValueType.fromDescriptor({ dateTime: true }) },
                 { displayName: 'category', type: ValueType.fromDescriptor({ text: true }) },
+            ],
+        };
+
+        var dataViewMetadataWithURL: powerbi.DataViewMetadata = {
+            columns: [
+                { displayName: 'category', type: ValueType.fromDescriptor({ text: true }) },
+                { displayName: 'URL', type: dataTypeWebUrl },
+            ],
+        };
+
+        var dataViewMetadataWithURLTitle: powerbi.DataViewMetadata = {
+            columns: [
+                { displayName: 'value', type: ValueType.fromDescriptor({ numeric: true }) },
+                { displayName: 'URL', type: dataTypeWebUrl },
             ],
         };
 
@@ -103,6 +119,28 @@ module powerbitests {
             },
         };
 
+        var dataWithURLTitle: powerbi.DataView = {
+            metadata: dataViewMetadataWithURLTitle,
+            table: {
+                rows: [
+                    [123456.789, 'http://bing.com'],
+                    [12345, 'http://microsoft.com']
+                ],
+                columns: dataViewMetadataWithURLTitle.columns
+            },
+        };
+
+        var dataWithURLValues: powerbi.DataView = {
+            metadata: dataViewMetadataWithURL,
+            table: {
+                rows: [
+                    ['category1', 'http://bing.com'],
+                    ['category2', 'http://microsoft.com']
+                ],
+                columns: dataViewMetadataWithURL.columns
+            },
+        };
+
         beforeEach(() => {
             createMultiRowCard();
         });
@@ -137,14 +175,14 @@ module powerbitests {
                 expect($('.card')[0].childElementCount).toBe(3);
                 expect($('.cardItemContainer')[0].childElementCount).toBe(2);
 
-                expect($('.caption').last().text()).toBe('category2' );
+                expect($('.caption').last().text()).toBe('category2');
                 expect($('.details').last().text()).toBe('category');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
-        it('Validate multiRowCard DOM with Title',(done) => {
-          
+        it('Validate multiRowCard DOM with Title', (done) => {
+
             v.onDataChanged({ dataViews: [dataWithTitle] });
             setTimeout(() => {
                 expect($('.card')).toBeInDOM();
@@ -157,11 +195,12 @@ module powerbitests {
                 expect($('.card')[0].childElementCount).toBe(2);
                 expect($('.cardItemContainer')[0].childElementCount).toBe(2);
 
+                expect($('.title').last().height()).toBe(24);
                 expect($('.title').last().text()).toBe('Adventure');
                 expect($('.caption').last().text()).toBe('12,345.00');
                 expect($('.details').last().text()).toBe('value');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Validate that multiRowCard item long caption should be truncated', (done) => {
@@ -191,7 +230,7 @@ module powerbitests {
                 var labelText = $('.caption').first().text();
                 expect(labelText.substr(labelText.length - 3)).toBe('...');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Validate multiRowCard converter without Title', (done) => {
@@ -199,23 +238,23 @@ module powerbitests {
                 var cardData = MultiRowCard.converter(data, data.metadata.columns.length, data.table.rows.length);
                 expect(cardData.length).toBe(2);
                 expect(cardData).toEqual([
-                        { title: undefined, cardItemsData: [{ caption: '123,456.79', details: 'value' }, { caption: '8/31/1999', details: 'date' }, { caption: 'category1', details: 'category' }] },
-                        { title: undefined, cardItemsData: [{ caption: '12,345.00', details: 'value' }, { caption: '8/1/2014', details: 'date' }, { caption: 'category2', details: 'category' }] }
-                    ]);
+                    { title: undefined, showTitleAsURL: false, cardItemsData: [{ caption: '123,456.79', details: 'value', showURL: false }, { caption: '8/31/1999', details: 'date', showURL: false }, { caption: 'category1', details: 'category', showURL: false }] },
+                    { title: undefined, showTitleAsURL: false, cardItemsData: [{ caption: '12,345.00', details: 'value', showURL: false }, { caption: '8/1/2014', details: 'date', showURL: false }, { caption: 'category2', details: 'category', showURL: false }] }
+                ]);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
-        it('Validate multiRowCard converter With Title',(done) => {
+        it('Validate multiRowCard converter With Title', (done) => {
             setTimeout(() => {
                 var cardData = MultiRowCard.converter(dataWithTitle, dataWithTitle.metadata.columns.length, dataWithTitle.table.rows.length);
                 expect(cardData.length).toBe(2);
                 expect(cardData).toEqual([
-                    { title: 'Action', cardItemsData: [{ caption: '123,456.79', details: 'value' }] },
-                    { title: 'Adventure', cardItemsData: [{ caption: '12,345.00', details: 'value' }] }
+                    { title: 'Action', showTitleAsURL: false, cardItemsData: [{ caption: '123,456.79', details: 'value', showURL: false }] },
+                    { title: 'Adventure', showTitleAsURL: false, cardItemsData: [{ caption: '12,345.00', details: 'value', showURL: false }] }
                 ]);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Validate multiRowCard converter null value', (done) => {
@@ -223,14 +262,14 @@ module powerbitests {
                 var cardData = MultiRowCard.converter(dataWithNullValue, dataWithNullValue.metadata.columns.length, dataWithNullValue.table.rows.length);
                 expect(cardData.length).toBe(2);
                 expect(cardData).toEqual([
-                    { title: 'Action', cardItemsData: [{ caption: '(Blank)', details: 'value' }] },
-                    { title: 'Adventure', cardItemsData: [{ caption: '(Blank)', details: 'value' }] }
+                    { title: 'Action', showTitleAsURL: false, cardItemsData: [{ caption: '(Blank)', details: 'value', showURL: false }] },
+                    { title: 'Adventure', showTitleAsURL: false, cardItemsData: [{ caption: '(Blank)', details: 'value', showURL: false }] }
                 ]);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
-        it('Validate that multiRowCard displays title with Empty values',(done) => {
+        it('Validate that multiRowCard displays title with Empty values', (done) => {
             var dataWithEmptyTitle: powerbi.DataView = {
                 metadata: dataViewMetadataWithTitle,
                 table: {
@@ -247,7 +286,25 @@ module powerbitests {
                 expect($('.title').first().text()).toBe('');
                 expect($('.title').last().text()).toBe('Adventure');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
+        });
+
+        it('Validate that multiRowCard displays title with Web URL values', (done) => {
+            v.onDataChanged({ dataViews: [dataWithURLTitle] });
+            setTimeout(() => {
+                expect($('.card .title a')).toBeInDOM();
+                expect($('.title a').last().text()).toBe('http://microsoft.com');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Validate that multiRowCard displays card items with Web URL values', (done) => {
+            v.onDataChanged({ dataViews: [dataWithURLValues] });
+            setTimeout(() => {
+                expect($('.card .caption a')).toBeInDOM();
+                expect($('.caption a').last().text()).toBe('http://microsoft.com');
+                done();
+            }, DefaultWaitForRender);
         });
 
         it('Validate multiRowCard last card styling on dashboard', (done) => {
@@ -273,10 +330,10 @@ module powerbitests {
                 expect(cardItemBottomPadding).toEqual(0);
                 expect(cardItemTopPadding).toEqual(5);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
-        it('Validate multiRowCard first card styling on canvas',(done) => {
+        it('Validate multiRowCard first card styling on canvas', (done) => {
             element = powerbitests.helpers.testDom('100', '100');
             v.init({
                 element: element,
@@ -290,7 +347,7 @@ module powerbitests {
 
             var dataViewMetadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'value', type: ValueType.fromDescriptor({ numeric: true }) },                    
+                    { displayName: 'value', type: ValueType.fromDescriptor({ numeric: true }) },
                 ],
             };
 
@@ -307,21 +364,21 @@ module powerbitests {
 
             setTimeout(() => {
                 var cardBottomMargin = parseInt(element.find('.card').last().css('margin-bottom'), 10);
-                expect(cardBottomMargin).toEqual(0);     
+                expect(cardBottomMargin).toEqual(0);
 
                 v.onDataChanged({ dataViews: [dataWithTitle] });
                 cardBottomMargin = parseInt(element.find('.card').last().css('margin-bottom'), 10);
-                expect(cardBottomMargin).toEqual(20);   
-                
+                expect(cardBottomMargin).toEqual(20);
+
                 v.onDataChanged({ dataViews: [data] });
                 cardBottomMargin = parseInt(element.find('.card').last().css('margin-bottom'), 10);
-                expect(cardBottomMargin).toEqual(20);    
-                      
+                expect(cardBottomMargin).toEqual(20);
+
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
-        it('Validate multiRowCard card styling on dashboard',(done) => {
+        it('Validate multiRowCard card styling on dashboard', (done) => {
             element = powerbitests.helpers.testDom('400', '400');
             v.init({
                 element: element,
@@ -344,7 +401,7 @@ module powerbitests {
                 expect(cardItemBottomPadding).toEqual(5);
                 expect(cardItemTopPadding).toEqual(5);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Validate multiRowCard card styling', (done) => {
@@ -368,10 +425,10 @@ module powerbitests {
                 expect(cardItemBottomPadding).toEqual(0);
                 expect(cardItemTopPadding).toEqual(0);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
-        it('Validate multiRowCard styling when there is a single card item',(done) => {       
+        it('Validate multiRowCard styling when there is a single card item', (done) => {
             var dataViewMetadata: powerbi.DataViewMetadata = {
                 columns: [
                     { displayName: 'value', type: ValueType.fromDescriptor({ numeric: true }) },
@@ -392,9 +449,9 @@ module powerbitests {
             setTimeout(() => {
                 var cardItemRightMargin = parseInt(element.find('.cardItemContainer').first().css('margin-right'), 10);
                 expect(cardItemRightMargin).toEqual(0);
-               
+
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Verify number of cards and card items in smallTile ', (done) => {
@@ -420,7 +477,7 @@ module powerbitests {
                 expect($('.card')[0].childElementCount).toBe(4);
 
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Verify number of cards and card items in MediumTile ', (done) => {
@@ -445,7 +502,7 @@ module powerbitests {
                 expect($('.card').length).toBe(3);
                 expect($('.card')[0].childElementCount).toBe(6);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Verify number of cards and card items in LargeTile ', (done) => {
@@ -470,7 +527,7 @@ module powerbitests {
                 expect($('.card').length).toBe(9);
                 expect($('.card')[0].childElementCount).toBe(6);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Validate multiRowCard cardrow column width for default width', (done) => {
@@ -492,7 +549,7 @@ module powerbitests {
                 expect($('.card .cardItemContainer')).toBeInDOM();
                 expect(element.find('.cardItemContainer').last().innerWidth()).toEqual(86);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Validate multiRowCard card height', (done) => {
@@ -515,7 +572,7 @@ module powerbitests {
 
                 expect(element.find('.card').first().innerHeight()).toEqual(cardItemHeight + cardItemBottompadding + cardItemTopPadding);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card should be cleared when there is a empty dataview ', (done) => {
@@ -550,10 +607,10 @@ module powerbitests {
                 v.onDataChanged({ dataViews: [data] });
                 expect($('.card').length).toBe(0);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
-        it('Card should format values',(done) => {
+        it('Card should format values', (done) => {
             var dataViewMetadata: powerbi.DataViewMetadata = {
                 columns: [
                     { displayName: 'value', type: ValueType.fromDescriptor({ numeric: true }), objects: { general: { formatString: '0%' } } }
@@ -574,7 +631,7 @@ module powerbitests {
                 expect($('.card').length).toBe(1);
                 expect($('.card .caption').last().text()).toBe('22%');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card should not call loadMoreData ', () => {

@@ -121,43 +121,6 @@ module powerbitests {
             expect(result).toBe(-1);
         });
 
-        it('getMeasureIndexOfRole without roles validation with default',() => {
-            var dataViewMetadata: powerbi.DataViewMetadata = {
-                columns: [
-                    { displayName: 'col1' },
-                    { displayName: 'col2', isMeasure: true },
-                    { displayName: 'col3', isMeasure: true },
-                    { displayName: 'col4', isMeasure: true }
-                ]
-            };
-            var dataView: powerbi.DataView = {
-                metadata: dataViewMetadata,
-                categorical: {
-                    categories: [{
-                        source: dataViewMetadata.columns[0],
-                        values: ['Montana', 'California', 'Arizona']
-                    }],
-                    values: DataViewTransform.createValueColumns([{
-                        source: dataViewMetadata.columns[1],
-                        values: [-100, 200, 700],
-                        subtotal: 800
-                    }, {
-                            source: dataViewMetadata.columns[2],
-                            values: [1, 2, 3],
-                            subtotal: 6
-                        }, {
-                            source: dataViewMetadata.columns[3],
-                            values: [4, 5, 6],
-                            subtotal: 15
-                        }])
-                }
-            };
-            var grouped = dataView.categorical.values.grouped();
-
-            var result = powerbi.visuals.DataRoleHelper.getMeasureIndexOfRole(grouped, "Size", 0);
-            expect(result).toBe(0);
-        });
-
         it('getMeasureIndexOfRole without roles validation with default too few measures',() => {
             var dataViewMetadata: powerbi.DataViewMetadata = {
                 columns: [
@@ -181,7 +144,7 @@ module powerbitests {
             };
             var grouped = dataView.categorical.values.grouped();
 
-            var result = powerbi.visuals.DataRoleHelper.getMeasureIndexOfRole(grouped, "2nd measure", 1);
+            var result = powerbi.visuals.DataRoleHelper.getMeasureIndexOfRole(grouped, "2nd measure");
             expect(result).toBe(-1);
         });
 

@@ -155,7 +155,7 @@ module powerbi {
 
         private static getFormatWithPrecision(decimals?: number): string {
             if (decimals == null) return 'G';
-            return "0." + jsCommon.StringExtensions.repeat('0',Math.abs(decimals));
+            return ",0." + jsCommon.StringExtensions.repeat('0',Math.abs(decimals));
         }
 
         /** Formats a single value by choosing an appropriate base for the DisplayUnitSystem before formatting. */
@@ -212,7 +212,7 @@ module powerbi {
         // Methods
         public format(data: number, format: string, decimals?: number, trailingZeros?: boolean): string {
             // Use scientific format outside of the range
-            if (!this.displayUnit && this.isScientific(data)) {
+            if (!this.displayUnit && this.isScientific(data) && !DisplayUnitSystem.UNSUPPORTED_FORMATS.test(format)) {
                 if (!format || format.toUpperCase().indexOf("E") < 0) {
                     format = "0.######E+0";
                 }

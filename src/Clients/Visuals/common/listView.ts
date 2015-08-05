@@ -53,7 +53,7 @@ module powerbi.visuals {
         viewport: IViewport;
     }
 
-    enum ListViewMode {
+    const enum ListViewMode {
         SVG,
         HTML
     }
@@ -170,7 +170,8 @@ module powerbi.visuals {
             var translateY = scrollPosition * rowHeight;
             visibleGroupContainer
                 .attr('transform', d => SVGUtil.translate(0, translateY))
-                .style('transform', d => SVGUtil.translateWithPixels(0, translateY));
+                .style('transform', d => SVGUtil.translateWithPixels(0, translateY))
+                .style('-webkit-transform', d => SVGUtil.translateWithPixels(0, translateY));
 
             var position0 = Math.max(0, Math.min(scrollPosition, totalRows - visibleRows + 1)),
                 position1 = position0 + visibleRows;

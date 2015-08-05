@@ -25,7 +25,7 @@
  */
 
 module powerbi.visuals {
-    export interface DonutChartAnimationOptions {
+    export interface DonutChartAnimationOptions extends IAnimationOptions {
         viewModel: DonutData;
         graphicsContext: D3.Selection;
         colors: IDataColorPalette;
@@ -33,22 +33,21 @@ module powerbi.visuals {
         sliceWidthRatio: number;
         radius: number;
         viewport: IViewport;
-        interactivityService: IInteractivityService;
     }
 
-    export interface DonutChartAnimationResult {
-        failed: boolean;
+    export interface DonutChartAnimationResult extends IAnimationResult {
         shapes: D3.UpdateSelection;
         highlightShapes: D3.UpdateSelection;
     }
 
-    export interface IDonutChartAnimator {
-        animate(options: DonutChartAnimationOptions): DonutChartAnimationResult;
-    }
+    export type IDonutChartAnimator = Animator<IAnimatorOptions, DonutChartAnimationOptions, DonutChartAnimationResult>;
 
-    export class WebDonutChartAnimator implements IDonutChartAnimator {
+    export class WebDonutChartAnimator extends Animator<IAnimatorOptions, DonutChartAnimationOptions, DonutChartAnimationResult> implements IDonutChartAnimator {
         private previousViewModel: DonutData;
-        private animationDuration: number = AnimatorCommon.MinervaAnimationDuration;
+
+        constructor(options?: IAnimatorOptions) {
+            super(options);
+        }
 
         public animate(options: DonutChartAnimationOptions): DonutChartAnimationResult {
             var result: DonutChartAnimationResult = {
@@ -90,7 +89,7 @@ module powerbi.visuals {
                 .each(function (d) { this._current = d; });
 
             highlightShapes
-                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getColor(d.data.identity.getKey()).value)
+                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getNewColorScale().getColor(d.data.identity.getKey()).value)
                 .style('fill-opacity', (d: DonutArcDescriptor) => ColumnUtil.getFillOpacity(d.data.selected, true, false, options.viewModel.hasHighlights))
                 .attr(options.layout.shapeLayout)  // Start at the non-highlight layout, then transition to the highlight layout.
                 .transition()
@@ -126,6 +125,7 @@ module powerbi.visuals {
         private animateHighlightedToNormal(options: DonutChartAnimationOptions): DonutChartAnimationResult {
             var hasSelection = options.interactivityService && (<WebInteractivityService>options.interactivityService).hasSelection();
             var endStylesApplied = false;
+            var duration = this.animationDuration;
 
             var shapes = options.graphicsContext.select('.slices')
                 .selectAll('path.slice')
@@ -139,10 +139,10 @@ module powerbi.visuals {
             // For any slice that is selected we want to keep showing it as dimmed (partially highlighted). After the highlight animation
             // finishes we will set the opacity based on the selection state.
             shapes
-                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getColor(d.data.identity.getKey()).value)
+                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getNewColorScale().getColor(d.data.identity.getKey()).value)
                 .style('fill-opacity', (d: DonutArcDescriptor) => ColumnUtil.getFillOpacity(d.data.selected, false, d.data.selected, !d.data.selected))
                 .transition()
-                .duration(this.animationDuration)
+                .duration(duration)
                 .attr(options.layout.shapeLayout);
 
             shapes.exit()
@@ -158,10 +158,10 @@ module powerbi.visuals {
                 .each(function (d) { this._current = d; });
 
             highlightShapes
-                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getColor(d.data.identity.getKey()).value)
+                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getNewColorScale().getColor(d.data.identity.getKey()).value)
                 .style('fill-opacity', (d: DonutArcDescriptor) => ColumnUtil.getFillOpacity(false, true, false, true))
                 .transition()
-                .duration(this.animationDuration)
+                .duration(duration)
                 .attr(hasSelection ? options.layout.zeroShapeLayout : options.layout.shapeLayout)  // Transition to the non-highlight layout
                 .each("end", (d: DonutArcDescriptor) => {
                     if (!endStylesApplied) {
@@ -194,7 +194,7 @@ module powerbi.visuals {
                 .each(function (d) { this._current = d; });
 
             shapes
-                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getColor(d.data.identity.getKey()).value)
+                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getNewColorScale().getColor(d.data.identity.getKey()).value)
                 .style('fill-opacity', (d: DonutArcDescriptor) => ColumnUtil.getFillOpacity(d.data.selected, false, false, options.viewModel.hasHighlights))
                 .transition()
                 .duration(this.animationDuration)
@@ -217,7 +217,7 @@ module powerbi.visuals {
                 .each(function (d) { this._current = d; });
 
             highlightShapes
-                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getColor(d.data.identity.getKey()).value)
+                .style('fill', (d: DonutArcDescriptor) => d.data.color ? d.data.color : options.colors.getNewColorScale().getColor(d.data.identity.getKey()).value)
                 .style('fill-opacity', (d: DonutArcDescriptor) => ColumnUtil.getFillOpacity(d.data.selected, true, false, options.viewModel.hasHighlights))
                 .transition()
                 .duration(this.animationDuration)

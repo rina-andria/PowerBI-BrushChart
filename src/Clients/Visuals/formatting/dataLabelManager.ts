@@ -210,8 +210,7 @@ module powerbi {
     * can be repositioned or get hidden.
     */
     export class DataLabelManager {
-        private _size: shapes.ISize;
-        
+
         public movingStep: number = 3;
         public hideOverlapped: boolean = true;
         public static DefaultAnchorMargin: number = 0; // For future use
@@ -241,16 +240,21 @@ module powerbi {
 
         public get defaultSettings(): IDataLabelSettings {
             return this._defaultSettings;
-        }        
+        }
 
         /** Arranges the lables position and visibility*/
-        public hideCollidedLabels(viewport: IViewport, data: any[], layout: any): powerbi.visuals.LabelEnabledDataPoint[] {
+        public hideCollidedLabels(viewport: IViewport, data: any[], layout: any, addTransform: boolean = false): powerbi.visuals.LabelEnabledDataPoint[] {
 
-            this._size = { width: viewport.width, height: viewport.height };
             // Split size into a grid
-            var arrangeGrid = new DataLabelArrangeGrid(this._size, data, layout);
+            var arrangeGrid = new DataLabelArrangeGrid(viewport, data, layout);
             var filteredData = [];
-            
+            var transform: shapes.IVector = { x: 0, y: 0 };
+
+            if (addTransform) {
+                transform.x = viewport.width / 2;
+                transform.y = viewport.height / 2;
+            }
+
             for (var i = 0, len = data.length; i < len; i++) {
 
                 // Filter unwanted data points
@@ -261,16 +265,16 @@ module powerbi {
                 var info = this.getLabelInfo(data[i]);
 
                 info.anchorPoint = {
-                    x: layout.labelLayout.x(data[i]),
-                    y: layout.labelLayout.y(data[i])
+                    x: layout.labelLayout.x(data[i]) + transform.x,
+                    y: layout.labelLayout.y(data[i]) + transform.y,
                 };
 
                 var position: shapes.IRect = this.calculateContentPosition(info, info.contentPosition, data[i].size, info.anchorMargin);
 
-                if (DataLabelManager.isValid(position) && !this.hasCollisions(arrangeGrid, info, position, this._size)) {
-                    data[i].labelX = position.left;
-                    data[i].labelY = position.top;
-                    
+                if (DataLabelManager.isValid(position) && !this.hasCollisions(arrangeGrid, info, position, viewport)) {
+                    data[i].labelX = position.left - transform.x;
+                    data[i].labelY = position.top - transform.y;
+
                     // Keep track of all panel elements positions.
                     arrangeGrid.add(info, position);
 
@@ -324,7 +328,7 @@ module powerbi {
                         case ContentPositions.MiddleRight:
                         case ContentPositions.BottomRight:
                             position.x += contentSize.width / 2.0;
-                            break;                        
+                            break;
                     }
                 }
 
@@ -495,7 +499,7 @@ module powerbi {
                     contentSize,
                     offset);
             }
-            
+
             // Determine position using anchor rectangle.
             return this.calculateContentPositionFromRect(
                 anchoredElementInfo.anchorRect,
@@ -587,7 +591,7 @@ module powerbi {
                     width: TextMeasurementService.measureSvgTextWidth(properties),
                     height: TextMeasurementService.measureSvgTextHeight(properties),
                 };
-                
+
                 var w = child.size.width * 2;
                 var h = child.size.height * 2;
                 if (w > this._cellSize.width)

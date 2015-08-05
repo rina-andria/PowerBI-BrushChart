@@ -96,10 +96,6 @@ module powerbitests {
             propertyName: 'formatString',
         };
 
-        beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
-        });
-
         // TODO: add a getValueFn mock to provide to createAxis so we can test tickValue generation
 
         it('create ordinal scale',() => {
@@ -416,6 +412,56 @@ module powerbitests {
             expect(values[0]).toBe('Oct 15');
         });
 
+        it('create scalar time scale with invaid domains',() => {
+            var axisProps: powerbi.visuals.IAxisProperties[] = [];
+
+            axisProps[0] = AxisHelper.createAxis({
+                pixelSpan: 100,
+                dataDomain: [], //empty
+                metaDataColumn: metaDataColumnTime,
+                formatStringProp: formatStringProp,
+                outerPadding: 0.5,
+                isScalar: true,
+                isVertical: false,
+                getValueFn: (index, type) => { return new Date(index); } //index is actually milliseconds in this case
+            });
+            axisProps[1] = AxisHelper.createAxis({
+                pixelSpan: 100,
+                dataDomain: null, //null
+                metaDataColumn: metaDataColumnTime,
+                formatStringProp: formatStringProp,
+                outerPadding: 0.5,
+                isScalar: true,
+                isVertical: false,
+                getValueFn: (index, type) => { return new Date(index); } //index is actually milliseconds in this case
+            });
+            axisProps[2] = AxisHelper.createAxis({
+                pixelSpan: 100,
+                dataDomain: [undefined, undefined], //two undefined
+                metaDataColumn: metaDataColumnTime,
+                formatStringProp: formatStringProp,
+                outerPadding: 0.5,
+                isScalar: true,
+                isVertical: false,
+                getValueFn: (index, type) => { return new Date(index); } //index is actually milliseconds in this case
+            });
+
+            for (var i = 0, ilen = axisProps.length; i < ilen; i++) {
+                var props = axisProps[i];
+                var scale = <any>props.scale;
+                expect(scale).toBeDefined();
+            
+                // Proves scale is linear
+                expect(scale.invert).toBeDefined();
+
+                var values = <any>props.values;
+                expect(values).toBeDefined();
+                expect(values.length).toEqual(2);
+                expect(values[0]).toBe('Jul 2014');
+                expect(props.usingDefaultDomain).toBe(true);
+            }
+        });
+
         it('create ordinal time scale',() => {
             var os = AxisHelper.createAxis({
                 pixelSpan: 100,
@@ -553,6 +599,13 @@ module powerbitests {
             expect(actual).toEqual(expected);
         });
 
+        it('getRecommendedTickValues: single value domain returns 0 ticks',() => {
+            var expected = [];
+            var scale = AxisHelper.createLinearScale(400, [1, 1]);
+            var actual = AxisHelper.getRecommendedTickValues(5, scale, ValueType.fromDescriptor({ numeric: true }), true);
+            expect(actual).toEqual(expected);
+        });
+
         it('getRecommendedTickValues: positive range',() => {
             var expected = [60, 80, 100];
             var scale = AxisHelper.createLinearScale(400, [60, 100]);
@@ -571,6 +624,28 @@ module powerbitests {
             var expected = [0, 50, 100];
             var scale = AxisHelper.createLinearScale(400, [-20, 100]);
             var actual = AxisHelper.getRecommendedTickValues(4, scale, ValueType.fromDescriptor({ numeric: true }), true);
+            expect(actual).toEqual(expected);
+        });
+
+        it('getRecommendedTickValues: very precise decimal values and funny d3 zero tick values',() => {
+            // Zero value originally returned from d3 ticks() call is '-1.7763568394002505e-17' (i.e. -1e-33)
+            var expected = [-0.15000000000000002, -0.10000000000000002, -0.05000000000000002, 0, 0.04999999999999998, 0.09999999999999998];
+            var scale = AxisHelper.createLinearScale(400, [-0.150000000000002, .10000000008000006]);
+            var actual = AxisHelper.getRecommendedTickValues(6, scale, ValueType.fromDescriptor({ numeric: true }), true);
+            expect(actual).toEqual(expected);
+        });
+
+        it('getRecommendedTickValues: integer type should not return fractional tick values',() => {
+            var expected = [0, 1];
+            var scale = AxisHelper.createLinearScale(500, [0, 1]);
+            var actual = AxisHelper.getRecommendedTickValues(8, scale, ValueType.fromDescriptor({ integer: true }), true, 1);
+            expect(actual).toEqual(expected);
+        });
+
+        it('getRecommendedTickValues: remove ticks that are more precise than the formatString',() => {
+            var expected = [0, 0.1, 0.2, 0.3, 0.4, 0.5];
+            var scale = AxisHelper.createLinearScale(500, [0, 0.5]);
+            var actual = AxisHelper.getRecommendedTickValues(11, scale, ValueType.fromDescriptor({ numeric: true }), true, 0.1);
             expect(actual).toEqual(expected);
         });
 
@@ -682,12 +757,12 @@ module powerbitests {
 
         it('getRecommendedNumberOfTicksForXAxis median tile',() => {
             var tickCount = AxisHelper.getRecommendedNumberOfTicksForXAxis(480);
-            expect(tickCount).toBe(6);
+            expect(tickCount).toBe(5);
         });
 
         it('getRecommendedNumberOfTicksForXAxis large tile',() => {
             var tickCount = AxisHelper.getRecommendedNumberOfTicksForXAxis(730);
-            expect(tickCount).toBe(6);
+            expect(tickCount).toBe(8);
         });
 
         it('getRecommendedNumberOfTicksForYAxis small tile',() => {
@@ -697,12 +772,12 @@ module powerbitests {
 
         it('getRecommendedNumberOfTicksForYAxis median tile',() => {
             var tickCount = AxisHelper.getRecommendedNumberOfTicksForYAxis(230);
-            expect(tickCount).toBe(6);
+            expect(tickCount).toBe(5);
         });
 
         it('getRecommendedNumberOfTicksForYAxis large tile',() => {
             var tickCount = AxisHelper.getRecommendedNumberOfTicksForYAxis(350);
-            expect(tickCount).toBe(6);
+            expect(tickCount).toBe(8);
         });
     });
 
@@ -833,5 +908,59 @@ module powerbitests {
             expect(tickCount.yRight).toBe(12);
         });
 
+    });
+
+    describe("AxisHelper apply new domain",() => { 
+        it('Check that customized domain is set on existing domain',() => {
+            var customizedDomain = [undefined, 20];
+            var existingDomain = [0, 10];
+            var newDomain = AxisHelper.applyCustomizedDomain(customizedDomain, existingDomain);
+            expect(newDomain[0]).toBe(0);
+            expect(newDomain[1]).toBe(20);
+
+            customizedDomain = [undefined, undefined];
+            existingDomain = [0, 10];
+            newDomain = AxisHelper.applyCustomizedDomain(customizedDomain, existingDomain);
+            expect(newDomain[0]).toBe(0);
+            expect(newDomain[1]).toBe(10);
+
+            customizedDomain = [5, undefined];
+            existingDomain = [0, 10];
+            newDomain = AxisHelper.applyCustomizedDomain(customizedDomain, existingDomain);
+            expect(newDomain[0]).toBe(5);
+            expect(newDomain[1]).toBe(10);
+
+            customizedDomain = [5, 20];
+            existingDomain = [0, 10];
+            newDomain = AxisHelper.applyCustomizedDomain(customizedDomain, existingDomain);
+            expect(newDomain[0]).toBe(5);
+            expect(newDomain[1]).toBe(20);
+            
+        });
+
+        it('Check that customized domain is set on null domain',() => {
+            var customizedDomain = [undefined, undefined];
+            var existingDomain;
+            var newDomain = AxisHelper.applyCustomizedDomain(customizedDomain, existingDomain);
+            expect(newDomain).toBeUndefined();
+            
+            customizedDomain = [10, 20];
+            var existingDomain;
+            var newDomain = AxisHelper.applyCustomizedDomain(customizedDomain, existingDomain);
+            expect(newDomain[0]).toBe(10);
+            expect(newDomain[1]).toBe(20);
+
+            customizedDomain = [undefined, 20];
+            var existingDomain;
+            var newDomain = AxisHelper.applyCustomizedDomain(customizedDomain, existingDomain);
+            expect(newDomain[0]).toBe(undefined);
+            expect(newDomain[1]).toBe(20);
+
+            customizedDomain = [10, undefined];
+            var existingDomain;
+            var newDomain = AxisHelper.applyCustomizedDomain(customizedDomain, existingDomain);
+            expect(newDomain[0]).toBe(10);
+            expect(newDomain[1]).toBe(undefined);
+        });        
     });
 }

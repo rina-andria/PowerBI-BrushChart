@@ -28,7 +28,6 @@ module powerbitests {
     import DataViewTransform = powerbi.data.DataViewTransform;
     import GaugeVisual = powerbi.visuals.Gauge;
     import SVGUtil = powerbi.visuals.SVGUtil;
-    var DefaultTimeout = 400;
 
     var sideNumbersVisibleMinHeight: number = powerbi.visuals.visualPluginFactory.MobileVisualPluginService.MinHeightGaugeSideNumbersVisible;
     var sideNumbersVisibleGreaterThanMinHeight: number = sideNumbersVisibleMinHeight + 1;
@@ -62,6 +61,10 @@ module powerbitests {
     };
 
     describe('Gauge',() => {
+        beforeEach(() => {
+            powerbitests.mocks.setLocale();
+        });
+
         it('Capabilities should include dataViewMappings',() => {
             expect(GaugeVisual.capabilities.dataViewMappings).toBeDefined();
         });
@@ -88,8 +91,7 @@ module powerbitests {
         var hostServices = powerbitests.mocks.createVisualHostServices();
 
         beforeEach(() => {
-            powerbitests.helpers.suppressDebugAssertFailure();
-            powerbi.common.localize = powerbi.common.createLocalizationService();
+
             element = powerbitests.helpers.testDom('500', '500');
             v = powerbi.visuals.visualPluginFactory.create().getPlugin('gauge').create();
             v.init({
@@ -140,7 +142,7 @@ module powerbitests {
                 expect(xyTarget.y).not.toEqual(xyMaxlabel.y);
                 done();
 
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Ensure max & target dont overlap', (done) => {
@@ -179,7 +181,7 @@ module powerbitests {
                 expect(xyTarget.y).not.toEqual(xyMaxlabel.y);
                 done();
 
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Check Gauge DOM',(done) => {
@@ -226,7 +228,7 @@ module powerbitests {
                 expect(xy.y).toBeGreaterThan(220);
 
                 done();
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('If value less that zero, then scale should be 0-1, but number should show negative value',(done) => {
@@ -262,7 +264,7 @@ module powerbitests {
                 expect($('.mainText').text()).toEqual('-$25');
                 done();
 
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Check Gauge DOM on Style Changed',(done) => {
@@ -316,14 +318,14 @@ module powerbitests {
                 expect(color === '#008000' || color === 'rgb(0, 128, 0)').toBeTruthy();
                 done();
 
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
     });
 
     describe("Gauge Data Tests",() => {
 
         beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
+            powerbitests.mocks.setLocale();
         });
 
         var dataViewMetadata: powerbi.DataViewMetadata = {
@@ -703,7 +705,7 @@ module powerbitests {
                 expect(viewPortProperty).toEqual(expectedViewPortProperty);
             });
 
-            function createGaugeFromHostServices(hostServices: IVisualHostServices) {
+            function createGaugeFromHostServices(hostServices: powerbi.IVisualHostServices) {
                 var gauge = <GaugeVisual> v;
                 spyOn(gauge, 'getGaugeVisualProperties').and.callThrough();
                 spyOn(gauge, 'getAnimatedNumberProperties').and.callThrough();
@@ -768,7 +770,7 @@ module powerbitests {
                     expect(warningSpy.calls.argsFor(0)[0][0].code).toBe('NaNNotSupported');
                     done();
 
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('Negative Infinity in values shows a warning', (done) => {
@@ -787,7 +789,7 @@ module powerbitests {
                     expect(warningSpy.calls.argsFor(0)[0][0].code).toBe('InfinityValuesNotSupported');
                     done();
 
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('Positive Infinity in values shows a warning', (done) => {
@@ -806,7 +808,7 @@ module powerbitests {
                     expect(warningSpy.calls.argsFor(0)[0][0].code).toBe('InfinityValuesNotSupported');
                     done();
 
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('Value out of range in values shows a warning', (done) => {
@@ -824,7 +826,7 @@ module powerbitests {
                     expect(warningSpy.calls.argsFor(0)[0][0].code).toBe('ValuesOutOfRange');
                     done();
 
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('All okay in values shows a warning', (done) => {
@@ -839,7 +841,7 @@ module powerbitests {
                 setTimeout(() => {
                     expect(warningSpy).not.toHaveBeenCalled();
                     done();
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('OnDataChange calls expected methods',(done) => {
@@ -857,7 +859,7 @@ module powerbitests {
                     expect(gauge.getAnimatedNumberProperties).toHaveBeenCalled();
                     done();
 
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('onResizing calls expected methods',(done) => {
@@ -869,7 +871,7 @@ module powerbitests {
                 spyOn(gauge, 'getAnimatedNumberProperties').and.callThrough();
                 spyOn(gauge, 'drawViewPort').and.callThrough();
 
-                gauge.onResizing({ height: 200, width: 300 }, 0);
+                gauge.onResizing({ height: 200, width: 300 });
 
                 setTimeout(() => {
                     expect(gauge.getGaugeVisualProperties).toHaveBeenCalled();
@@ -877,7 +879,7 @@ module powerbitests {
                     expect(gauge.drawViewPort).toHaveBeenCalled();
 
                     done();
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('onResizing aspect ratio check',(done) => {
@@ -885,7 +887,7 @@ module powerbitests {
                 //Sets private data property of Gauge
                 gauge.onDataChanged({ dataViews: dataViews });
 
-                gauge.onResizing({ height: 100, width: 400 }, 0);
+                gauge.onResizing({ height: 100, width: 400 });
 
                 setTimeout(() => {
                     var foregroundArc = $('.foregroundArc');
@@ -894,20 +896,20 @@ module powerbitests {
                     expect(path.indexOf('A 60 60') > -1 || path.indexOf('A60,60') > -1 || path.indexOf('A60 60') > -1).toBeTruthy();
 
                     done();
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('check target has decimal values',(done) => {
                 var gauge = <GaugeVisual> v;
                 gauge.onDataChanged({ dataViews: dataViewsWithDecimals });
-                gauge.onResizing({ height: 100, width: 400 }, 0);
+                gauge.onResizing({ height: 100, width: 400 });
 
                 setTimeout(() => {
                     var targetText = $('.targetText').text();
                     expect(targetText).toEqual('6.50');
 
                     done();
-                }, DefaultTimeout);
+                }, DefaultWaitForRender);
             });
 
             it('Gauge_default_gauge_values',() => {
@@ -936,6 +938,9 @@ module powerbitests {
     });
 
     describe("Gauge margins tests",() => {
+        beforeEach(() => {
+            powerbitests.mocks.setLocale();
+        });
 
         it('Gauge margin test with view port sideNumbersVisibleGreaterThanMinHeightString',() => {
             var v: powerbi.IVisual = testMargins(sideNumbersVisibleGreaterThanMinHeightString, false);
@@ -1157,6 +1162,9 @@ module powerbitests {
     });
 
     describe('Gauge side number tests',() => {
+        beforeEach(() => {
+            powerbitests.mocks.setLocale();
+        });
 
         it('Gauge margin test with view port sideNumbersVisibleSmallerThanMinHeightString mobile',(done) => {
             testSideNumbers(sideNumbersVisibleSmallerThanMinHeightString, true);
@@ -1169,7 +1177,7 @@ module powerbitests {
                 expect($(labels[1]).text()).toEqual('');
                 done();
 
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Gauge margin test with view port sideNumbersVisibleGreaterThanMinHeightString mobile',(done) => {
@@ -1183,7 +1191,7 @@ module powerbitests {
                 expect($(labels[1]).text()).toEqual('$1');
                 done();
 
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Gauge margin test with view port sideNumbersVisibleSmallerThanMinHeightString',(done) => {
@@ -1197,7 +1205,7 @@ module powerbitests {
                 expect($(labels[1]).text()).toEqual('$1');
                 done();
 
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Gauge margin test with view port sideNumbersVisibleGreaterThanMinHeightString',(done) => {
@@ -1211,7 +1219,7 @@ module powerbitests {
                 expect($(labels[1]).text()).toEqual('$1');
                 done();
 
-            }, DefaultTimeout);
+            }, DefaultWaitForRender);
         });
     });
 
@@ -1284,7 +1292,7 @@ module powerbitests {
             groups: [],
             measures: [0],
         };
-        powerbi.common.localize = powerbi.common.createLocalizationService();
+
         element = powerbitests.helpers.testDom(domSizeString, domSizeString);
         if (isMobile) {
             v = powerbi.visuals.visualPluginFactory.createMobile().getPlugin('gauge').create();

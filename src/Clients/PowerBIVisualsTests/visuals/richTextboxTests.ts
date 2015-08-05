@@ -241,6 +241,21 @@ module powerbitests {
                     verifyEditor($element, true);
                 });
 
+                it('should register the toolbar',() => {
+                    expect($toolbar).toBeDefined();
+                });
+
+                it('change to view-mode should unregister the toolbar',() => {
+                    switchToViewMode(powerbi.ViewMode.View);
+
+                    expect($toolbar).toBeNull();
+                });
+
+                it('focus should be in the editor',() => {
+                    var editor = $element.find('.ql-editor');
+                    expect(document.activeElement).toBe(editor.get(0));
+                });
+
                 it('change to view-mode should not show editor',() => {
                     switchToViewMode(powerbi.ViewMode.View);
 

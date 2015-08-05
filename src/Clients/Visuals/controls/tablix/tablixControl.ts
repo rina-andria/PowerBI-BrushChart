@@ -61,7 +61,6 @@ module powerbi.visuals.controls {
 
     export class TablixControl {
         private static UnitOfMeasurement = 'px';
-        private static MouseWheelRange = 120;
 
         private _hierarchyNavigator: ITablixHierarchyNavigator;
         private _binder: ITablixBinder;
@@ -71,7 +70,7 @@ module powerbi.visuals.controls {
         private _layoutManager: internal.TablixLayoutManager;
 
         private _container: HTMLDivElement;
-        private _mainDiv: HTMLDivElement; 
+        private _mainDiv: HTMLDivElement;
         private _footerDiv: HTMLDivElement;
 
         private _scrollbarWidth = 9;
@@ -125,20 +124,20 @@ module powerbi.visuals.controls {
             var footerDivStyle = this._footerDiv.style;
             footerDivStyle.position = "absolute";
             footerDivStyle.left = "0px";
-            
+
             if (this._isTouchEnabled)
                 this.InitializeTouchSupport();
 
             this._gridDimensions = {};
 
-            this._container = internal.TablixUtils.createDiv();            
+            this._container = internal.TablixUtils.createDiv();
             this.className = layoutManager.getTablixClassName();
             this.autoSizeWidth = false;
             this.autoSizeHeight = false;
 
             parentDomElement.appendChild(this._container);
-            this._container.addEventListener("mousewheel", (e) => { this.onMouseWheel(<MouseWheelEvent>e); });
-            this._container.addEventListener("DOMMouseScroll", (e) => { this.onFireFoxMouseWheel(<MouseWheelEvent>e); });
+            this._container.addEventListener("mousewheel",(e) => { this.onMouseWheel(<MouseWheelEvent>e); });
+            this._container.addEventListener("DOMMouseScroll",(e) => { this.onFireFoxMouseWheel(<MouseWheelEvent>e); });
             this._container.appendChild(this._mainDiv);
             this._container.appendChild(this._footerDiv);
 
@@ -157,7 +156,7 @@ module powerbi.visuals.controls {
             this._rowDimension = new TablixRowDimension(this);
             this._columnDimension._otherDimension = this.rowDimension;
             this._rowDimension._otherDimension = this.columnDimension;
-            
+
             this.InitializeScrollbars();
             if (!isInteractive) {
                 this.scrollbarWidth = 0;
@@ -201,7 +200,9 @@ module powerbi.visuals.controls {
             rowDimensionScrollbarStyle.right = "0" + TablixControl.UnitOfMeasurement;
             this._rowDimension.scrollbar.width = this._scrollbarWidth + TablixControl.UnitOfMeasurement;
 
-            this._rowDimension.scrollbar.show(false);
+            // Default to true which is the more common case to avoid an extra rendering iteration
+            // when first rendering the visual
+            this._rowDimension.scrollbar.show(true);
 
             // Column Dimension
             this._columnDimension._initializeScrollbar(this._container, null);
@@ -218,7 +219,7 @@ module powerbi.visuals.controls {
         public get container(): HTMLElement {
             return this._container;
         }
-        
+
         public get contentHost(): HTMLElement {
             return this._mainDiv;
         }
@@ -260,7 +261,7 @@ module powerbi.visuals.controls {
 
         public set autoSizeHeight(value: boolean) {
             this._autoSizeHeight = value;
-            
+
             if (this._autoSizeHeight) {
                 this.removeFixSizedClassName();
             } else {
@@ -268,7 +269,7 @@ module powerbi.visuals.controls {
                 this._container.style.minHeight = this._container.style.maxHeight = "none";
             }
         }
-        
+
         public get maxWidth(): number {
             return this._maxWidth;
         }
@@ -325,7 +326,7 @@ module powerbi.visuals.controls {
             this._rowDimension.scrollbar.width = this._scrollbarWidth + TablixControl.UnitOfMeasurement;
             this._columnDimension.scrollbar.height = this._scrollbarWidth + TablixControl.UnitOfMeasurement;
         }
-        
+
         public updateModels(resetScrollOffsets: boolean, rowModel?: any, columnModel?: any): void {
             if (rowModel) {
                 this._rowDimension.model = rowModel;
@@ -361,59 +362,45 @@ module powerbi.visuals.controls {
         }
 
         private updateTouchDimensions(): void {
-                var gridDimensions = this._gridDimensions;
+            var gridDimensions = this._gridDimensions;
 
-                this._columnTouchDelegate.resize(gridDimensions.rowHierarchyWidth, 0, gridDimensions.columnHierarchyWidth, gridDimensions.columnHierarchyHeight);
-                this._columnTouchDelegate.setScrollDensity(gridDimensions.columnCount / gridDimensions.columnHierarchyWidth);
+            this._columnTouchDelegate.resize(gridDimensions.rowHierarchyWidth, 0, gridDimensions.columnHierarchyWidth, gridDimensions.columnHierarchyHeight);
+            this._columnTouchDelegate.setScrollDensity(gridDimensions.columnCount / gridDimensions.columnHierarchyWidth);
 
-                this._rowTouchDelegate.resize(0, gridDimensions.columnHierarchyHeight, gridDimensions.rowHierarchyWidth, gridDimensions.rowHierarchyHeight);
-                this._rowTouchDelegate.setScrollDensity(gridDimensions.rowCount / gridDimensions.rowHierarchyHeight);
+            this._rowTouchDelegate.resize(0, gridDimensions.columnHierarchyHeight, gridDimensions.rowHierarchyWidth, gridDimensions.rowHierarchyHeight);
+            this._rowTouchDelegate.setScrollDensity(gridDimensions.rowCount / gridDimensions.rowHierarchyHeight);
 
-                this._bodyTouchDelegate.resize(gridDimensions.rowHierarchyWidth, gridDimensions.columnHierarchyHeight,
-                    gridDimensions.columnHierarchyWidth, gridDimensions.rowHierarchyHeight);
-                this._bodyTouchDelegate.setScrollDensity(gridDimensions.columnCount / gridDimensions.columnHierarchyWidth,
-                    gridDimensions.rowCount / gridDimensions.rowHierarchyHeight);
+            this._bodyTouchDelegate.resize(gridDimensions.rowHierarchyWidth, gridDimensions.columnHierarchyHeight,
+                gridDimensions.columnHierarchyWidth, gridDimensions.rowHierarchyHeight);
+            this._bodyTouchDelegate.setScrollDensity(gridDimensions.columnCount / gridDimensions.columnHierarchyWidth,
+                gridDimensions.rowCount / gridDimensions.rowHierarchyHeight);
 
-                this._footerTouchDelegate.resize(gridDimensions.rowHierarchyWidth, gridDimensions.columnHierarchyHeight + gridDimensions.rowHierarchyHeight, gridDimensions.columnHierarchyWidth, gridDimensions.footerHeight);
-                this._footerTouchDelegate.setScrollDensity(gridDimensions.columnCount / gridDimensions.columnHierarchyWidth);
-            }
+            this._footerTouchDelegate.resize(gridDimensions.rowHierarchyWidth, gridDimensions.columnHierarchyHeight + gridDimensions.rowHierarchyHeight, gridDimensions.columnHierarchyWidth, gridDimensions.footerHeight);
+            this._footerTouchDelegate.setScrollDensity(gridDimensions.columnCount / gridDimensions.columnHierarchyWidth);
+        }
 
         private onMouseWheel(e: MouseWheelEvent): void {
-            if (e.wheelDelta) {
-                this.mouseWheel(e.wheelDelta);
-            }
+            var dimension = this.determineDimensionToScroll();
+            if (dimension)
+                dimension.scrollbar.onMouseWheel(e);
         }
 
         private onFireFoxMouseWheel(e: MouseWheelEvent): void {
-            if (e.detail) {
-                this.mouseWheel(-e.detail);
-            }
+            var dimension = this.determineDimensionToScroll();
+            if (dimension)
+                dimension.scrollbar.onFireFoxMouseWheel(e);
         }
 
-        private mouseWheel(delta: number): void {
-            if (delta < 0) { // fix for issue 786411 (Some machines won't have the delta as multiple of 120)
-                delta = Math.min(-TablixControl.MouseWheelRange, delta);
-            }
-            else if (delta > 0) {
-                delta = Math.max(TablixControl.MouseWheelRange, delta);
-            }
+        private determineDimensionToScroll(): TablixDimension {
+            if (this._rowDimension.scrollbar.visible)
+                return this._rowDimension;
 
-            var dimension = null;
+            // In the absence of the vertical scrollbar, we scroll the
+            // horizontal scrollbar.
+            if (this._columnDimension.scrollbar.visible)
+                return this._columnDimension;
 
-            if (this._rowDimension.scrollbar.visible) {
-                dimension = this._rowDimension;
-            }
-            else if (this._columnDimension.scrollbar.visible) {
-                dimension = this._columnDimension;
-            }
-
-            if (dimension) {
-                dimension.scrollOffset -= (delta / TablixControl.MouseWheelRange) * dimension.scrollbar.smallIncrement;
-                dimension.scrollOffset = Math.max(dimension.scrollOffset, 0);
-                dimension.scrollbar.viewMin = dimension.scrollOffset;
-
-                this._onScrollAsync(dimension);
-            }
+            return null;
         }
 
         public get layoutManager(): internal.TablixLayoutManager {
@@ -530,7 +517,7 @@ module powerbi.visuals.controls {
             var done = false;
             this._renderIterationCount = 0;
 
-            this._layoutManager.onStartRenderingSession(scrollingDimension, this._mainDiv);
+            this._layoutManager.onStartRenderingSession(scrollingDimension, this._mainDiv, clear);
             var binder: ITablixBinder = this._binder;
             binder.onStartRenderingSession();
 
@@ -542,9 +529,9 @@ module powerbi.visuals.controls {
                 var hScrollbarVisibility = this._columnDimension.scrollbar.visible;
                 var vScrollbarVisibility = this._rowDimension.scrollbar.visible;
 
-                this._columnDimension._onStartRenderingIteration(clear);  // TODO clearing should happen only once before the loop
-                this._rowDimension._onStartRenderingIteration(clear);
-                this._layoutManager.onStartRenderingIteration(clear);
+                this._columnDimension._onStartRenderingIteration();
+                this._rowDimension._onStartRenderingIteration();
+                this._layoutManager.onStartRenderingIteration(clear);                     
 
                 // These calls add cells to the table.
                 // Column needs to be rendered before rows as the row call will pair up with columns to produce the body cells.
@@ -570,27 +557,29 @@ module powerbi.visuals.controls {
             binder.onEndRenderingSession();
 
             if (this._isTouchEnabled)
-            this.updateTouchDimensions();
+                this.updateTouchDimensions();
 
             this._lastRenderingArgs.rowScrollOffset = this.rowDimension.scrollOffset;
             this._lastRenderingArgs.columnScrollOffset = this.columnDimension.scrollOffset;
 
             this.updateContainerDimensions();
 
-            if (this._options.interactive) {
-                this._columnDimension.scrollbar.refresh();
-                this._rowDimension.scrollbar.refresh();
-            }
-
             var lastRenderingArgs = this._lastRenderingArgs;
             lastRenderingArgs.rowScrollOffset = this.rowDimension.scrollOffset;
             lastRenderingArgs.columnScrollOffset = this.columnDimension.scrollOffset;
             lastRenderingArgs.scrollingDimension = scrollingDimension;
-            
+
             if (priorFooterHeight !== this._gridDimensions.footerHeight ||
                 priorRowHierarchyHeight !== this._gridDimensions.rowHierarchyHeight ||
                 priorRowHierarchyContentHeight !== this._gridDimensions.rowHierarchyContentHeight) {
                 this.updateVerticalPosition();
+            }
+
+            // NOTE: it is critical that we refresh the scrollbars only after the vertical
+            //       position was updated above; otherwise the measurements can be incorrect.
+            if (this._options.interactive) {
+                this._columnDimension.scrollbar.refresh();
+                this._rowDimension.scrollbar.refresh();
             }
         }
 
@@ -600,20 +589,20 @@ module powerbi.visuals.controls {
             if (this._autoSizeWidth) {
                 var vScrollBarWidth: number = this._rowDimension.scrollbar.visible ? this._scrollbarWidth : 0;
                 this._container.style.width =
-                    gridDimensions.rowHierarchyWidth +
-                    gridDimensions.columnHierarchyWidth +
-                    vScrollBarWidth +
-                    TablixControl.UnitOfMeasurement;
+                gridDimensions.rowHierarchyWidth +
+                gridDimensions.columnHierarchyWidth +
+                vScrollBarWidth +
+                TablixControl.UnitOfMeasurement;
             }
 
             if (this._autoSizeHeight) {
                 var hScrollBarHeight: number = this._columnDimension.scrollbar.visible ? this._scrollbarWidth : 0;
                 this._container.style.height =
-                    gridDimensions.columnHierarchyHeight +
-                    gridDimensions.rowHierarchyHeight +
-                    gridDimensions.footerHeight +
-                    hScrollBarHeight +
-                    TablixControl.UnitOfMeasurement;
+                gridDimensions.columnHierarchyHeight +
+                gridDimensions.rowHierarchyHeight +
+                gridDimensions.footerHeight +
+                hScrollBarHeight +
+                TablixControl.UnitOfMeasurement;
             }
         }
 
@@ -683,7 +672,7 @@ module powerbi.visuals.controls {
                     } else if (rowShift === 0) {
                         that._onScrollAsync(that._columnDimension);
                     } else {
-                        that._onScrollAsync(null);  
+                        that._onScrollAsync(null);
                     }
                 }
             }

@@ -26,24 +26,13 @@
 
 /* tslint:disable */
 var powerBIAccessToken = "fooBarBaz";
+var powerBIAccessTokenExpiry = "2115-01-01 00:00:00Z";
 /* tslint:enable */
 
 module powerbitests.helpers {
     debug.assertFailFunction = (message: string) => {
         expect(message).toBe('DEBUG asserts should never happen.  There is a product or test bug.');
     };
-
-    /** Suppresses debug asserts failing tests.  This is temporary and should be removed. */
-    export function suppressDebugAssertFailure(): void {
-        debug.assertFailFunction = (message: string) => {
-            // NOTE: This should fail test cases (asserts should never fire under normal test runs).
-            console.error(message);
-        };
-    }
-
-    export var SemanticQueryLatestVersion: powerbi.data.SemanticQueryVersions = powerbi.data.SemanticQueryVersions.Version2;
-
-    export var DataShapeBindingLatestVersion: powerbi.data.DataShapeBindingVersions = powerbi.data.DataShapeBindingVersions.Version1;
 
     export var dataSets = {
         singleMeasureDataViewSource: '{"descriptor": {"Select": [{"Kind": 2, "Value": "M0"}]}, "dsr": {"DataShapes":[{"Id":"DS0","PrimaryHierarchy":[{"Id":"DM0","Instances":[{"Calculations":[{"Id":"M0","Value":"21852688.46698004D"}]}]}],"IsComplete":true}]}}',
@@ -162,5 +151,22 @@ module powerbitests.helpers {
     export interface Point {
         x: number;
         y: number;
+    }
+
+    export function parseDateString(dateString: string): Date {
+        var date,
+            timezoneOffset;
+
+        date = new Date(dateString);
+
+        if (date.toString() === 'Invalid Date') {
+            return null;
+        }
+
+        timezoneOffset = date.getTimezoneOffset();
+
+        date.setMinutes(date.getMinutes() + timezoneOffset);
+
+        return date;
     }
 }

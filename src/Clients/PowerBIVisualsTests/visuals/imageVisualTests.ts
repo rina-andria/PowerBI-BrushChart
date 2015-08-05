@@ -85,7 +85,8 @@ module powerbitests {
                 }]
             });
             
-            expect(element.find('.imageBackground').css('backgroundImage')).toBe('url(about:blank)');
+            //invalid image data url
+            expect(element.find('.imageBackground').css('backgroundImage')).toBe('none');
         });
 
         it('Image from base64 string', () => {

@@ -1220,9 +1220,16 @@ module powerbi.visuals.controls.internal {
             }
         }
 
-        public onStartRenderingIteration(clear: boolean): void {
-            this.initializeRows(clear);
-            this.initializeColumns(clear);
+        public onStartRenderingSession(clear: boolean): void {
+            if (clear) {
+                this.clearRows();
+                this.clearColumns();
+            }
+        }
+
+        public onStartRenderingIteration(): void {
+            this.initializeRows();
+            this.initializeColumns();
         }
 
         public onEndRenderingIteration(): void {
@@ -1237,13 +1244,6 @@ module powerbi.visuals.controls.internal {
             if (this._footerRow) {
                 this._footerRow.releaseUnusedCells(this._owner);
             }
-        }
-
-        public onStartRenderingSession(): void {
-
-        }
-
-        public onEndRenderingSession(): void {
         }
 
         public getOrCreateRow(rowIndex: number): TablixRow {
@@ -1341,10 +1341,9 @@ module powerbi.visuals.controls.internal {
             return currentColumn;
         }
 
-        private initializeColumns(clear: boolean): void {
-            if (this._columns === undefined || clear) {
+        private initializeColumns(): void {
+            if (!this._columns)
                 this._columns = [];
-            }
 
             var length: number = this._columns.length;
 
@@ -1355,26 +1354,14 @@ module powerbi.visuals.controls.internal {
             this._realizedColumns = [];
         }
 
-        private initializeRows(clear: boolean): void {
+        private clearColumns() {
+            this._columns = null;
+            this._realizedColumns = null;
+        }
+
+        private initializeRows(): void {
             //make sure rowDimension confirms it and it's not null in the grid
             var hasFooter: boolean = this._owner.rowDimension.hasFooter() && (this._footerRow !== null);
-
-            if (clear) {
-                var rows: TablixRow[] = this._rows;
-                if (rows) {
-                    var length = rows.length;
-                    for (var i = 0; i < length; i++) {
-                        rows[i].releaseAllCells(this._owner);
-                    }
-
-                    if (hasFooter) 
-                        this._footerRow.releaseAllCells(this._owner);
-                    
-                    this._presenter.onClear();
-                    this._footerRow = null;
-                    this._rows = null;
-                }
-            }
 
             this._realizedRows = [];
 
@@ -1396,7 +1383,25 @@ module powerbi.visuals.controls.internal {
                 this._footerRow.initialize(this);
             }
         }
-                
+           
+        private clearRows() {
+            var rows: TablixRow[] = this._rows;
+            if (rows) {
+                var length = rows.length;
+                for (var i = 0; i < length; i++) {
+                    rows[i].releaseAllCells(this._owner);
+                }
+
+                if (this._footerRow)
+                    this._footerRow.releaseAllCells(this._owner);
+
+                this._presenter.onClear();
+                this._footerRow = null;
+                this._rows = null;
+                this._realizedRows = null;
+            }
+        }
+             
         public getWidth(): number {
             return this._presenter.getWidth();
         }

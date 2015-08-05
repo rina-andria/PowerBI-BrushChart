@@ -29,10 +29,6 @@ module powerbitests {
 
     describe("AnimatedText",() => {
 
-        beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
-        });
-
         it('AnimatedText_getSeedFontHeight does not exceed style maximum',() => {
             var animatedText = new AnimatedText('animatedText');
             animatedText.style = powerbi.visuals.visualStyles.create();
@@ -103,10 +99,12 @@ module powerbitests {
 
     describe("AnimatedText DOM tests",() => {
         var v: AnimatedText, element: JQuery;
-        var defaultTimeout: number = 500;
+
+        var animationOptions: powerbi.AnimationOptions = {
+            transitionImmediate: true
+        };
 
         beforeEach((done) => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
 
             element = powerbitests.helpers.testDom('200', '300');
             v = new AnimatedText('animatedText');
@@ -136,44 +134,54 @@ module powerbitests {
         });
 
         it('AnimatedText doValueTransition sets text',(done) => {
-            v.doValueTransition(3, 4, null, null, 0, false);
+            v.doValueTransition(3, 4, null, animationOptions, 0, false);
             expect($('.animatedText')).toBeInDOM();
             expect($('.mainText')).toBeInDOM();
             setTimeout(() => {
                 expect($('.mainText').text()).toEqual('4');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('AnimatedText doValueTransition formats number > 10000',(done) => {
-            v.doValueTransition(3, 4534353, null, null, 0, false);
+            v.doValueTransition(3, 4534353, null, animationOptions, 0, false);
             expect($('.animatedText')).toBeInDOM();
             expect($('.mainText')).toBeInDOM();
             setTimeout(() => {
                 expect($('.mainText').text()).toEqual('4.53M');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('AnimatedText doValueTransition sets translateY correctly',(done) => {
-            v.doValueTransition(3, 4, null, null, 0, false);
+            v.doValueTransition(3, 4, null, animationOptions, 0, false);
             expect($('.animatedText')).toBeInDOM();
             expect($('.mainText')).toBeInDOM();
             setTimeout(() => {
                 // IE and Chrome represent the transform differently
                 expect(v.graphicsContext.attr('transform')).toMatch(/translate\(\d+(,| )130\)/);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('AnimatedText doValueTransition to 0',(done) => {
-            v.doValueTransition(null, 0, null, null, 0, false);
+            v.doValueTransition(null, 0, null, animationOptions, 0, false);
             expect($('.animatedText')).toBeInDOM();
             expect($('.mainText')).toBeInDOM();
             setTimeout(() => {
                 expect($('.mainText').text()).toEqual('0');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
+
+        it('AnimatedText doValueTransition to null', (done) => {
+            v.doValueTransition(null, null, null, animationOptions, 0, false);
+            expect($('.animatedText')).toBeInDOM();
+            expect($('.mainText')).toBeInDOM();
+            setTimeout(() => {
+                expect($('.mainText').text()).toEqual('(Blank)');
+                done();
+            }, DefaultWaitForRender);
+        });       
     });
 }

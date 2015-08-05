@@ -159,7 +159,7 @@ module powerbi.visuals {
                 var yCoord = translateCoordinates[1];
                 yValue = yCoord.substring(0, yCoord.length - 1);
                 // 10 refers to the length of 'translate('
-                var xValue = xCoord.substring(10,xCoord.length);
+                var xValue = xCoord.substring(10, xCoord.length);
             }
 
             return {
@@ -173,6 +173,20 @@ module powerbi.visuals {
         */
         export function convertToPixelString(value: number): string {
             return value + "px";
+        }
+
+        /**
+         * create an arrow.
+        */
+        export function createArrow(width: number, height: number, rotate: number): { path: string; transform: string } {
+            var transform = "rotate(" + rotate + " " + width / 2 + " " + height / 2 + ")";
+            var path = "M0 0";
+            path += "L0 " + height;
+            path += "L" + width + " " + height / 2 + " Z";
+            return {
+                path: path,
+                transform: transform
+            };
         }
     }
 }

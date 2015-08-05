@@ -75,9 +75,17 @@ div.chart-content {
     opacity: 0.6;
 }
 
+#optionsContainer {
+    padding: 30px;
+}
+
+#optionsContainer span{
+    margin-right: 10px;
+}
+
 #itemContainer {
     height: 400px;
-    width: 500px;
+    width: 700px;
     position: relative;
     top: 60px;
     left: 0;
@@ -130,4 +138,17 @@ div.chart-content {
 
 li.slicerItemContainer {
     list-style-type: none;
+}
+
+.wrongVisualWarning {
+    margin: 0 auto;
+    text-align:center;
+    width:700px;
+    color:red;
+    font-size:24px;
+    margin-top:50px;
+}
+
+.wrongVisualWarning span {
+    color:blue;
 }

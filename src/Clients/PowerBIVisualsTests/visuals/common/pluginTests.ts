@@ -27,28 +27,26 @@
 module powerbitests {
     import DataViewObjectDescriptors = powerbi.data.DataViewObjectDescriptors;
     import DataViewTransform = powerbi.data.DataViewTransform;
-    import DataShapeUtility = powerbi.data.dsr.DataShapeUtility;
+    import ValueType = powerbi.ValueType;
+    import PrimitiveType = powerbi.PrimitiveType;
     import IVisual = powerbi.IVisual;
-    import SemanticType = powerbi.data.SemanticType;
+
+    powerbitests.mocks.setLocale();
 
     describe("VisualFactory",() => {
-
-        beforeEach(() => {
-            powerbitests.helpers.suppressDebugAssertFailure();
-            powerbi.common.localize = powerbi.common.createLocalizationService();
-            powerbitests.mocks.setLocale(powerbi.common.localize);
-        });
 
         var dataViewMetadataTwoColumn: powerbi.DataViewMetadata = {
             columns: [
                 {
                     displayName: 'col1',
-                    type: DataShapeUtility.describeDataType(SemanticType.String)
+                    queryName: 'col1',
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
                 },
                 {
                     displayName: 'col2',
+                    queryName: 'col2',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.Number)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
                 }
             ],
         };
@@ -192,20 +190,27 @@ module powerbitests {
         }
 
         it('VisualFactory.getVisuals - categorical - various dataViews',() => {
+
             var allVisuals = powerbi.visuals.visualPluginFactory.create().getVisuals();
             for (var i = 0; i < allVisuals.length; i++) {
-                var vizPlugin: powerbi.IVisualPlugin = allVisuals[i];
-                if (vizPlugin.capabilities &&
+                var exception = null,
+                    vizPlugin: powerbi.IVisualPlugin = allVisuals[i];
+
+                if (vizPlugin.name !== 'categoricalFilter' && 
+                    vizPlugin.capabilities &&
                     vizPlugin.capabilities.dataViewMappings &&
                     vizPlugin.capabilities.dataViewMappings.length > 0 &&
                     vizPlugin.capabilities.dataViewMappings[0].categorical) {
                     var v: powerbi.IVisual = vizPlugin.create();
+
                     try {
                         initVisual(v);
                         setData(v, vizPlugin.capabilities.objects);
-                    }
-                    catch (e) {
-                        expect(vizPlugin.name + ' : ' + e.message).toBe('passed');
+                    } catch (e) {
+                        exception = e;
+                        debug.assertFail(vizPlugin.name + ' : ' + e.message);
+                    } finally {
+                        expect(exception).toBeNull();
                     }
                 }
             }

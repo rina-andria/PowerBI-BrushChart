@@ -36,7 +36,7 @@ module powerbi.visuals.controls {
             }
         }
     }
-     
+
     export class ScrollbarButton {
         // Const
         // TODO: Move to style
@@ -53,7 +53,7 @@ module powerbi.visuals.controls {
         private _mouseUpWrapper: any;
 
         // Constructor
-        constructor (owner: Scrollbar, direction: number) {
+        constructor(owner: Scrollbar, direction: number) {
             this._owner = owner;
             this._direction = direction;
             this._timerHandle = undefined;
@@ -134,6 +134,7 @@ module powerbi.visuals.controls {
         public static DefaultScrollbarWidth = "15px"; // protected
         private static ScrollbarBackgroundFirstTimeMousedownHoldDelay = 500;
         private static ScrollbarBackgroundMousedownHoldDelay = 50;
+        private static MouseWheelRange = 120;
 
         static className = "scroll-bar-div";
         static barClassName = "scroll-bar-part-bar";
@@ -165,7 +166,7 @@ module powerbi.visuals.controls {
 
         private _timerHandle: number;
         private _screenToOffsetScale: number = 1.0;
-        
+
         private _screenPrevMousePos: { x: number; y: number; };
         private _screenMinMousePos: number;
         private _screenMaxMousePos: number;
@@ -181,7 +182,7 @@ module powerbi.visuals.controls {
         private _touchStarted: boolean;
         private _allowMouseDrag: boolean;
 
-        constructor (parentElement: HTMLElement) {
+        constructor(parentElement: HTMLElement) {
             this.createView(parentElement);
             var that = this;
             this._element.addEventListener("mousedown", function (e) { that.onBackgroundMouseDown(<MouseEvent>e); });
@@ -326,13 +327,13 @@ module powerbi.visuals.controls {
         public onTouchMouseDown(e: MouseEvent) {
             // except IE touch cancels mouse so not need for detection. For IE touch and mouse difference is detected by a flag.
             if (!this._allowMouseDrag &&
-                e["pointerType"] === MSPointerEvent.MSPOINTER_TYPE_MOUSE) {
+                e["pointerType"] === (<MSPointerEventExtension>MSPointerEvent).MSPOINTER_TYPE_MOUSE) {
                 return;
             }
             if ("setCapture" in this._touchPanel) {
-                 this._touchPanel.setCapture(true);
+                this._touchPanel.setCapture(true);
             }
-            this._offsetTouchPrevPos = this._offsetTouchStartPos = null; 
+            this._offsetTouchPrevPos = this._offsetTouchStartPos = null;
             this._touchStarted = true;
         }
 
@@ -378,8 +379,8 @@ module powerbi.visuals.controls {
         }
 
         public registerElementForMouseWheelScrolling(element: HTMLElement): void {
-            element.addEventListener("mousewheel", (e) => { this.onMouseWheel(<MouseWheelEvent>e); });
-            element.addEventListener("DOMMouseScroll", (e) => { this.onFireFoxMouseWheel(<MouseWheelEvent>e); });
+            element.addEventListener("mousewheel",(e) => { this.onMouseWheel(<MouseWheelEvent>e); });
+            element.addEventListener("DOMMouseScroll",(e) => { this.onFireFoxMouseWheel(<MouseWheelEvent>e); });
         }
 
         private createView(parentElement: HTMLElement): void {
@@ -505,11 +506,11 @@ module powerbi.visuals.controls {
             this._actualButtonWidth = undefined;
             this._actualButtonHeight = undefined;
         }
-        
+
         private onHoldBackgroundMouseDown(event: MouseEvent): void {
-            var holdDelay = this._timerHandle ? 
-                            Scrollbar.ScrollbarBackgroundMousedownHoldDelay :
-                            Scrollbar.ScrollbarBackgroundFirstTimeMousedownHoldDelay;
+            var holdDelay = this._timerHandle ?
+                Scrollbar.ScrollbarBackgroundMousedownHoldDelay :
+                Scrollbar.ScrollbarBackgroundFirstTimeMousedownHoldDelay;
             this._timerHandle = setTimeout(() => {
                 this.onBackgroundMouseDown(event);
             }, holdDelay);
@@ -585,13 +586,13 @@ module powerbi.visuals.controls {
             return null;
         }
 
-        private onMouseWheel(e: MouseWheelEvent): void {
+        public onMouseWheel(e: MouseWheelEvent): void {
             if (e.wheelDelta) {
                 this.mouseWheel(e.wheelDelta);
             }
         }
 
-        private onFireFoxMouseWheel(e: MouseWheelEvent): void {
+        public onFireFoxMouseWheel(e: MouseWheelEvent): void {
             if (e.detail) {
                 this.mouseWheel(-e.detail);
             }
@@ -599,7 +600,14 @@ module powerbi.visuals.controls {
 
         private mouseWheel(delta: number): void {
             if (this.visible) {
-                this.scrollBy(-delta / 120 * this.smallIncrement);
+                if (delta < 0) { // fix for issue 786411 (Some machines won't have the delta as multiple of 120)
+                    delta = Math.min(-Scrollbar.MouseWheelRange, delta);
+                }
+                else if (delta > 0) {
+                    delta = Math.max(Scrollbar.MouseWheelRange, delta);
+                }
+
+                this.scrollBy(-delta / Scrollbar.MouseWheelRange * this.smallIncrement);
             }
         }
 
@@ -627,7 +635,7 @@ module powerbi.visuals.controls {
 
     // Horizontal Scrollbar
     export class HorizontalScrollbar extends Scrollbar {
-        constructor (parentElement: HTMLElement) {
+        constructor(parentElement: HTMLElement) {
             super(parentElement);
             this.height = Scrollbar.DefaultScrollbarWidth;
         }
@@ -694,7 +702,7 @@ module powerbi.visuals.controls {
                 this.scrollPageUp();
             }
         }
-                    
+
         public _getRunningSize(net: boolean): number {
             var result = this.actualWidth;
             if (net) {
@@ -730,7 +738,7 @@ module powerbi.visuals.controls {
 
     // Vertical Scrollbar
     export class VerticalScrollbar extends Scrollbar {
-        constructor (parentElement: HTMLElement) {
+        constructor(parentElement: HTMLElement) {
             super(parentElement);
             this.width = Scrollbar.DefaultScrollbarWidth;
         }
@@ -796,7 +804,7 @@ module powerbi.visuals.controls {
                 this.scrollPageUp();
             }
         }
-                
+
         public _getRunningSize(net: boolean): number {
             var result = this.actualHeight;
             if (net) {

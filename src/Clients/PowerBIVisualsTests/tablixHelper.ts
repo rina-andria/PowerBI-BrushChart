@@ -28,8 +28,6 @@ module powerbitests.tablixHelper {
     import CssConstants = jsCommon.CssConstants;
     import DataView = powerbi.DataView;
 
-    var DefaultWaitForRender = 100;
-
     export interface TableCellCoordinate {
         row: number;
         col: number;
@@ -47,7 +45,6 @@ module powerbitests.tablixHelper {
         data: powerbi.DataView;
         formatCallback?: (...args) => void;
         viewport?: powerbi.IViewport;
-        settings?: powerbi.VisualSettings;
         redraw?: boolean;
         isFixedSize?: boolean;
         onCustomSortCallback?: (args: powerbi.CustomSortEventArgs) => void;
@@ -78,7 +75,6 @@ module powerbitests.tablixHelper {
         element.css(CssConstants.positionProperty, CssConstants.absoluteValue);
 
         var featureSwitches: powerbi.visuals.MinervaVisualFeatureSwitches = {
-            heatMap: true,
             scrollableVisuals: true,
         };
         var visualPluginService = powerbi.visuals.visualPluginFactory.createMinerva(featureSwitches);
@@ -99,7 +95,6 @@ module powerbitests.tablixHelper {
             host: hostService,
             style: style,
             viewport: viewport,
-            settings: options.settings,
             interactivity: {
                 selection: true,
                 overflow: options.isFixedSize ? 'hidden' : 'visible'
@@ -111,7 +106,7 @@ module powerbitests.tablixHelper {
         var promise = jsCommon.TimerPromiseFactory.instance.create(DefaultWaitForRender)
             .then(() => {
                 if (redraw)
-                    v.onResizing({ height: viewport.height, width: viewport.width }, 0);
+                    v.onResizing({ height: viewport.height, width: viewport.width });
 
                 return v;
             });

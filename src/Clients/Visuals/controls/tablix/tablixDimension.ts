@@ -52,7 +52,7 @@ module powerbi.visuals.controls {
             this.scrollOffset = 0;
         }
 
-        public _onStartRenderingIteration(clear: boolean): void { // The intent to be internal
+        public _onStartRenderingIteration(): void { // The intent to be internal
             this.updateScrollPosition();
         }
 

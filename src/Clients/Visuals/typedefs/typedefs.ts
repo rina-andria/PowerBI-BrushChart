@@ -25,12 +25,11 @@
  */
 
 ///<reference path="../../typedefs/d3/d3.d.ts"/>
-///<reference path="../../Data/obj/data.d.ts"/>
 ///<reference path="../../typedefs/jquery-visible/jquery-visible.d.ts"/>
 ///<reference path="../../typedefs/jQuery/jQuery.d.ts"/>
 ///<reference path="../../typedefs/microsoftMaps/Microsoft.Maps.d.ts" />
 ///<reference path="../../typedefs/moment/moment.d.ts"/>
-///<reference path="../../JsCommon/obj/utility.d.ts"/>
 ///<reference path="../../typedefs/velocity/velocity-animate.d.ts"/>
 ///<reference path="../../typedefs/lodash/lodash.d.ts"/>
 ///<reference path="../../typedefs/quill/quill.d.ts"/>
+///<reference path="../../typedefs/ie/ie.d.ts"/>

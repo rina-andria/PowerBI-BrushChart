@@ -26,11 +26,13 @@
 
 module powerbitests {
     import DataDotChart = powerbi.visuals.DataDotChart;
-    import DataShapeUtility = powerbi.data.dsr.DataShapeUtility;
     import DataViewTransform = powerbi.data.DataViewTransform;
-    import SemanticType = powerbi.data.SemanticType;
     import EventType = powerbitests.helpers.ClickEventType;
     import ColumnUtil = powerbi.visuals.ColumnUtil;
+    import ValueType = powerbi.ValueType;
+    import PrimitiveType = powerbi.PrimitiveType;
+
+    powerbitests.mocks.setLocale();
 
     describe("Check DataDotChart capabilities",() => {
 
@@ -64,19 +66,19 @@ module powerbitests {
                 {
                     displayName: 'stringColumn',
                     queryName: 'stringColumn',
-                    type: DataShapeUtility.describeDataType(SemanticType.String)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
                 },
                 {
                     displayName: 'numberColumn',
                     queryName: 'numberColumn',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.Number)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
                 },
                 {
                     displayName: 'dateTimeColumn',
                     queryName: 'dateTimeColumn',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.DateTime)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime)
                 }
             ]
         };
@@ -409,30 +411,28 @@ module powerbitests {
         var hostServices = powerbitests.mocks.createVisualHostServices();
 
         var v: powerbi.IVisual, element: JQuery;
-        var DefaultWaitForRender = 100;
 
         var dataViewMetadata: powerbi.DataViewMetadata = {
             columns: [
                 {
                     displayName: 'stringColumn',
-                    type: DataShapeUtility.describeDataType(SemanticType.String)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
                 },
                 {
                     displayName: 'numberColumn',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.Number),
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
                     format: '0.000'
                 },
                 {
                     displayName: 'dateTimeColumn',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.DateTime)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime)
                 }
             ]
         };
 
         beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
             element = powerbitests.helpers.testDom('500', '500');
             v = powerbi.visuals.visualPluginFactory.create().getPlugin('dataDotChart').create();
             v.init({
@@ -745,6 +745,35 @@ module powerbitests {
                 done();
             }, DefaultWaitForRender);
         });
+
+        it('Ensure zero line axis is darkened',(done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadata,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadata.columns[0],
+                            values: categoryValues,
+                            identity: categoryIdentities
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadata.columns[1],
+                            values: [500000, -495000, 490000, 480000, -500000],
+                        }])
+                    }
+                }]
+            });
+            setTimeout(() => {
+                var zeroTicks = $('g.tick:has(line.zero-line)');
+
+                expect(zeroTicks.length).toBe(2);
+                zeroTicks.each(function (i, item) {
+                    expect(d3.select(item).datum() === 0).toBe(true);
+                });
+
+                done();
+            }, DefaultWaitForRender);
+        });
     });
 
     describe("DataDotChart interactivity in DOM",() => {
@@ -752,7 +781,6 @@ module powerbitests {
         var hostServices = mocks.createVisualHostServices();
 
         var v: powerbi.IVisual, element: JQuery;
-        var DefaultWaitForRender = 100;
 
         var DefaultOpacity = "" + ColumnUtil.DefaultOpacity;
         var DimmedOpacity = "" + ColumnUtil.DimmedOpacity;
@@ -761,24 +789,23 @@ module powerbitests {
             columns: [
                 {
                     displayName: 'stringColumn',
-                    type: DataShapeUtility.describeDataType(SemanticType.String)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
                 },
                 {
                     displayName: 'numberColumn',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.Number),
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
                     format: '0.000'
                 },
                 {
                     displayName: 'dateTimeColumn',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.DateTime)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime)
                 }
             ]
         };
 
         beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
             element = powerbitests.helpers.testDom('500', '500');
             v = powerbi.visuals.visualPluginFactory.create().getPlugin('dataDotChart').create();
             v.init({
@@ -865,22 +892,19 @@ module powerbitests {
                 spyOn(hostServices, 'onSelect').and.callThrough();
 
                 (<any>dots.first()).d3Click(0, 0);
-                (<any>dots.last()).d3Click(0, 0, EventType.CtrlKey);
-
+                
                 expect(dots[0].style.fillOpacity).toBe(DefaultOpacity);
                 expect(dots[1].style.fillOpacity).toBe(DimmedOpacity);
                 expect(dots[2].style.fillOpacity).toBe(DimmedOpacity);
                 expect(dots[3].style.fillOpacity).toBe(DimmedOpacity);
-                expect(dots[4].style.fillOpacity).toBe(DefaultOpacity);
+                //(<any>dots.last()).d3Click(0, 0, EventType.CtrlKey);
+                //expect(dots[4].style.fillOpacity).toBe(DefaultOpacity);
 
                 expect(hostServices.onSelect).toHaveBeenCalledWith(
                     {
                         data: [
                             {
                                 data: [categoryIdentities[0]]
-                            },
-                            {
-                                data: [categoryIdentities[4]]
                             }
                         ]
                     });

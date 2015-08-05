@@ -28,7 +28,8 @@ module powerbitests {
     import Card = powerbi.visuals.Card;
     import DataViewTransform = powerbi.data.DataViewTransform;
     import ValueType = powerbi.ValueType;
-
+    import SVGUtil = powerbi.visuals.SVGUtil;
+   
     describe("Card", () => {
         it('Card_registered_capabilities', () => {
             expect(powerbi.visuals.visualPluginFactory.create().getPlugin('card').capabilities).toBe(Card.capabilities);
@@ -55,54 +56,53 @@ module powerbitests {
         it('FormatString property should match calculated',() => {
             expect(powerbi.data.DataViewObjectDescriptors.findFormatString(Card.capabilities.objects)).toEqual(Card.formatStringProp);
         });
-    });
 
-    it('cardChart preferred capabilities requires at most 1 row', () => {
+        it('cardChart preferred capabilities requires at most 1 row', () => {
             var dataViewMetadata: powerbi.DataViewMetadata = {
-            columns: [
-                { displayName: 'col1' },
-                { displayName: 'col2', isMeasure: true }]
-        };
+                columns: [
+                    { displayName: 'col1' },
+                    { displayName: 'col2', isMeasure: true }]
+            };
 
-        var dataViewWithTwoRows: powerbi.DataView = {
-            metadata: dataViewMetadata,
-            categorical: {
-                categories: [{
-                    source: dataViewMetadata.columns[0],
-                    values: ['John Domo', 'Delta Force'],
-                    identity: [mocks.dataViewScopeIdentity('a'), mocks.dataViewScopeIdentity('b')]
-                }],
-                values: DataViewTransform.createValueColumns([{
-                    source: dataViewMetadata.columns[1],
-                    values: [100, 200],
-                    subtotal: 300
-                }])
-            }
-        };
+            var dataViewWithTwoRows: powerbi.DataView = {
+                metadata: dataViewMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadata.columns[0],
+                        values: ['John Domo', 'Delta Force'],
+                        identity: [mocks.dataViewScopeIdentity('a'), mocks.dataViewScopeIdentity('b')]
+                    }],
+                    values: DataViewTransform.createValueColumns([{
+                        source: dataViewMetadata.columns[1],
+                        values: [100, 200],
+                        subtotal: 300
+                    }])
+                }
+            };
 
-        var plugin = powerbi.visuals.visualPluginFactory.create().getPlugin('card');
-        expect(powerbi.DataViewAnalysis.supports(dataViewWithTwoRows, plugin.capabilities.dataViewMappings[0], true)).toBe(false);
-    });
+            var plugin = powerbi.visuals.visualPluginFactory.create().getPlugin('card');
+            expect(powerbi.DataViewAnalysis.supports(dataViewWithTwoRows, plugin.capabilities.dataViewMappings[0], true)).toBe(false);
+        });
 
-    it('cardChart preferred capabilities requires 1 row', () => {
-        var dataViewMetadata: powerbi.DataViewMetadata = {
-            columns: [
-                { displayName: 'numeric', type: ValueType.fromDescriptor({ numeric: true }) }
-            ],
-        };
+        it('cardChart preferred capabilities requires 1 row', () => {
+            var dataViewMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    { displayName: 'numeric', type: ValueType.fromDescriptor({ numeric: true }) }
+                ],
+            };
 
-        var data: powerbi.DataView = {
-            metadata: dataViewMetadata,
-            single: { value: 123.456 }
-        };
+            var data: powerbi.DataView = {
+                metadata: dataViewMetadata,
+                single: { value: 123.456 }
+            };
 
-        var plugin = powerbi.visuals.visualPluginFactory.create().getPlugin('card');
-        expect(powerbi.DataViewAnalysis.supports(data, plugin.capabilities.dataViewMappings[0], true)).toBe(true);
+            var plugin = powerbi.visuals.visualPluginFactory.create().getPlugin('card');
+            expect(powerbi.DataViewAnalysis.supports(data, plugin.capabilities.dataViewMappings[0], true)).toBe(true);
+        });
     });
 
     describe("Card DOM tests", () => {
         var v: Card, element: JQuery;
-        var defaultTimeout: number = 30;
         var dataViewMetadata: powerbi.DataViewMetadata = {
             columns: [{ displayName: 'col1', isMeasure: true, objects: { 'general': { formatString: '#0' } } }],
             groups: [],
@@ -116,14 +116,7 @@ module powerbitests {
 
         function createCard(displayUnitSystemType?: powerbi.DisplayUnitSystemType): void {
             element = powerbitests.helpers.testDom('200', '300');
-            v = <Card> powerbi.visuals.visualPluginFactory.create().getPlugin('card').create();
-            var settings;
-
-            if (displayUnitSystemType) {
-                settings = {
-                    DisplayUnitSystemType: displayUnitSystemType
-                };
-            }
+            v = <Card> new Card({ displayUnitSystemType: displayUnitSystemType});
 
             v.init({
                 element: element,
@@ -133,7 +126,6 @@ module powerbitests {
                     height: element.height(),
                     width: element.width()
                 },
-                settings: settings,
             });
         }
 
@@ -167,7 +159,7 @@ module powerbitests {
             v.onResizing({
                 height: element.height(),
                 width: element.width()
-            }, 0);
+            });
 
             expect($('.card')).toBeInDOM();
             expect($('.mainText')).toBeInDOM();
@@ -191,7 +183,7 @@ module powerbitests {
             expect(titleText).toBe('0');
         });
 
-        it('Ensure clear on null dataview', (done) => {
+        it('Card with null dataview', (done) => {
             v.onDataChanged({
                 dataViews: [{
                     metadata: dataViewMetadata,
@@ -203,13 +195,48 @@ module powerbitests {
 
             setTimeout(() => {
                 expect($('.mainText').first().text()).toBe('0');
-                v.onDataChanged({ dataViews: [null] });
+                v.onDataChanged({
+                    dataViews: [{
+                        metadata: dataViewMetadata,
+                        single: {
+                            value: null
+                        }
+                    }]
+                });
+                setTimeout(() => {
+                    expect($('.mainText').first().text()).toBe('(Blank)');
+                    done();
+                }, DefaultWaitForRender);
+
+            }, DefaultWaitForRender);
+        });
+
+        it('Card updated with undefined dataview', (done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadata,
+                    single: {
+                        value: 0
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.mainText').first().text()).toBe('0');
+                v.onDataChanged({
+                    dataViews: [{
+                        metadata: dataViewMetadata,
+                        single: {
+                            value: undefined
+                        }
+                    }]
+                });
                 setTimeout(() => {
                     expect($('.mainText').first().text()).toBe('');
                     done();
-                }, defaultTimeout);
+                }, DefaultWaitForRender);
 
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card_onDataChanged formats number < 10000', (done) => {
@@ -224,10 +251,11 @@ module powerbitests {
 
             expect($('.card')).toBeInDOM();
             expect($('.mainText')).toBeInDOM();
+            SVGUtil.flushAllD3Transitions();
             setTimeout(() => {
                 expect($('.mainText').text()).toEqual('85');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card_onDataChanged verbose display units (explore mode)', (done) => {
@@ -255,7 +283,7 @@ module powerbitests {
 
                 expect(args[0].displayUnitSystemType).toBe(powerbi.DisplayUnitSystemType.Verbose);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card_onDataChanged whole display units (dashboard tile mode, default)', (done) => {
@@ -281,7 +309,7 @@ module powerbitests {
 
                 expect(args[0].displayUnitSystemType).toBe(powerbi.DisplayUnitSystemType.WholeUnits);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card with DateTime value on dashboard',(done) => {
@@ -312,13 +340,37 @@ module powerbitests {
             setTimeout(() => {
                 expect($('.mainText').first().text()).toBe('6/20/2015');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
+        });
+
+        it('Card text alignment',(done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadata,
+                    single: {
+                        value: 900000
+                    }
+                }]
+            });
+
+            var smallTileViewport = {
+                height: 170,
+                width: 250
+            };
+
+            v.onResizing(smallTileViewport);
+
+            setTimeout(() => {
+                var transform = SVGUtil.parseTranslateTransform(v.graphicsContext.attr('transform'));
+                expect(transform.x).toBe('125');
+                expect($('.mainText').first().attr('text-anchor')).toBe('middle');
+                done();
+            }, DefaultWaitForRender);
         });
     });
 
     describe("Card tests on Minerva",() => {
         var v: Card, element: JQuery;
-        var defaultTimeout: number = 30;
         var dataViewMetadata: powerbi.DataViewMetadata = {
             columns: [{ displayName: 'col1', isMeasure: true, format: '#0' }],
             groups: [],
@@ -334,9 +386,7 @@ module powerbitests {
 
         function createCardOnMinerva(displayUnitSystemType?: powerbi.DisplayUnitSystemType): void {
             element = powerbitests.helpers.testDom('200', '300');
-            v = <Card> powerbi.visuals.visualPluginFactory.createMinerva({
-                heatMap: false,
-            }).getPlugin('card').create();
+            v = <Card> powerbi.visuals.visualPluginFactory.createMinerva({}).getPlugin('card').create();
 
             var settings;
 
@@ -377,7 +427,7 @@ module powerbitests {
                 expect($('.label').first().text()).toBe('col1');
                 expect($('.value').first().text()).toBe('90');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card on Canvas Style validation',(done) => {
@@ -399,7 +449,7 @@ module powerbitests {
                 expect($('.value')[0].style.fill).toBe(valueStyles.color);
                 expect($('.value')[0].style.fontFamily).toBe(valueStyles.fontFamily);
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card with DateTime value on canvas',(done) => {
@@ -422,7 +472,7 @@ module powerbitests {
                 expect($('.label').first().text()).toBe('date');
                 expect($('.value').first().text()).toBe('6/20/2015');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
         it('Card with zero currency value',(done) => {
@@ -444,10 +494,10 @@ module powerbitests {
                 expect($('.label').first().text()).toBe('price');
                 expect($('.value').first().text()).toBe('$0');
                 done();
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
 
-        it('Ensure clear value on null dataview',(done) => {
+        it('Card with null dataview',(done) => {
             v.onDataChanged({
                 dataViews: [{
                     metadata: dataViewMetadata,
@@ -460,14 +510,52 @@ module powerbitests {
             setTimeout(() => {
                 expect($('.value').first().text()).toBe('900');
                 expect($('.label').first().text()).toBe('col1');
-                v.onDataChanged({ dataViews: [null] });
+                v.onDataChanged({
+                    dataViews: [{
+                        metadata: dataViewMetadata,
+                        single: {
+                            value: null
+                        }
+                    }]
+                });
                 setTimeout(() => {
-                    expect($('.value').first().text()).toBe('');
+                    expect($('.value').first().text()).toBe('(Blank)');
                     expect($('.label').first().text()).toBe('col1');
                     done();
-                }, defaultTimeout);
+                }, DefaultWaitForRender);
 
-            }, defaultTimeout);
+            }, DefaultWaitForRender);
         });
+
+        it('Card updated with undefined dataview', (done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadata,
+                    single: {
+                        value: 0
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.value').first().text()).toBe('0');
+                expect($('.label').first().text()).toBe('col1');
+                v.onDataChanged({
+                    dataViews: [{
+                        metadata: dataViewMetadata,
+                        single: {
+                            value: undefined
+                        }
+                    }]
+                });
+                setTimeout(() => {
+                    expect($('.value').first().text()).toBe('');
+                    expect($('.label').first().text()).toBe('');
+                    done();
+                }, DefaultWaitForRender);
+
+            }, DefaultWaitForRender);
+        });
+
     });
 }

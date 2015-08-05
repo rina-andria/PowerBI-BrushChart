@@ -23,7 +23,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-
+///<reference path="controls/tablix/touchRegionAbstraction.ts"/>
 module powerbi.visuals {
 
     import TouchUtils = powerbi.visuals.controls.TouchUtils;
@@ -46,13 +46,13 @@ module powerbi.visuals {
 
     export interface TooltipCategoryDataItem {
         value?: any;
-        metadata: DataViewMetadataColumn
+        metadata: DataViewMetadataColumn;
     }
 
     export interface TooltipSeriesDataItem {
         value?: any;
         highlightedValue?: any;
-        metadata: DataViewValueColumn
+        metadata: DataViewValueColumn;
     }
 
     export interface TooltipLocalizationOptions {
@@ -68,7 +68,7 @@ module powerbi.visuals {
         isTouchEvent: boolean;
     }
 
-    enum ScreenArea {
+    const enum ScreenArea {
         TopLeft,
         TopRight,
         BottomRight,
@@ -82,7 +82,7 @@ module powerbi.visuals {
             animationDuration: 250,
             offsetX: 10,
             offsetY: 10
-        }
+        };
 
         private tooltipContainer: D3.Selection;
         private isTooltipVisible: boolean = false;
@@ -126,7 +126,7 @@ module powerbi.visuals {
             }
 
             this.setTooltipContent(tooltipData);
-            
+
             this.tooltipContainer
                 .style("visibility", "visible")
                 .transition()
@@ -161,7 +161,7 @@ module powerbi.visuals {
             var container: D3.Selection = d3.select(ToolTipComponent.parentContainerSelector)
                 .append("div")
                 .attr("class", ToolTipComponent.containerClassName);
-            
+
             container.append("div").attr("class", ToolTipComponent.arrowClassName);
             container.append("div").attr("class", ToolTipComponent.contentContainerClassName);
 
@@ -280,6 +280,8 @@ module powerbi.visuals {
         var tooltipMouseOverDelay: number = 500;
         var tooltipTouchDelay: number = 500;
         var tooltipTimeoutId: number;
+        var handleTouchDelay: number = 1000;
+        var handleTouchTimeoutId: number = 0;
         var mouseCoordinates: number[];
 
         export function addTooltip(d3Selection: D3.Selection, getTooltipInfoDelegate: (tooltipEvent: TooltipEvent) => TooltipDataItem[], reloadTooltipDataOnMouseMove?: boolean): void {
@@ -297,7 +299,8 @@ module powerbi.visuals {
 
             // Mouse events
             d3Selection.on("mouseover", function (d, i) {
-                if (canDisplayTooltip(d3.event)) {
+                // Ignore mouseover (and other mouse events) while handling touch events
+                if (!handleTouchTimeoutId && canDisplayTooltip(d3.event)) {
                     mouseCoordinates = getCoordinates(rootNode, true);
                     var elementCoordinates: number[] = getCoordinates(this, true);
                     var tooltipEvent: TooltipEvent = {
@@ -314,12 +317,14 @@ module powerbi.visuals {
             });
 
             d3Selection.on("mouseout", function (d, i) {
-                clearTooltipTimeout();
-                hideTooltipEventHandler();
+                if (!handleTouchTimeoutId) {
+                    clearTooltipTimeout();
+                    hideTooltipEventHandler();
+                }
             });
 
             d3Selection.on("mousemove", function (d, i) {
-                if (canDisplayTooltip(d3.event)) {
+                if (!handleTouchTimeoutId && canDisplayTooltip(d3.event)) {
                     mouseCoordinates = getCoordinates(rootNode, true);
                     var elementCoordinates: number[] = getCoordinates(this, true);
                     var tooltipEvent: TooltipEvent = {
@@ -342,7 +347,7 @@ module powerbi.visuals {
             }
 
             d3Selection.on(touchStartEventName, function (d, i) {
-                stopEventPropogation(d3.event);
+                mouseCoordinates = null;
                 hideTooltipEventHandler();
                 var coordinates: number[] = getCoordinates(rootNode, isPointerEvent);
                 var elementCoordinates: number[] = getCoordinates(this, isPointerEvent);
@@ -360,6 +365,13 @@ module powerbi.visuals {
 
             d3Selection.on(touchEndEventName, function (d, i) {
                 clearTooltipTimeout();
+                if (handleTouchTimeoutId)
+                    clearTimeout(handleTouchTimeoutId);
+
+                // At the end of touch action, set a timeout that will let us ignore the incoming mouse events for a small amount of time
+                handleTouchTimeoutId = setTimeout(() => {
+                    handleTouchTimeoutId = 0;
+                }, handleTouchDelay);
             });
         }
 
@@ -397,11 +409,6 @@ module powerbi.visuals {
             if (tooltipTimeoutId) {
                 clearTimeout(tooltipTimeoutId);
             }
-        }
-
-        function stopEventPropogation(d3Event: D3.D3Event) {
-            d3Event.preventDefault();
-            d3Event.stopPropagation();
         }
 
         function canDisplayTooltip(d3Event: any): boolean {
@@ -536,7 +543,7 @@ module powerbi.visuals {
             formatStringProp: DataViewObjectPropertyIdentifier,
             categoryValue: TooltipCategoryDataItem,
             valuesSource: DataViewMetadataColumn,
-            seriesValues: TooltipSeriesDataItem[]): TooltipDataItem[]{
+            seriesValues: TooltipSeriesDataItem[]): TooltipDataItem[] {
 
             debug.assertValue(seriesValues, "seriesSource");
             debug.assertValue(ToolTipComponent.localizationOptions, "ToolTipComponent.localizationOptions");

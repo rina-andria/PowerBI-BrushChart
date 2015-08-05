@@ -25,8 +25,8 @@
  */
 
 module powerbitests {
-    import DataShapeUtility = powerbi.data.dsr.DataShapeUtility;
-    import SemanticType = powerbi.data.SemanticType;
+    import ValueType = powerbi.ValueType;
+    import PrimitiveType = powerbi.PrimitiveType;
     import DataViewTransform = powerbi.data.DataViewTransform;
     import IVisualWarning = powerbi.IVisualWarning;
 
@@ -37,18 +37,18 @@ module powerbitests {
             columns: [
                 {
                     displayName: 'stringColumn',
-                    type: DataShapeUtility.describeDataType(SemanticType.String)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
                 },
                 {
                     displayName: 'numberColumn',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.Number),
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
                     format: '0.000'
                 },
                 {
                     displayName: 'dateTimeColumn',
                     isMeasure: true,
-                    type: DataShapeUtility.describeDataType(SemanticType.DateTime)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime)
                 }
             ]
         };

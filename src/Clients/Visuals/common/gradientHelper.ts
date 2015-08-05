@@ -191,7 +191,7 @@ module powerbi.visuals {
         function getDefaultColors(): GradientColors {
 
             var dataColors: IDataColorPalette = new powerbi.visuals.DataColorPalette();
-            var maxColorInfo: IColorInfo = dataColors.getColor(0);
+            var maxColorInfo: IColorInfo = dataColors.getColorByIndex(0);
             var colors = d3.scale.linear()
                 .domain([0, 100])
                 .range(["#ffffff", maxColorInfo.value]);

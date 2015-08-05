@@ -29,32 +29,120 @@ module powerbitests {
     import SQExprShortSerializer = powerbi.data.SQExprShortSerializer;
 
     describe('Color Helper',() => {
-        var colorHelper: ColorHelper;
-        var style: powerbi.IVisualStyle;
-        var colors: powerbi.IDataColorPalette;
+        var palette: powerbi.IDataColorPalette;
 
         var columnIdentity = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'sales' });
+        var fillProp = <powerbi.DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'fill' };
+
+        var colors = [
+            { value: '#000000' },
+            { value: '#000001' },
+            { value: '#000002' },
+            { value: '#000003' },
+        ];
 
         beforeEach(() => {
-            style = powerbi.visuals.visualStyles.create();
-            colors = style.colorPalette.dataColors;
-            colorHelper = new ColorHelper(colors, null);
+            palette = new powerbi.visuals.DataColorPalette(colors);
         });
 
-        it('getColorForSeriesValue should handle undefined identity array',() => {
-            var color = colorHelper.getColorForSeriesValue(undefined, undefined, 'value');
+        describe('getColorForSeriesValue',() => {
 
-            var expectedColor = colors.getColorByScale(SQExprShortSerializer.serializeArray([]), 'value').value;
-            expect(color).toEqual(expectedColor);
+            it('should return fill property value if it exists',() => {
+                var colorHelper = new ColorHelper(palette, fillProp, 'defaultColor');
+
+                var objects: powerbi.DataViewObjects = {
+                    dataPoint: {
+                        fill: { solid: { color: 'red' } }
+                    }
+                };
+
+                var color = colorHelper.getColorForSeriesValue(objects, [columnIdentity], 'value');
+
+                expect(color).toEqual('red');
+            });
+
+            it('should return default color if no fill property is defined',() => {
+                var colorHelper = new ColorHelper(palette, fillProp, 'defaultColor');
+
+                var color = colorHelper.getColorForSeriesValue(/* no objects */ undefined, [columnIdentity], 'value');
+
+                expect(color).toEqual('defaultColor');
+            });
+
+            it('should return scale color if neither fill property nor default color is defined',() => {
+                var colorHelper = new ColorHelper(palette, fillProp, /* no default color */ undefined);
+
+                var color = colorHelper.getColorForSeriesValue(/* no objects */ undefined, [columnIdentity], 'value');
+
+                var expectedColor = palette.getColorScaleByKey(SQExprShortSerializer.serializeArray([columnIdentity])).getColor('value').value;
+                expect(color).toEqual(expectedColor);
+            });
+
+            it('should handle undefined identity array',() => {
+                var colorHelper = new ColorHelper(palette, fillProp);
+
+                var color = colorHelper.getColorForSeriesValue(undefined, undefined, 'value');
+
+                var expectedColor = palette.getColorScaleByKey(SQExprShortSerializer.serializeArray([])).getColor('value').value;
+                expect(color).toEqual(expectedColor);
+            });
+
+            it('should return the same color for the same series and value',() => {
+                var colorHelper = new ColorHelper(palette, fillProp);
+
+                var color1 = colorHelper.getColorForSeriesValue(null, [columnIdentity], 'value');
+                var color2 = colorHelper.getColorForSeriesValue(null, [columnIdentity], 'value');
+
+                expect(color1).toEqual(color2);
+            });
         });
 
-        it('getColorForSeriesValue should return the same color for the same series and value',() => {
-            var color1 = colorHelper.getColorForSeriesValue(null, [columnIdentity], 'value');
-            var color2 = colorHelper.getColorForSeriesValue(null, [columnIdentity], 'value');
+        describe('getColorForMeasure',() => {
+            it('should return fill property value if it exists',() => {
+                var colorHelper = new ColorHelper(palette, fillProp, 'defaultColor');
 
-            expect(color1).toEqual(color2);
+                var objects: powerbi.DataViewObjects = {
+                    dataPoint: {
+                        fill: { solid: { color: 'red' } }
+                    }
+                };
+
+                var color = colorHelper.getColorForMeasure(objects, 0);
+
+                expect(color).toEqual('red');
+            });
+
+            it('should return default color if no fill property is defined',() => {
+                var colorHelper = new ColorHelper(palette, fillProp, 'defaultColor');
+
+                var color = colorHelper.getColorForMeasure(/* no objects */ undefined, 0);
+
+                expect(color).toEqual('defaultColor');
+            });
+
+            it('should return scale color if neither fill property nor default color is defined',() => {
+                var colorHelper = new ColorHelper(palette, fillProp, /* no default color */ undefined);
+
+                var color = colorHelper.getColorForMeasure(undefined, 0);
+
+                expect(color).toEqual(colors[0].value);
+            });
+
+            it('should return the nth color for the nth measure even if colors are explicitly set',() => {
+                var colorHelper = new ColorHelper(palette, fillProp);
+
+                var objects: powerbi.DataViewObjects = {
+                    dataPoint: { fill: { solid: { color: 'red' } } },
+                };
+
+                var color1 = colorHelper.getColorForMeasure(null, 0);
+                var color2 = colorHelper.getColorForMeasure(objects, 1);
+                var color3 = colorHelper.getColorForMeasure(null, 2);
+
+                expect(color1).toEqual(colors[0].value);
+                expect(color2).toEqual('red');
+                expect(color3).toEqual(colors[2].value);
+            });
         });
-
-        // TODO: add more unit tests (Defect 5037722)
     });
 } 

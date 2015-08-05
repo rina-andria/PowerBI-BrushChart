@@ -26,11 +26,7 @@
 
 module powerbitests.mocks {
     import SQExprBuilder = powerbi.data.SQExprBuilder;
-
-    var BeautifiedFormat: { [x: string]: string } = {
-        '0.00 %;-0.00 %;0.00 %': 'Percentage',
-        '0.0 %;-0.0 %;0.0 %': 'Percentage1',
-    };
+    import defaultVisualHostServices = powerbi.visuals.defaultVisualHostServices;
 
     export class TelemetryCallbackMock {
         public static callbackCalls: number = 0;
@@ -108,33 +104,12 @@ module powerbitests.mocks {
         public hasPendingTimers(): boolean {
             return !!this.deferred;
         }
-        }
+    }
 
     export function createVisualHostServices(): powerbi.IVisualHostServices {
-        return {
-            getLocalizedString: (stringId: string) => stringId,
-            onDragStart: () => { },
-            canSelect: () => true,
-            onSelect: () => { },
-            loadMoreData: () => { },
-            persistProperties: () => { },
-            onCustomSort: (args: powerbi.CustomSortEventArgs) => { },
-            getViewMode: () => powerbi.ViewMode.View,
-            setWarnings: (warnings: powerbi.IVisualWarning[]) => { },
-            setToolbar: ($toolbar) => { },
-        };
+        return defaultVisualHostServices;
     }
-
-    export function createLocalizationService(): any {
-        return {
-            currentLanguageLocale: "",
-            getOptional: (id: string) => id,
-            ensureLocalization: (action: () => void) => { },
-            format: (id: string, ...args: any[]) => id,
-            formatValue: (arg: any) => arg,
-        };
-    }
-
+    
     export class MockTraceListener implements jsCommon.ITraceListener {
         public trace: jsCommon.TraceItem;
 
@@ -182,63 +157,13 @@ module powerbitests.mocks {
             return details;
         }
     }
+        
+    export function setLocale(): void {
+        powerbi.visuals.DefaultVisualHostServices.initialize();
+    }    
 
-    export function setLocale(localize: powerbi.common.ILocalizationService): void {
-        debug.assertValue(localize, 'localize');
-
-        setLocaleOptions(localize);
-        setLocalizedStrings(localize);
-    }
-
-    function setLocaleOptions(localize: powerbi.common.ILocalizationService): void {
-        var valueFormatterLocalizationOptions: powerbi.visuals.ValueFormatterLocalizationOptions =
-            createLocaleOptions(localize);
-
-        powerbi.visuals.valueFormatter.setLocaleOptions(valueFormatterLocalizationOptions);
-    }
-
-    function setLocalizedStrings(localize: powerbi.common.ILocalizationService): void {
-        var tooltipLocalizationOptions: powerbi.visuals.TooltipLocalizationOptions =
-            createTooltipLocaleOptions(localize);
-
-        powerbi.visuals.TooltipManager.setLocalizedStrings(tooltipLocalizationOptions);
-    }
-
-    function createLocaleOptions(localize: powerbi.common.ILocalizationService): powerbi.visuals.ValueFormatterLocalizationOptions {
-        return {
-            null: localize.get('NullValue'),
-            true: localize.get('BooleanTrue'),
-            false: localize.get('BooleanFalse'),
-            NaN: localize.get('NaNValue'),
-            infinity: localize.get('InfinityValue'),
-            negativeInfinity: localize.get('NegativeInfinityValue'),
-            beautify: format => beautify(localize, format),
-            describe: exponent => describeUnit(localize, exponent),
-            restatementComma: powerbi.visuals.valueFormatter.getLocalizedString('RestatementComma'),
-            restatementCompoundAnd: powerbi.visuals.valueFormatter.getLocalizedString('RestatementCompoundAnd'),
-            restatementCompoundOr: powerbi.visuals.valueFormatter.getLocalizedString('RestatementCompoundOr'),
-        };
-    }
-
-    function createTooltipLocaleOptions(localize: powerbi.common.ILocalizationService): powerbi.visuals.TooltipLocalizationOptions {
-        return {
-            highlightedValueDisplayName: localize.get(powerbi.visuals.ToolTipComponent.highlightedValueDisplayNameResorceKey)
-        };
-    }
-
-    function beautify(localize: powerbi.common.ILocalizationService, format: string): string {
-        var key = BeautifiedFormat[format];
-        if (key)
-            return localize.getOptional(key) || format;
-        return format;
-    }
-
-    function describeUnit(localize: powerbi.common.ILocalizationService, exponent: number): powerbi.DisplayUnitSystemNames {
-        var title: string = localize.getOptional("DisplayUnitSystem_E" + exponent + "_Title");
-        var format: string = localize.getOptional("DisplayUnitSystem_E" + exponent + "_LabelFormat");
-
-        if (title || format)
-            return { title: title, format: format };
-    }
+    export function getLocalizedString(stringId: string): string {
+        return defaultVisualHostServices.getLocalizedString(stringId);
+    }    
 
 }

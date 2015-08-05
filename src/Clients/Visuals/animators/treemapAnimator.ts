@@ -25,30 +25,29 @@
  */
 
 module powerbi.visuals {
-    export interface TreemapAnimationOptions {
+    export interface TreemapAnimationOptions extends IAnimationOptions {
         viewModel: TreemapData;
         nodes: D3.Layout.GraphNode[];
         highlightNodes: D3.Layout.GraphNode[];
         labeledNodes: D3.Layout.GraphNode[];
         shapeGraphicsContext: D3.Selection;
         labelGraphicsContext: D3.Selection;
-        interactivityService: IInteractivityService;
     }
 
-    export interface TreemapAnimationResult {
-        failed: boolean;
+    export interface TreemapAnimationResult extends IAnimationResult {
         shapes: D3.UpdateSelection;
         highlightShapes: D3.UpdateSelection;
         labels: D3.UpdateSelection;
     }
 
-    export interface ITreemapAnimator {
-        animate(options: TreemapAnimationOptions): TreemapAnimationResult;
-    }
+    export type ITreemapAnimator = Animator<IAnimatorOptions, TreemapAnimationOptions, TreemapAnimationResult>;
 
-    export class WebTreemapAnimator implements ITreemapAnimator {
+    export class WebTreemapAnimator extends Animator<IAnimatorOptions, TreemapAnimationOptions, TreemapAnimationResult> implements ITreemapAnimator {
         previousViewModel: TreemapData;
-        animationDuration: number = AnimatorCommon.MinervaAnimationDuration;
+
+        constructor(options?: IAnimatorOptions) {
+            super(options);
+        }
 
         public animate(options: TreemapAnimationOptions): TreemapAnimationResult {
             var result: TreemapAnimationResult = {

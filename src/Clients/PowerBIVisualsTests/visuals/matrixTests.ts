@@ -27,7 +27,6 @@
 module powerbitests {
     import CompiledDataViewMapping = powerbi.data.CompiledDataViewMapping;
     import CompiledSubtotalType = powerbi.data.CompiledSubtotalType;
-    import DataShapeUtility = powerbi.data.dsr.DataShapeUtility;
     import DataViewAnalysis = powerbi.DataViewAnalysis;
     import DataViewMatrix = powerbi.DataViewMatrix;
     import DataViewMatrixNode = powerbi.DataViewMatrixNode;
@@ -36,16 +35,20 @@ module powerbitests {
     import MatrixDataViewObjects = powerbi.visuals.MatrixDataViewObjects;
     import MatrixVisualNode = powerbi.visuals.MatrixVisualNode;
     import MatrixHierarchyNavigator = powerbi.visuals.IMatrixHierarchyNavigator;
+    import QueryProjectionCollection = powerbi.data.QueryProjectionCollection;
     import QueryProjectionsByRole = powerbi.data.QueryProjectionsByRole;
-    import SemanticType = powerbi.data.SemanticType;
     import valueFormatter = powerbi.visuals.valueFormatter;
+    import ValueType = powerbi.ValueType;
+    import PrimitiveType = powerbi.PrimitiveType;
 
     var DefaultWaitForRender = 500;
 
-    var dataTypeNumber = DataShapeUtility.describeDataType(SemanticType.Number);
-    var dataTypeString = DataShapeUtility.describeDataType(SemanticType.String);
-    var dataTypeBoolean = DataShapeUtility.describeDataType(SemanticType.Boolean);
-    var dataTypeWebUrl = DataShapeUtility.describeDataType(SemanticType.String, 'WebUrl');
+    powerbitests.mocks.setLocale();
+
+    var dataTypeNumber = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double);
+    var dataTypeString = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text);
+    var dataTypeBoolean = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Boolean);
+    var dataTypeWebUrl = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text, 'WebUrl');
 
     var rowGroupSource1: DataViewMetadataColumn = { displayName: 'RowGroup1', queryName: 'RowGroup1', type: dataTypeString, index: 0 };
     var rowGroupSource2: DataViewMetadataColumn = { displayName: 'RowGroup2', queryName: 'RowGroup2', type: dataTypeString, index: 1 };
@@ -2069,35 +2072,35 @@ module powerbitests {
         valueSources: [measureSource1]
     };
 
-    describe('Matrix', () => {
-        it('Matrix registered capabilities', () => {
+    describe('Matrix',() => {
+        it('Matrix registered capabilities',() => {
             expect(powerbi.visuals.visualPluginFactory.create().getPlugin('matrix').capabilities).toBe(Matrix.capabilities);
         });
 
-        it('Capabilities should include dataViewMappings', () => {
+        it('Capabilities should include dataViewMappings',() => {
             expect(Matrix.capabilities.dataViewMappings).toBeDefined();
         });
 
-        it('Capabilities should include dataRoles', () => {
+        it('Capabilities should include dataRoles',() => {
             expect(Matrix.capabilities.dataRoles).toBeDefined();
         });
 
-        it('Capabilities should include row windowing', () => {
+        it('Capabilities should include row windowing',() => {
             expect(Matrix.capabilities.dataViewMappings[0].matrix.rows.dataReductionAlgorithm).toBeDefined();
         });
 
-        it('Capabilities should allow measure only matrices', () => {
+        it('Capabilities should allow measure only matrices',() => {
             var allowedProjections1: QueryProjectionsByRole =
                 {
-                    'Values': [{ queryRef: '0' }]
+                    'Values': new QueryProjectionCollection([{ queryRef: '0' }])
                 };
             var allowedProjections2: QueryProjectionsByRole =
                 {
-                    'Values': [
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '0' },
                         { queryRef: '1' },
                         { queryRef: '2' }
-                    ]
+                    ])
                 };
 
             var dataViewMappings = Matrix.capabilities.dataViewMappings;
@@ -2105,18 +2108,18 @@ module powerbitests {
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
         });
 
-        it('Capabilities should allow matrices with row groups only', () => {
+        it('Capabilities should allow matrices with row groups only',() => {
             var allowedProjections1: QueryProjectionsByRole =
                 {
-                    'Rows': [{ queryRef: '0' }]
+                    'Rows': new QueryProjectionCollection([{ queryRef: '0' }])
                 };
             var allowedProjections2: QueryProjectionsByRole =
                 {
-                    'Rows': [
+                    'Rows': new QueryProjectionCollection([
                         { queryRef: '2' },
                         { queryRef: '0' },
                         { queryRef: '1' }
-                    ]
+                    ])
                 };
 
             var dataViewMappings = Matrix.capabilities.dataViewMappings;
@@ -2124,46 +2127,46 @@ module powerbitests {
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
         });
 
-        it('Capabilities should allow matrices with row groups and arbitrary number of measures', () => {
+        it('Capabilities should allow matrices with row groups and arbitrary number of measures',() => {
             var allowedProjections1: QueryProjectionsByRole =
                 {
-                    'Rows': [{ queryRef: '0' }],
-                    'Values': [
+                    'Rows': new QueryProjectionCollection([{ queryRef: '0' }]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '1' },
                         { queryRef: '2' },
                         { queryRef: '3' }
-                    ]
+                    ])
                 };
             var allowedProjections2: QueryProjectionsByRole =
                 {
-                    'Rows': [
+                    'Rows': new QueryProjectionCollection([
                         { queryRef: '3' },
                         { queryRef: '2' },
                         { queryRef: '1' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '0' }
-                    ]
+                    ])
                 };
             var allowedProjections3: QueryProjectionsByRole =
                 {
-                    'Rows': [
+                    'Rows': new QueryProjectionCollection([
                         { queryRef: '1' },
                         { queryRef: '0' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '2' },
                         { queryRef: '3' }
-                    ]
+                    ])
                 };
             var allowedProjections4: QueryProjectionsByRole =
                 {
-                    'Rows': [
+                    'Rows': new QueryProjectionCollection([
                         { queryRef: '0' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '1' }
-                    ]
+                    ])
                 };
 
             var dataViewMappings = Matrix.capabilities.dataViewMappings;
@@ -2173,18 +2176,18 @@ module powerbitests {
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections4, dataViewMappings)).toEqual(dataViewMappings);
         });
 
-        it('Capabilities should allow matrices with column groups only', () => {
+        it('Capabilities should allow matrices with column groups only',() => {
             var allowedProjections1: QueryProjectionsByRole =
                 {
-                    'Columns': [{ queryRef: '0' }]
+                    'Columns': new QueryProjectionCollection([{ queryRef: '0' }])
                 };
             var allowedProjections2: QueryProjectionsByRole =
                 {
-                    'Columns': [
+                    'Columns': new QueryProjectionCollection([
                         { queryRef: '2' },
                         { queryRef: '0' },
                         { queryRef: '1' }
-                    ]
+                    ])
                 };
 
             var dataViewMappings = Matrix.capabilities.dataViewMappings;
@@ -2192,46 +2195,46 @@ module powerbitests {
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
         });
 
-        it('Capabilities should allow matrices with column groups and measures', () => {
+        it('Capabilities should allow matrices with column groups and measures',() => {
             var allowedProjections1: QueryProjectionsByRole =
                 {
-                    'Columns': [{ queryRef: '1' }],
-                    'Values': [
+                    'Columns': new QueryProjectionCollection([{ queryRef: '1' }]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '2' },
                         { queryRef: '3' },
                         { queryRef: '0' }
-                    ]
+                    ])
                 };
             var allowedProjections2: QueryProjectionsByRole =
                 {
-                    'Columns': [
+                    'Columns': new QueryProjectionCollection([
                         { queryRef: '0' },
                         { queryRef: '2' },
                         { queryRef: '1' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '3' }
-                    ]
+                    ])
                 };
             var allowedProjections3: QueryProjectionsByRole =
                 {
-                    'Columns': [
+                    'Columns': new QueryProjectionCollection([
                         { queryRef: '3' },
                         { queryRef: '2' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '0' },
                         { queryRef: '1' }
-                    ]
+                    ])
                 };
             var allowedProjections4: QueryProjectionsByRole =
                 {
-                    'Columns': [
+                    'Columns': new QueryProjectionCollection([
                         { queryRef: '1' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '0' }
-                    ]
+                    ])
                 };
 
             var dataViewMappings = Matrix.capabilities.dataViewMappings;
@@ -2241,60 +2244,60 @@ module powerbitests {
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections4, dataViewMappings)).toEqual(dataViewMappings);
         });
 
-        it('Capabilities should allow matrices with row groups and arbitrary number of column groups and measures', () => {
+        it('Capabilities should allow matrices with row groups and arbitrary number of column groups and measures',() => {
             var allowedProjections1: QueryProjectionsByRole =
                 {
-                    'Rows': [
+                    'Rows': new QueryProjectionCollection([
                         { queryRef: '0' }
-                    ],
-                    'Columns': [
+                    ]),
+                    'Columns': new QueryProjectionCollection([
                         { queryRef: '1' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '2' }
-                    ]
+                    ])
                 };
             var allowedProjections2: QueryProjectionsByRole =
                 {
-                    'Rows': [
+                    'Rows': new QueryProjectionCollection([
                         { queryRef: '0' },
                         { queryRef: '1' }
-                    ],
-                    'Columns': [
+                    ]),
+                    'Columns': new QueryProjectionCollection([
                         { queryRef: '2' },
                         { queryRef: '3' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '4' }
-                    ]
+                    ])
                 };
             var allowedProjections3: QueryProjectionsByRole =
                 {
-                    'Rows': [
+                    'Rows': new QueryProjectionCollection([
                         { queryRef: '0' },
                         { queryRef: '1' }
-                    ],
-                    'Columns': [
+                    ]),
+                    'Columns': new QueryProjectionCollection([
                         { queryRef: '2' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '3' },
                         { queryRef: '4' }
-                    ]
+                    ])
                 };
             var allowedProjections4: QueryProjectionsByRole =
                 {
-                    'Rows': [
+                    'Rows': new QueryProjectionCollection([
                         { queryRef: '0' }
-                    ],
-                    'Columns': [
+                    ]),
+                    'Columns': new QueryProjectionCollection([
                         { queryRef: '1' },
                         { queryRef: '2' }
-                    ],
-                    'Values': [
+                    ]),
+                    'Values': new QueryProjectionCollection([
                         { queryRef: '3' },
                         { queryRef: '4' }
-                    ]
+                    ]),
                 };
 
             var dataViewMappings = Matrix.capabilities.dataViewMappings;
@@ -2304,15 +2307,15 @@ module powerbitests {
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections4, dataViewMappings)).toEqual(dataViewMappings);
         });
 
-        it('Capabilities should suppressDefaultTitle', () => {
+        it('Capabilities should suppressDefaultTitle',() => {
             expect(Matrix.capabilities.suppressDefaultTitle).toBe(true);
         });
 
-        it('FormatString property should match calculated', () => {
+        it('FormatString property should match calculated',() => {
             expect(powerbi.data.DataViewObjectDescriptors.findFormatString(Matrix.capabilities.objects)).toEqual(Matrix.formatStringProp);
         });
 
-        it('CustomizeQuery picks up enabled row subtotals', () => {
+        it('CustomizeQuery picks up enabled row subtotals',() => {
             var objects: MatrixDataViewObjects = {
                 general: {
                     rowSubtotals: true,
@@ -2329,7 +2332,7 @@ module powerbitests {
             expect(dataViewMapping.matrix.columns.for.in.subtotalType).toEqual(CompiledSubtotalType.None);
         });
 
-        it('CustomizeQuery picks up enabled column subtotals', () => {
+        it('CustomizeQuery picks up enabled column subtotals',() => {
             var objects: MatrixDataViewObjects = {
                 general: {
                     rowSubtotals: false,
@@ -2346,7 +2349,7 @@ module powerbitests {
             expect(dataViewMapping.matrix.columns.for.in.subtotalType).toEqual(CompiledSubtotalType.After);
         });
 
-        it('CustomizeQuery picks up enabled row and column subtotals', () => {
+        it('CustomizeQuery picks up enabled row and column subtotals',() => {
             var objects: MatrixDataViewObjects = {
                 general: {
                     rowSubtotals: true,
@@ -2363,7 +2366,7 @@ module powerbitests {
             expect(dataViewMapping.matrix.columns.for.in.subtotalType).toEqual(CompiledSubtotalType.After);
         });
 
-        it('CustomizeQuery handles missing settings', () => {
+        it('CustomizeQuery handles missing settings',() => {
             var dataViewMapping = createCompiledDataViewMapping();
 
             Matrix.customizeQuery({
@@ -2375,7 +2378,7 @@ module powerbitests {
             expect(dataViewMapping.matrix.columns.for.in.subtotalType).toEqual(CompiledSubtotalType.After);
         });
 
-        it('CustomizeQuery handles missing subtotal settings', () => {
+        it('CustomizeQuery handles missing subtotal settings',() => {
             var objects: MatrixDataViewObjects = {
                 general: {
                     rowSubtotals: undefined,
@@ -2414,13 +2417,13 @@ module powerbitests {
         }
     });
 
-    describe('Tablix control tests', () => {
-        it('touch disabled', () => {
+    describe('Tablix control tests',() => {
+        it('touch disabled',() => {
 
             var layoutKind = powerbi.visuals.controls.TablixLayoutKind.Canvas;
             var matrix = matrixOneMeasure;
             var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
-            var binder = new powerbi.visuals.MatrixBinder(navigator, { layoutKind: layoutKind});
+            var binder = new powerbi.visuals.MatrixBinder(navigator, { layoutKind: layoutKind });
             var layoutManager = powerbi.visuals.controls.internal.CanvasTablixLayoutManager.createLayoutManager(binder);
             var parent = document.createElement('div');
             var tablixControl = new powerbi.visuals.controls.TablixControl(navigator, layoutManager, binder, parent, { interactive: true, enableTouchSupport: false });
@@ -2429,30 +2432,30 @@ module powerbitests {
         });
     });
 
-    describe('Matrix hierarchy navigator tests', () => {
-        describe('getDepth', () => {
-            it('returns the correct depth for an empty hierarchy', () => {
+    describe('Matrix hierarchy navigator tests',() => {
+        describe('getDepth',() => {
+            it('returns the correct depth for an empty hierarchy',() => {
                 var matrix = matrixThreeRowGroupsOneGroupInstance;
                 var columnHierarchy = matrix.columns.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getDepth(columnHierarchy)).toBe(1);
             });
-            it('returns the correct depth for a measure only hierarchy', () => {
+            it('returns the correct depth for a measure only hierarchy',() => {
                 var matrix = matrixOneMeasure;
                 var columnHierarchy = matrix.columns.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getDepth(columnHierarchy)).toBe(1);
             });
-            it('returns the correct depth for group only hierarchy', () => {
+            it('returns the correct depth for group only hierarchy',() => {
                 var matrix = matrixThreeMeasuresThreeRowGroups;
                 var rowHierarchy = matrix.rows.root.children;
 
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
                 expect(navigator.getDepth(rowHierarchy)).toBe(3);
             });
-            it('returns the correct depth for group and measure hierarchy', () => {
+            it('returns the correct depth for group and measure hierarchy',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var columnHierarchy = matrix.columns.root.children;
 
@@ -2460,29 +2463,29 @@ module powerbitests {
                 expect(navigator.getDepth(columnHierarchy)).toBe(3);
             });
         });
-        describe('getLeafCount', () => {
-            it('returns the right leaf count for a placeholder hierarchy', () => {
+        describe('getLeafCount',() => {
+            it('returns the right leaf count for a placeholder hierarchy',() => {
                 var matrix = matrixOneMeasure;
                 var rowHierarchy = matrix.rows.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getLeafCount(rowHierarchy)).toBe(1);
             });
-            it('returns the right leaf count for an empty hierarchy', () => {
+            it('returns the right leaf count for an empty hierarchy',() => {
                 var matrix = matrixThreeRowGroupsOneGroupInstance;
                 var columnHierarchy = matrix.columns.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getLeafCount(columnHierarchy)).toBe(0);
             });
-            it('returns the right leaf count for a one level deep hierarchy', () => {
+            it('returns the right leaf count for a one level deep hierarchy',() => {
                 var matrix = matrixOneMeasureOneRowGroupOneGroupInstance;
                 var rowHierarchy = matrix.rows.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getLeafCount(rowHierarchy)).toBe(1);
             });
-            it('returns the right leaf count for a three level deep hierarchy', () => {
+            it('returns the right leaf count for a three level deep hierarchy',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var columnHierarchy = matrix.columns.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
@@ -2490,8 +2493,8 @@ module powerbitests {
                 expect(navigator.getLeafCount(columnHierarchy)).toBe(12);
             });
         });
-        describe('getLeafAt', () => {
-            it('returns the correct leaf from a placeholder hierarchy', () => {
+        describe('getLeafAt',() => {
+            it('returns the correct leaf from a placeholder hierarchy',() => {
                 var matrix = matrixOneMeasureOneColumnGroupOneGroupInstance;
                 var rowHierarchy = matrix.rows.root.children;
                 var rowHierarchyItem = rowHierarchy[0];
@@ -2499,7 +2502,7 @@ module powerbitests {
 
                 expect(navigator.getLeafAt(rowHierarchy, 0)).toBe(rowHierarchyItem);
             });
-            it('returns the correct leaf from a one level deep hierarchy', () => {
+            it('returns the correct leaf from a one level deep hierarchy',() => {
                 var matrix = matrixOneMeasureOneColumnGroupOneGroupInstance;
                 var columnHierarchy = matrix.columns.root.children;
                 var columnHierarchyItem = columnHierarchy[0];
@@ -2507,7 +2510,7 @@ module powerbitests {
 
                 expect(navigator.getLeafAt(columnHierarchy, 0)).toBe(columnHierarchyItem);
             });
-            it('returns the correct leaf from a three level deep hierarchy', () => {
+            it('returns the correct leaf from a three level deep hierarchy',() => {
                 var matrix = matrixThreeMeasuresThreeRowGroups;
                 var rowHierarchy = matrix.rows.root.children;
                 var rowHierarchyItem = rowHierarchy[1].children[1].children[1];
@@ -2516,22 +2519,22 @@ module powerbitests {
                 expect(navigator.getLeafAt(rowHierarchy, 7)).toBe(rowHierarchyItem);
             });
         });
-        describe('getParent', () => {
-            it('returns null for outermost node in a one level deep hierarchy', () => {
+        describe('getParent',() => {
+            it('returns null for outermost node in a one level deep hierarchy',() => {
                 var matrix = matrixOneMeasureOneRowGroupOneGroupInstance;
                 var node = matrix.columns.root.children[0];
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getParent(node)).toBeNull();
             });
-            it('returns null for outermost node in a three level deep hierarchy', () => {
+            it('returns null for outermost node in a three level deep hierarchy',() => {
                 var matrix = matrixThreeRowGroupsThreeColumnGroupsOneInstance;
                 var node = matrix.rows.root.children[0];
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getParent(node)).toBeNull();
             });
-            it('returns the correct parent for an innermost node in a three level deep hierarchy', () => {
+            it('returns the correct parent for an innermost node in a three level deep hierarchy',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var parentNode = matrix.columns.root.children[1].children[1];
                 var node = parentNode.children[1];
@@ -2539,7 +2542,7 @@ module powerbitests {
 
                 expect(navigator.getParent(node)).toBe(parentNode);
             });
-            it('returns the correct parent for a non-innermost node in a three level deep hierarchy', () => {
+            it('returns the correct parent for a non-innermost node in a three level deep hierarchy',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var parentNode = matrix.columns.root.children[0];
                 var node = parentNode.children[1];
@@ -2548,8 +2551,8 @@ module powerbitests {
                 expect(navigator.getParent(node)).toBe(parentNode);
             });
         });
-        describe('getIndex', () => {
-            it('returns the correct index for outermost nodes', () => {
+        describe('getIndex',() => {
+            it('returns the correct index for outermost nodes',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var rowHierarchy = matrix.rows.root.children;
                 var rowHierarchyItem0 = rowHierarchy[0];
@@ -2563,7 +2566,7 @@ module powerbitests {
                 expect(navigator.getIndex(rowHierarchyItem2)).toBe(2);
                 expect(navigator.getIndex(rowHierarchyItem3)).toBe(3);
             });
-            it('returns the correct index for innermost nodes', () => {
+            it('returns the correct index for innermost nodes',() => {
                 var matrix = matrixThreeRowGroups;
                 var rowHierarchy = matrix.rows.root.children;
                 var rowHierarchyItem0 = rowHierarchy[0].children[0].children[0];
@@ -2577,7 +2580,7 @@ module powerbitests {
                 expect(navigator.getIndex(rowHierarchyItemAgain0)).toBe(0);
                 expect(navigator.getIndex(rowHierarchyItemAgain1)).toBe(1);
             });
-            it('returns the correct index for non-innermost nodes', () => {
+            it('returns the correct index for non-innermost nodes',() => {
                 var matrix = matrixThreeRowGroups;
                 var rowHierarchy = matrix.rows.root.children;
                 var rowHierarchyItem0 = rowHierarchy[0].children[0];
@@ -2592,8 +2595,8 @@ module powerbitests {
                 expect(navigator.getIndex(rowHierarchyItemAgain1)).toBe(1);
             });
         });
-        describe('isLeaf', () => {
-            it('returns true for nodes in a one level deep placeholder hierarchy', () => {
+        describe('isLeaf',() => {
+            it('returns true for nodes in a one level deep placeholder hierarchy',() => {
                 var matrix = matrixThreeMeasures;
                 var rowHierarchy = matrix.rows.root.children;
                 var rowHierarchyItem = rowHierarchy[0];
@@ -2601,7 +2604,7 @@ module powerbitests {
 
                 expect(navigator.isLeaf(rowHierarchyItem)).toBeTruthy();
             });
-            it('returns true for nodes in a one level deep hierarchy', () => {
+            it('returns true for nodes in a one level deep hierarchy',() => {
                 var matrix = matrixOneMeasureOneRowGroupOneGroupInstance;
                 var rowHierarchy = matrix.rows.root.children;
                 var rowHierarchyItem = rowHierarchy[0];
@@ -2609,7 +2612,7 @@ module powerbitests {
 
                 expect(navigator.isLeaf(rowHierarchyItem)).toBeTruthy();
             });
-            it('returns true for innermost nodes in a three level deep hierarchy', () => {
+            it('returns true for innermost nodes in a three level deep hierarchy',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var columnHierarchy = matrix.columns.root.children;
                 var columnHierarchyItem = columnHierarchy[1].children[2].children[0];
@@ -2617,7 +2620,7 @@ module powerbitests {
 
                 expect(navigator.isLeaf(columnHierarchyItem)).toBeTruthy();
             });
-            it('returns false for outermost nodes in a three level deep hierarchy', () => {
+            it('returns false for outermost nodes in a three level deep hierarchy',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var columnHierarchy = matrix.columns.root.children;
                 var columnHierarchyItem = columnHierarchy[0];
@@ -2625,7 +2628,7 @@ module powerbitests {
 
                 expect(navigator.isLeaf(columnHierarchyItem)).toBeFalsy();
             });
-            it('returns false for non-innermost nodes in a three level deep hierarchy', () => {
+            it('returns false for non-innermost nodes in a three level deep hierarchy',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var columnHierarchy = matrix.columns.root.children;
                 var columnHierarchyItem = columnHierarchy[0].children[1];
@@ -2634,14 +2637,14 @@ module powerbitests {
                 expect(navigator.isLeaf(columnHierarchyItem)).toBeFalsy();
             });
         });
-        describe('isRowHierarchyLeaf', () => {
+        describe('isRowHierarchyLeaf',() => {
             // TODO
         });
-        describe('isColumnHierarchyLeaf', () => {
+        describe('isColumnHierarchyLeaf',() => {
             // TODO
         });
-        describe('isLastItem', () => {
-            it('returns true if the last item is the only item in the collection', () => {
+        describe('isLastItem',() => {
+            it('returns true if the last item is the only item in the collection',() => {
                 var matrix = matrixOneRowGroupOneColumnGroupOneInstance;
                 var items = matrix.rows.root.children;
                 var item = items[0];
@@ -2649,7 +2652,7 @@ module powerbitests {
 
                 expect(navigator.isLastItem(item, items)).toBeTruthy();
             });
-            it('returns true if the last item is the last item in its parents collection, but not on the level', () => {
+            it('returns true if the last item is the last item in its parents collection, but not on the level',() => {
                 var matrix = matrixThreeMeasuresThreeRowGroups;
                 var items = matrix.rows.root.children[0].children;
                 var item = items[1];
@@ -2657,7 +2660,7 @@ module powerbitests {
 
                 expect(navigator.isLastItem(item, items)).toBeTruthy();
             });
-            it('returns false if the item is not the last item in its parents collection', () => {
+            it('returns false if the item is not the last item in its parents collection',() => {
                 var matrix = matrixThreeMeasuresThreeRowGroups;
                 var items = matrix.rows.root.children[1].children[1].children;
                 var item = items[0];
@@ -2666,15 +2669,15 @@ module powerbitests {
                 expect(navigator.isLastItem(item, items)).toBeFalsy();
             });
         });
-        describe('getChildren', () => {
-            it('returns undefined for leaf node', () => {
+        describe('getChildren',() => {
+            it('returns undefined for leaf node',() => {
                 var matrix = matrixOneMeasureOneColumnGroupOneGroupInstance;
                 var node = matrix.columns.root.children[0];
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getChildren(node)).toBeUndefined();
             });
-            it('returns the correct collection of children', () => {
+            it('returns the correct collection of children',() => {
                 var matrix = matrixThreeMeasuresThreeRowGroups;
                 var node = matrix.rows.root.children[0];
                 var children = node.children;
@@ -2683,15 +2686,15 @@ module powerbitests {
                 expect(navigator.getChildren(node)).toBe(children);
             });
         });
-        describe('getCount', () => {
-            it('returns zero if there are no children', () => {
+        describe('getCount',() => {
+            it('returns zero if there are no children',() => {
                 var matrix = matrixThreeRowGroupsOneGroupInstance;
                 var columnHierarchy = matrix.columns.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getCount(columnHierarchy)).toBe(0);
             });
-            it('returns the length of the children array', () => {
+            it('returns the length of the children array',() => {
                 var matrix = matrixThreeMeasuresThreeRowGroups;
                 var columnHierarchy = matrix.columns.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
@@ -2699,15 +2702,15 @@ module powerbitests {
                 expect(navigator.getCount(columnHierarchy)).toBe(3);
             });
         });
-        describe('getAt', () => {
-            it('returns undefined if index is out of bounds', () => {
+        describe('getAt',() => {
+            it('returns undefined if index is out of bounds',() => {
                 var matrix = matrixThreeRowGroupsOneGroupInstance;
                 var columnHierarchy = matrix.columns.root.children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getAt(columnHierarchy, 0)).toBeUndefined();
             });
-            it('returns the right node from the hierarchy', () => {
+            it('returns the right node from the hierarchy',() => {
                 var matrix = matrixThreeRowGroups;
                 var rowHierarchy = matrix.rows.root.children;
                 var node = rowHierarchy[1];
@@ -2715,7 +2718,7 @@ module powerbitests {
 
                 expect(navigator.getAt(rowHierarchy, 1)).toBe(node);
             });
-            it('returns the right node from the children collection', () => {
+            it('returns the right node from the children collection',() => {
                 var matrix = matrixThreeRowGroups;
                 var children = matrix.rows.root.children[0].children;
                 var node = children[1];
@@ -2724,22 +2727,22 @@ module powerbitests {
                 expect(navigator.getAt(children, 1)).toBe(node);
             });
         });
-        describe('getLevel', () => {
-            it('returns undefined for root node', () => {
+        describe('getLevel',() => {
+            it('returns undefined for root node',() => {
                 var matrix = matrixThreeRowGroupsThreeColumnGroupsOneInstance;
                 var rootNode = matrix.columns.root;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getLevel(rootNode)).toBeUndefined();
             });
-            it('returns zero for outermost nodes', () => {
+            it('returns zero for outermost nodes',() => {
                 var matrix = matrixThreeRowGroupsThreeColumnGroupsOneInstance;
                 var node = matrix.rows.root.children[0];
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getLevel(node)).toBe(0);
             });
-            it('returns one for nodes on the second level', () => {
+            it('returns one for nodes on the second level',() => {
                 var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
                 var nodes = matrix.rows.root.children[1].children;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
@@ -2748,8 +2751,8 @@ module powerbitests {
                 expect(navigator.getLevel(nodes[1])).toBe(1);
             });
         });
-        describe('getIntersection', () => {
-            it('returns values in the intersection', () => {
+        describe('getIntersection',() => {
+            it('returns values in the intersection',() => {
                 var matrix = matrixThreeMeasuresThreeRowGroups;
                 var rowHierarchy = matrix.rows.root.children;
                 var columnHierarchy = matrix.columns.root.children;
@@ -2789,7 +2792,7 @@ module powerbitests {
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
                 validateIntersections(navigator, level3RowItems, level1ColumnItems, expectedValues);
             });
-            it('returns empty string if there are no measures', () => {
+            it('returns empty string if there are no measures',() => {
                 var matrix = matrixThreeRowGroupsThreeColumnGroups;
                 var rowHierarchy = matrix.rows.root.children;
                 var rowLeaves = rowHierarchy[0].children[0].children.concat(rowHierarchy[0].children[1].children);
@@ -2818,29 +2821,29 @@ module powerbitests {
                 expect(result).toEqual(expectedValues);
             }
         });
-        describe('getCorer', () => {
-            it('returns empty value for the upper left cell of a 3x3 corner', () => {
+        describe('getCorer',() => {
+            it('returns empty value for the upper left cell of a 3x3 corner',() => {
                 var matrix = matrixThreeRowGroupsThreeColumnGroups;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getCorner(0, 0).metadata).toBeNull();
                 expect(navigator.getCorner(0, 0).isColumnHeaderLeaf).toBeFalsy();
             });
-            it('returns row header for the lower left cell of a 3x3 corner', () => {
+            it('returns row header for the lower left cell of a 3x3 corner',() => {
                 var matrix = matrixThreeRowGroupsThreeColumnGroups;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getCorner(0, 2).metadata.displayName).toBe('RowGroup1');
                 expect(navigator.getCorner(0, 2).isColumnHeaderLeaf).toBeTruthy();
             });
-            it('returns column header for the upper right cell of a 3x3 corner', () => {
+            it('returns column header for the upper right cell of a 3x3 corner',() => {
                 var matrix = matrixThreeRowGroupsThreeColumnGroups;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
                 expect(navigator.getCorner(2, 0).metadata.displayName).toBe('ColGroup1');
                 expect(navigator.getCorner(2, 0).isColumnHeaderLeaf).toBeFalsy();
             });
-            it('returns row header for the lower right cell of a 3x3 corner', () => {
+            it('returns row header for the lower right cell of a 3x3 corner',() => {
                 var matrix = matrixThreeRowGroupsThreeColumnGroups;
                 var navigator = powerbi.visuals.createMatrixHierarchyNavigator(matrix, valueFormatter.formatRaw);
 
@@ -2848,8 +2851,8 @@ module powerbitests {
                 expect(navigator.getCorner(2, 2).isColumnHeaderLeaf).toBeTruthy();
             });
         });
-        describe('headerItemEquals', () => {
-            it('returns true if the two items are the same', () => {
+        describe('headerItemEquals',() => {
+            it('returns true if the two items are the same',() => {
                 var matrix = matrixOneRowGroupOneColumnGroupOneGroupInstance;
                 var rowNode = matrix.rows.root.children[0];
                 var columnNode = matrix.columns.root.children[0];
@@ -2858,7 +2861,7 @@ module powerbitests {
                 expect(navigator.headerItemEquals(rowNode, rowNode)).toBeTruthy();
                 expect(navigator.headerItemEquals(columnNode, columnNode)).toBeTruthy();
             });
-            it('returns false if the two items are not same even if they have the same content', () => {
+            it('returns false if the two items are not same even if they have the same content',() => {
                 var matrix = matrixOneRowGroupOneColumnGroupOneGroupInstance;
                 var rowNode = matrix.rows.root.children[0];
                 var columnNode = matrix.columns.root.children[0];
@@ -2870,7 +2873,7 @@ module powerbitests {
         });
     });
 
-    describe('Matrix logic', () => {
+    describe('Matrix logic',() => {
         var v: powerbi.IVisual;
 
         beforeEach(() => {
@@ -2889,7 +2892,7 @@ module powerbitests {
             });
         });
 
-        it('loadMoreData calls control refresh', () => {
+        it('loadMoreData calls control refresh',() => {
             var nav = { updateRows() { } };
             var control = { refresh() { } };
             var navSpy = spyOn(nav, "updateRows");
@@ -2906,7 +2909,7 @@ module powerbitests {
             expect(controlSpy).toHaveBeenCalled();
         });
 
-        it('needsMoreData waitingForData', () => {
+        it('needsMoreData waitingForData',() => {
 
             var matrix = matrixThreeRowGroups;
 
@@ -2925,7 +2928,7 @@ module powerbitests {
             expect(result).toBe(false);
         });
 
-        it('needsMoreData notLeaf', () => {
+        it('needsMoreData notLeaf',() => {
 
             var matrix = matrixThreeRowGroups;
 
@@ -2943,7 +2946,7 @@ module powerbitests {
             expect(result).toBe(false);
         });
 
-        it('needsMoreData segmentComplete', () => {
+        it('needsMoreData segmentComplete',() => {
 
             var matrix = matrixThreeRowGroups;
 
@@ -2961,7 +2964,7 @@ module powerbitests {
             expect(result).toBe(false);
         });
 
-        it('needsMoreData belowThreshold', () => {
+        it('needsMoreData belowThreshold',() => {
 
             var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasures;
 
@@ -2976,7 +2979,7 @@ module powerbitests {
             expect(result).toBe(false);
         });
 
-        it('needsMoreData aboveThreshold', () => {
+        it('needsMoreData aboveThreshold',() => {
 
             v.onDataChanged({
                 dataViews: [matrixThreeMeasuresThreeRowGroupsDataView]
@@ -2989,7 +2992,7 @@ module powerbitests {
             expect(result).toBe(true);
         });
 
-        it('bindRowHeader callback', () => {
+        it('bindRowHeader callback',() => {
             var callBackCalled = false;
             var binderOptions = {
                 onBindRowHeader: (item: MatrixVisualNode) => { callBackCalled = true; },
@@ -3005,7 +3008,7 @@ module powerbitests {
             expect(callBackCalled).toBe(true);
         });
 
-        it('unbindColumnHeader multimeasure not sortable', () => {
+        it('unbindColumnHeader multimeasure not sortable',() => {
             var binderOptions = {
                 onBindRowHeader: (item: MatrixVisualNode) => { },
                 onColumnHeaderClick: () => { },
@@ -3027,7 +3030,7 @@ module powerbitests {
             expect(unregisterCalled).toBe(false);
         });
 
-        it('enumerateObjectInstances general both totals off', () => {
+        it('enumerateObjectInstances general both totals off',() => {
             var matrix = matrixRowGroupColumnGroupWithBooleanAndNullOneMeasure;
             v.onDataChanged({
                 dataViews: [{
@@ -3060,7 +3063,7 @@ module powerbitests {
             }]);
         });
 
-        it('enumerateObjectInstances general both totals on', () => {
+        it('enumerateObjectInstances general both totals on',() => {
             var matrix = matrixRowGroupColumnGroupWithBooleanAndNullOneMeasureBothTotals;
             v.onDataChanged({
                 dataViews: [{
@@ -3093,7 +3096,7 @@ module powerbitests {
             }]);
         });
 
-        it('enumerateObjectInstances general no objects', () => {
+        it('enumerateObjectInstances general no objects',() => {
             var matrix = matrixRowGroupColumnGroupWithBooleanAndNullOneMeasure;
             v.onDataChanged({
                 dataViews: [{
@@ -3120,7 +3123,7 @@ module powerbitests {
             }]);
         });
 
-        it('enumerateObjectInstances general no properties', () => {
+        it('enumerateObjectInstances general no properties',() => {
             var matrix = matrixRowGroupColumnGroupWithBooleanAndNullOneMeasureBothTotals;
             v.onDataChanged({
                 dataViews: [{
@@ -3150,7 +3153,7 @@ module powerbitests {
                 }
             }]);
 
-            it('RefreshControl invisible parent', () => {
+            it('RefreshControl invisible parent',() => {
                 var control = { refresh() { } };
                 var controlSpy = spyOn(control, "refresh");
                 v['shouldAllowHeaderResize'] = () => { return true; };
@@ -3158,12 +3161,12 @@ module powerbitests {
                 v['tablixControl'] = control;
                 v['element']['visible'] = () => { return false; };
 
-                v.onResizing({ width: 100, height: 100 }, 0);
+                v.onResizing({ width: 100, height: 100 });
 
                 expect(controlSpy).not.toHaveBeenCalled();
             });
 
-            it('RefreshControl invisible parent but dashboard layout', () => {
+            it('RefreshControl invisible parent but dashboard layout',() => {
                 var control = { refresh() { } };
                 var controlSpy = spyOn(control, "refresh");
                 v['shouldAllowHeaderResize'] = () => { return true; };
@@ -3172,14 +3175,38 @@ module powerbitests {
                 v['element']['visible'] = () => { return false; };
                 v['isInteractive'] = false;
 
-                v.onResizing({ width: 100, height: 100 }, 0);
+                v.onResizing({ width: 100, height: 100 });
 
                 expect(controlSpy).toHaveBeenCalled();
+            });
+
+            it('ShouldClearControl noSort',(done) => {
+                v.onDataChanged({ dataViews: [matrixOneMeasureDataView] });
+                var refreshSpy = spyOn(v, "refreshControl").and.callFake(() => { });
+
+                v.onDataChanged({ dataViews: [matrixOneMeasureDataView] });
+
+                setTimeout(() => {
+                    expect(refreshSpy).toHaveBeenCalledWith(false);
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it('ShouldClearControl sort', (done) => {
+                v.onDataChanged({ dataViews: [matrixOneMeasureDataView] });
+                var refreshSpy = spyOn(v, "refreshControl").and.callFake(() => { });
+                v['waitingForSort'] = true;
+                v.onDataChanged({ dataViews: [matrixOneMeasureDataView] });
+
+                setTimeout(() => {
+                    expect(refreshSpy).toHaveBeenCalledWith(true);
+                    done();
+                }, DefaultWaitForRender);
             });
         });
     });
 
-    describe('Matrix DOM validation', () => {
+    describe('Matrix DOM validation',() => {
         var v: powerbi.IVisual,
             element: JQuery,
             EmptyHeaderCell = '\xa0',
@@ -3187,15 +3214,13 @@ module powerbitests {
             HeaderClass = 'bi-tablix-header',
             ColumnHeaderLeafClass = 'bi-tablix-column-header-leaf',
             RowHeaderLeafClass = 'bi-tablix-row-header-leaf',
+            RowHeaderTopLevelStaticLeafClass = 'bi-tablix-row-header-toplevel-static-leaf',
             RowHeaderStaticLeafClass = 'bi-tablix-row-header-static-leaf',
             BodyCellClass = 'bi-matrix-body-cell',
             TotalClass = 'total',
-            TableTotalLabel = 'TableTotalLabel';
-
-        beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
-        });
-
+            NumericCellClassName = ' bi-table-cell-numeric',
+            TableTotalLabel = 'Total';
+        
         beforeEach(() => {
             element = powerbitests.helpers.testDom('1500', '1500');
             element['visible'] = () => { return true; };
@@ -3220,13 +3245,13 @@ module powerbitests {
 
         function validateMatrix(expectedValues: string[][]): void {
             tablixHelper.validateMatrix(expectedValues, '.bi-tablix tr');
-            }
+        }
 
         function validateClassNames(expectedValues: string[][]): void {
             tablixHelper.validateClassNames(expectedValues, '.bi-tablix tr', NoMarginClass);
-            }
+        }
 
-        it('1x2 matrix (value and static column header)', (done) => {
+        it('1x2 matrix (value and static column header)',(done) => {
 
             var matrix = matrixOneMeasure;
             v.onDataChanged({
@@ -3244,8 +3269,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, ColumnHeaderLeafClass, ''],
-                    [RowHeaderStaticLeafClass, BodyCellClass]
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName, ''],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -3254,12 +3279,12 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('1x2 matrix (value and column header value) update', (done) => {
+        it('1x2 matrix (value and column header value) update',(done) => {
             v.onDataChanged({
                 dataViews: [matrixOneMeasureDataView]
             });
 
-             // Call onDataChanged again to trigger an update on the hierarchy navigator
+            // Call onDataChanged again to trigger an update on the hierarchy navigator
             var matrix = matrixOneMeasureOneColumnGroupOneGroupInstance;
             v.onDataChanged({
                 dataViews: [matrixOneMeasureOneColumnGroupOneGroupInstanceDataView]
@@ -3278,8 +3303,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, ColumnHeaderLeafClass, ''],
-                    [RowHeaderStaticLeafClass, BodyCellClass]
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName, ''],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -3287,8 +3312,8 @@ module powerbitests {
                 done();
             }, DefaultWaitForRender);
         });
-       
-        it('3x2 matrix (values and static column headers)', (done) => {
+
+        it('3x2 matrix (values and static column headers)',(done) => {
 
             var matrix = matrixThreeMeasures;
             v.onDataChanged({
@@ -3312,8 +3337,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ''],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass]
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ''],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -3322,7 +3347,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('3x3 matrix (values, static and value column headers)', (done) => {
+        it('3x3 matrix (values, static and value column headers)',(done) => {
 
             var matrix = matrixThreeMeasuresOneColumnGroupOneGroupInstance;
             v.onDataChanged({
@@ -3349,9 +3374,9 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, HeaderClass, ''],
-                    [HeaderClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass]
+                    [HeaderClass, HeaderClass + NumericCellClassName, ''],
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -3360,7 +3385,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('6x9 matrix (values, static column headers and row value headers)', (done) => {
+        it('6x9 matrix (values, static column headers and row value headers)',(done) => {
 
             v.onDataChanged({
                 dataViews: [matrixThreeMeasuresThreeRowGroupsDataView]
@@ -3423,7 +3448,7 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ''],
+                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ''],
                     [HeaderClass, HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass],
                     [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass],
                     [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass],
@@ -3440,7 +3465,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('2x2 matrix (value, static column header and row value header)', (done) => {
+        it('2x2 matrix (value, static column header and row value header)',(done) => {
 
             var matrix = matrixOneMeasureOneRowGroupOneGroupInstance;
             v.onDataChanged({
@@ -3463,8 +3488,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ''],
-                    [RowHeaderStaticLeafClass, BodyCellClass]
+                    [ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ''],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -3473,7 +3498,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('2x2 matrix (value, column value header and row value header, empty cell)', (done) => {
+        it('2x2 matrix (value, column value header and row value header, empty cell)',(done) => {
 
             var matrix = matrixOneRowGroupOneColumnGroupOneGroupInstance;
             v.onDataChanged({
@@ -3496,7 +3521,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('3x2 matrix (static column headers and row value headers)', (done) => {
+        it('3x2 matrix (static column headers and row value headers)',(done) => {
 
             var matrix = matrixThreeRowGroupsOneGroupInstance;
             v.onDataChanged({
@@ -3527,7 +3552,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('2x6 matrix (static column headers and row value headers including empty ones)', (done) => {
+        it('2x6 matrix (static column headers and row value headers including empty ones)',(done) => {
 
             var matrix = matrixTwoRowGroupsWithNullValues;
             v.onDataChanged({
@@ -3576,7 +3601,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('5x2 matrix (column value headers including empty ones)', (done) => {
+        it('5x2 matrix (column value headers including empty ones)',(done) => {
 
             var matrix = <DataViewMatrix><any>matrixTwoColumnGroupsWithNullValues;
             v.onDataChanged({
@@ -3607,8 +3632,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, HeaderClass, HeaderClass, HeaderClass, ''],
-                    [HeaderClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass]
+                    [HeaderClass, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, ''],
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -3617,7 +3642,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('3x9 matrix (static column headers and row value headers)', (done) => {
+        it('3x9 matrix (static column headers and row value headers)',(done) => {
 
             var matrix = matrixThreeRowGroups;
             v.onDataChanged({
@@ -3669,7 +3694,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('1x1 matrix loadMoreData', () => {
+        it('1x1 matrix loadMoreData',() => {
 
             var matrix: DataViewMatrix = {
                 rows: {
@@ -3748,7 +3773,7 @@ module powerbitests {
             validateMatrix(expectedCells);
         });
 
-        it('8x3 matrix (column value headers)', (done) => {
+        it('8x3 matrix (column value headers)',(done) => {
 
             var matrix = matrixThreeColumnGroups;
             v.onDataChanged({
@@ -3784,7 +3809,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('6x5 matrix (column value headers and row value headers, multiple group instances, empty cells)', (done) => {
+        it('6x5 matrix (column value headers and row value headers, multiple group instances, empty cells)',(done) => {
 
             var matrix = matrixThreeRowGroupsThreeColumnGroups;
             v.onDataChanged({
@@ -3834,7 +3859,10 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('3x4 matrix (boolean and null group instances)', (done) => {
+        it('3x4 matrix (boolean and null group instances)',(done) => {
+
+            powerbitests.mocks.setLocale();
+
             var matrix = matrixRowGroupColumnGroupWithBooleanAndNullOneMeasure;
             v.onDataChanged({
                 dataViews: [{
@@ -3871,7 +3899,9 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('Matrix with row and column subtotals', (done) => {
+        it('Matrix with row and column subtotals',(done) => {
+            powerbitests.mocks.setLocale();
+
             var matrix = matrixRowGroupColumnGroupWithBooleanAndNullOneMeasureBothTotals;
             v.onDataChanged({
                 dataViews: [{
@@ -3913,11 +3943,11 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass, ''],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ''],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -3926,7 +3956,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('Matrix with multiple row and column group hierarchy levels, one measure with subtotals', (done) => {
+        it('Matrix with multiple row and column group hierarchy levels, one measure with subtotals',(done) => {
             var matrix = matrixTwoRowGroupsTwoColumnGroupsOneMeasureAndTotals;
             v.onDataChanged({
                 dataViews: [{
@@ -3993,8 +4023,8 @@ module powerbitests {
                 ];
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, RowHeaderLeafClass, HeaderClass, HeaderClass, ColumnHeaderLeafClass + ' ' + TotalClass, ''],
-                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderLeafClass, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ''],
+                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName],
                     [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                     [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                     [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
@@ -4005,7 +4035,7 @@ module powerbitests {
                     [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                     [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                     [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4016,7 +4046,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('Matrix with multiple row and column group hierarchy levels, two measures with subtotals', (done) => {
+        it('Matrix with multiple row and column group hierarchy levels, two measures with subtotals',(done) => {
             var matrix = matrixTwoRowGroupsTwoColumnGroupsTwoMeasuresAndTotals;
             v.onDataChanged({
                 dataViews: [{
@@ -4087,9 +4117,9 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, RowHeaderLeafClass, HeaderClass, HeaderClass, HeaderClass + ' ' + TotalClass, ''],
-                    [HeaderClass, RowHeaderLeafClass, HeaderClass, HeaderClass, HeaderClass + ' ' + TotalClass, HeaderClass, HeaderClass, HeaderClass + ' ' + TotalClass],
-                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass, ColumnHeaderLeafClass + ' ' + TotalClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass, ColumnHeaderLeafClass + ' ' + TotalClass, ColumnHeaderLeafClass + ' ' + TotalClass, ColumnHeaderLeafClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderLeafClass, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, HeaderClass + ' ' + TotalClass + NumericCellClassName, ''],
+                    [HeaderClass, RowHeaderLeafClass, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, HeaderClass + ' ' + TotalClass + NumericCellClassName, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, HeaderClass + ' ' + TotalClass + NumericCellClassName],
+                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName],
                     [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                     [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                     [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
@@ -4100,7 +4130,7 @@ module powerbitests {
                     [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                     [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                     [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4109,7 +4139,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('Verify Interactivity modes', (done) => {
+        it('Verify Interactivity modes',(done) => {
 
             // Pick a matrix that exceeds the viewport
             v.init({
@@ -4162,13 +4192,11 @@ module powerbitests {
             ColumnHeaderLeafClass = 'bi-tablix-column-header-leaf',
             RowHeaderLeafClass = 'bi-tablix-row-header-leaf',
             RowHeaderStaticLeafClass = 'bi-tablix-row-header-static-leaf',
+            RowHeaderTopLevelStaticLeafClass = 'bi-tablix-row-header-toplevel-static-leaf',
             BodyCellClass = 'bi-matrix-body-cell',
             TotalClass = 'total',
-            TableTotalLabel = 'TableTotalLabel';
-
-        beforeEach(() => {
-            powerbitests.mocks.setLocale(powerbi.common.createLocalizationService());
-        });
+            NumericCellClassName = ' bi-table-cell-numeric',
+            TableTotalLabel = 'Total';
 
         beforeEach(() => {
             element = powerbitests.helpers.testDom('700', '700');
@@ -4218,8 +4246,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, ColumnHeaderLeafClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass]
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4248,8 +4276,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, ColumnHeaderLeafClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass]
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4282,8 +4310,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass]
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4319,9 +4347,9 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, HeaderClass],
-                    [HeaderClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass]
+                    [HeaderClass, HeaderClass + NumericCellClassName],
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4393,7 +4421,7 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass],
+                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName],
                     [HeaderClass, HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass],
                     [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass],
                     [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass],
@@ -4433,8 +4461,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass]
+                    [ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4577,8 +4605,8 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, HeaderClass, HeaderClass, HeaderClass],
-                    [HeaderClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass]
+                    [HeaderClass, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName],
+                    [HeaderClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName]
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4676,7 +4704,7 @@ module powerbitests {
         });
 
         it('6x5 matrix (column value headers and row value headers, multiple group instances, empty cells)',(done) => {
-
+            powerbitests.mocks.setLocale();
             var matrix = matrixThreeRowGroupsThreeColumnGroups;
             v.onDataChanged({
                 dataViews: [{
@@ -4726,6 +4754,7 @@ module powerbitests {
         });
 
         it('3x4 matrix (boolean and null group instances)',(done) => {
+            powerbitests.mocks.setLocale();
             var matrix = matrixRowGroupColumnGroupWithBooleanAndNullOneMeasure;
             v.onDataChanged({
                 dataViews: [{
@@ -4763,6 +4792,7 @@ module powerbitests {
         });
 
         it('Matrix with row and column subtotals',(done) => {
+            powerbitests.mocks.setLocale();
             var matrix = matrixRowGroupColumnGroupWithBooleanAndNullOneMeasureBothTotals;
             v.onDataChanged({
                 dataViews: [{
@@ -4804,11 +4834,11 @@ module powerbitests {
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4818,6 +4848,7 @@ module powerbitests {
         });
 
         it('Matrix with multiple row and column group hierarchy levels, one measure with subtotals',(done) => {
+            powerbitests.mocks.setLocale();
             var matrix = matrixTwoRowGroupsTwoColumnGroupsOneMeasureAndTotals;
             v.onDataChanged({
                 dataViews: [{
@@ -4868,35 +4899,35 @@ module powerbitests {
                 var rowHeader4_t = matrix.rows.root.children[3].children[1];
 
                 var expectedCells: string[][] = [
-                    ['', columnGroupSource1.displayName, colHeader1.value.toString(), colHeader2.value.toString()],
+                    ['', columnGroupSource1.displayName, colHeader1.value.toString(), colHeader2.value.toString(), TableTotalLabel],
                     [rowGroupSource1.displayName, rowGroupSource2.displayName, colHeader1_1.value.toString(), colHeader1_2.value.toString(), TableTotalLabel, colHeader2_1.value.toString(), colHeader2_2.value.toString(), TableTotalLabel],
-                    [rowHeader1.value.toString(), rowHeader1_1.value.toString(), formatter(rowHeader1_1.values[0].value, measureSource1), formatter(rowHeader1_1.values[1].value, measureSource1), formatter(rowHeader1_1.values[2].value, measureSource1), formatter(rowHeader1_1.values[3].value, measureSource1), formatter(rowHeader1_1.values[4].value, measureSource1), formatter(rowHeader1_1.values[5].value, measureSource1)],
-                    [rowHeader1_2.value.toString(), formatter(rowHeader1_2.values[0].value, measureSource1), formatter(rowHeader1_2.values[1].value, measureSource1), formatter(rowHeader1_2.values[2].value, measureSource1), formatter(rowHeader1_2.values[3].value, measureSource1), formatter(rowHeader1_2.values[4].value, measureSource1), formatter(rowHeader1_2.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeader1_t.values[0].value, measureSource1), formatter(rowHeader1_t.values[1].value, measureSource1), formatter(rowHeader1_t.values[2].value, measureSource1), formatter(rowHeader1_t.values[3].value, measureSource1), formatter(rowHeader1_t.values[4].value, measureSource1), formatter(rowHeader1_t.values[5].value, measureSource1)],
-                    [rowHeader2.value.toString(), rowHeader2_1.value.toString(), formatter(rowHeader2_1.values[0].value, measureSource1), formatter(rowHeader2_1.values[1].value, measureSource1), formatter(rowHeader2_1.values[2].value, measureSource1), formatter(rowHeader2_1.values[3].value, measureSource1), formatter(rowHeader2_1.values[4].value, measureSource1), formatter(rowHeader2_1.values[5].value, measureSource1)],
-                    [rowHeader2_2.value.toString(), formatter(rowHeader2_2.values[0].value, measureSource1), formatter(rowHeader2_2.values[1].value, measureSource1), formatter(rowHeader2_2.values[2].value, measureSource1), formatter(rowHeader2_2.values[3].value, measureSource1), formatter(rowHeader2_2.values[4].value, measureSource1), formatter(rowHeader2_2.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeader2_t.values[0].value, measureSource1), formatter(rowHeader2_t.values[1].value, measureSource1), formatter(rowHeader2_t.values[2].value, measureSource1), formatter(rowHeader2_t.values[3].value, measureSource1), formatter(rowHeader2_t.values[4].value, measureSource1), formatter(rowHeader2_t.values[5].value, measureSource1)],
-                    [rowHeader3.value.toString(), rowHeader3_1.value.toString(), formatter(rowHeader3_1.values[0].value, measureSource1), formatter(rowHeader3_1.values[1].value, measureSource1), formatter(rowHeader3_1.values[2].value, measureSource1), formatter(rowHeader3_1.values[3].value, measureSource1), formatter(rowHeader3_1.values[4].value, measureSource1), formatter(rowHeader3_1.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeader3_t.values[0].value, measureSource1), formatter(rowHeader3_t.values[1].value, measureSource1), formatter(rowHeader3_t.values[2].value, measureSource1), formatter(rowHeader3_t.values[3].value, measureSource1), formatter(rowHeader3_t.values[4].value, measureSource1), formatter(rowHeader3_t.values[5].value, measureSource1)],
-                    [rowHeader4.value.toString(), rowHeader4_1.value.toString(), formatter(rowHeader4_1.values[0].value, measureSource1), formatter(rowHeader4_1.values[1].value, measureSource1), formatter(rowHeader4_1.values[2].value, measureSource1), formatter(rowHeader4_1.values[3].value, measureSource1), formatter(rowHeader4_1.values[4].value, measureSource1), formatter(rowHeader4_1.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeader4_t.values[0].value, measureSource1), formatter(rowHeader4_t.values[1].value, measureSource1), formatter(rowHeader4_t.values[2].value, measureSource1), formatter(rowHeader4_t.values[3].value, measureSource1), formatter(rowHeader4_t.values[4].value, measureSource1), formatter(rowHeader4_t.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeadert.values[0].value, measureSource1), formatter(rowHeadert.values[1].value, measureSource1), formatter(rowHeadert.values[2].value, measureSource1), formatter(rowHeadert.values[3].value, measureSource1), formatter(rowHeadert.values[4].value, measureSource1), formatter(rowHeadert.values[5].value, measureSource1)]
+                    [rowHeader1.value.toString(), rowHeader1_1.value.toString(), formatter(rowHeader1_1.values[0].value, measureSource1), formatter(rowHeader1_1.values[1].value, measureSource1), formatter(rowHeader1_1.values[2].value, measureSource1), formatter(rowHeader1_1.values[3].value, measureSource1), formatter(rowHeader1_1.values[4].value, measureSource1), formatter(rowHeader1_1.values[5].value, measureSource1), formatter(rowHeader1_1.values[6].value, measureSource1)],
+                    [rowHeader1_2.value.toString(), formatter(rowHeader1_2.values[0].value, measureSource1), formatter(rowHeader1_2.values[1].value, measureSource1), formatter(rowHeader1_2.values[2].value, measureSource1), formatter(rowHeader1_2.values[3].value, measureSource1), formatter(rowHeader1_2.values[4].value, measureSource1), formatter(rowHeader1_2.values[5].value, measureSource1), formatter(rowHeader1_2.values[6].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeader1_t.values[0].value, measureSource1), formatter(rowHeader1_t.values[1].value, measureSource1), formatter(rowHeader1_t.values[2].value, measureSource1), formatter(rowHeader1_t.values[3].value, measureSource1), formatter(rowHeader1_t.values[4].value, measureSource1), formatter(rowHeader1_t.values[5].value, measureSource1), formatter(rowHeader1_t.values[6].value, measureSource1)],
+                    [rowHeader2.value.toString(), rowHeader2_1.value.toString(), formatter(rowHeader2_1.values[0].value, measureSource1), formatter(rowHeader2_1.values[1].value, measureSource1), formatter(rowHeader2_1.values[2].value, measureSource1), formatter(rowHeader2_1.values[3].value, measureSource1), formatter(rowHeader2_1.values[4].value, measureSource1), formatter(rowHeader2_1.values[5].value, measureSource1), formatter(rowHeader2_1.values[6].value, measureSource1)],
+                    [rowHeader2_2.value.toString(), formatter(rowHeader2_2.values[0].value, measureSource1), formatter(rowHeader2_2.values[1].value, measureSource1), formatter(rowHeader2_2.values[2].value, measureSource1), formatter(rowHeader2_2.values[3].value, measureSource1), formatter(rowHeader2_2.values[4].value, measureSource1), formatter(rowHeader2_2.values[5].value, measureSource1), formatter(rowHeader2_2.values[6].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeader2_t.values[0].value, measureSource1), formatter(rowHeader2_t.values[1].value, measureSource1), formatter(rowHeader2_t.values[2].value, measureSource1), formatter(rowHeader2_t.values[3].value, measureSource1), formatter(rowHeader2_t.values[4].value, measureSource1), formatter(rowHeader2_t.values[5].value, measureSource1), formatter(rowHeader2_t.values[6].value, measureSource1)],
+                    [rowHeader3.value.toString(), rowHeader3_1.value.toString(), formatter(rowHeader3_1.values[0].value, measureSource1), formatter(rowHeader3_1.values[1].value, measureSource1), formatter(rowHeader3_1.values[2].value, measureSource1), formatter(rowHeader3_1.values[3].value, measureSource1), formatter(rowHeader3_1.values[4].value, measureSource1), formatter(rowHeader3_1.values[5].value, measureSource1), formatter(rowHeader3_1.values[6].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeader3_t.values[0].value, measureSource1), formatter(rowHeader3_t.values[1].value, measureSource1), formatter(rowHeader3_t.values[2].value, measureSource1), formatter(rowHeader3_t.values[3].value, measureSource1), formatter(rowHeader3_t.values[4].value, measureSource1), formatter(rowHeader3_t.values[5].value, measureSource1), formatter(rowHeader3_t.values[6].value, measureSource1)],
+                    [rowHeader4.value.toString(), rowHeader4_1.value.toString(), formatter(rowHeader4_1.values[0].value, measureSource1), formatter(rowHeader4_1.values[1].value, measureSource1), formatter(rowHeader4_1.values[2].value, measureSource1), formatter(rowHeader4_1.values[3].value, measureSource1), formatter(rowHeader4_1.values[4].value, measureSource1), formatter(rowHeader4_1.values[5].value, measureSource1), formatter(rowHeader4_1.values[6].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeader4_t.values[0].value, measureSource1), formatter(rowHeader4_t.values[1].value, measureSource1), formatter(rowHeader4_t.values[2].value, measureSource1), formatter(rowHeader4_t.values[3].value, measureSource1), formatter(rowHeader4_t.values[4].value, measureSource1), formatter(rowHeader4_t.values[5].value, measureSource1), formatter(rowHeader4_t.values[6].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeadert.values[0].value, measureSource1), formatter(rowHeadert.values[1].value, measureSource1), formatter(rowHeadert.values[2].value, measureSource1), formatter(rowHeadert.values[3].value, measureSource1), formatter(rowHeadert.values[4].value, measureSource1), formatter(rowHeadert.values[5].value, measureSource1), formatter(rowHeadert.values[6].value, measureSource1)]
                 ];
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, RowHeaderLeafClass, HeaderClass, HeaderClass],
-                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass],
-                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderLeafClass, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName],
+                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName],
+                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -4937,6 +4968,8 @@ module powerbitests {
                 var colHeader1 = matrix.columns.root.children[0];
                 var colHeader1_1 = matrix.columns.root.children[0].children[0];
                 var colHeader1_2 = matrix.columns.root.children[0].children[1];
+                var colHeader2 = matrix.columns.root.children[1];
+                var colHeader2_1 = matrix.columns.root.children[1].children[0];
 
                 var rowHeader1 = matrix.rows.root.children[0];
                 var rowHeader2 = matrix.rows.root.children[1];
@@ -4956,39 +4989,39 @@ module powerbitests {
                 var rowHeader4_t = matrix.rows.root.children[3].children[1];
 
                 var expectedCells: string[][] = [
-                    ['', columnGroupSource1.displayName, colHeader1.value.toString()],
-                    ['', columnGroupSource2.displayName, colHeader1_1.value.toString(), colHeader1_2.value.toString(), TableTotalLabel],
-                    [rowGroupSource1.displayName, rowGroupSource2.displayName, measureSource1.displayName, measureSource2.displayName, measureSource1.displayName, measureSource2.displayName, measureSource1.displayName, measureSource2.displayName],
-                    [rowHeader1.value.toString(), rowHeader1_1.value.toString(), formatter(rowHeader1_1.values[0].value, measureSource1), formatter(rowHeader1_1.values[1].value, measureSource1), formatter(rowHeader1_1.values[2].value, measureSource1), formatter(rowHeader1_1.values[3].value, measureSource1), formatter(rowHeader1_1.values[4].value, measureSource1), formatter(rowHeader1_1.values[5].value, measureSource1)],
-                    [rowHeader1_2.value.toString(), formatter(rowHeader1_2.values[0].value, measureSource1), formatter(rowHeader1_2.values[1].value, measureSource1), formatter(rowHeader1_2.values[2].value, measureSource1), formatter(rowHeader1_2.values[3].value, measureSource1), formatter(rowHeader1_2.values[4].value, measureSource1), formatter(rowHeader1_2.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeader1_t.values[0].value, measureSource1), formatter(rowHeader1_t.values[1].value, measureSource1), formatter(rowHeader1_t.values[2].value, measureSource1), formatter(rowHeader1_t.values[3].value, measureSource1), formatter(rowHeader1_t.values[4].value, measureSource1), formatter(rowHeader1_t.values[5].value, measureSource1)],
-                    [rowHeader2.value.toString(), rowHeader2_1.value.toString(), formatter(rowHeader2_1.values[0].value, measureSource1), formatter(rowHeader2_1.values[1].value, measureSource1), formatter(rowHeader2_1.values[2].value, measureSource1), formatter(rowHeader2_1.values[3].value, measureSource1), formatter(rowHeader2_1.values[4].value, measureSource1), formatter(rowHeader2_1.values[5].value, measureSource1)],
-                    [rowHeader2_2.value.toString(), formatter(rowHeader2_2.values[0].value, measureSource1), formatter(rowHeader2_2.values[1].value, measureSource1), formatter(rowHeader2_2.values[2].value, measureSource1), formatter(rowHeader2_2.values[3].value, measureSource1), formatter(rowHeader2_2.values[4].value, measureSource1), formatter(rowHeader2_2.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeader2_t.values[0].value, measureSource1), formatter(rowHeader2_t.values[1].value, measureSource1), formatter(rowHeader2_t.values[2].value, measureSource1), formatter(rowHeader2_t.values[3].value, measureSource1), formatter(rowHeader2_t.values[4].value, measureSource1), formatter(rowHeader2_t.values[5].value, measureSource1)],
-                    [rowHeader3.value.toString(), rowHeader3_1.value.toString(), formatter(rowHeader3_1.values[0].value, measureSource1), formatter(rowHeader3_1.values[1].value, measureSource1), formatter(rowHeader3_1.values[2].value, measureSource1), formatter(rowHeader3_1.values[3].value, measureSource1), formatter(rowHeader3_1.values[4].value, measureSource1), formatter(rowHeader3_1.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeader3_t.values[0].value, measureSource1), formatter(rowHeader3_t.values[1].value, measureSource1), formatter(rowHeader3_t.values[2].value, measureSource1), formatter(rowHeader3_t.values[3].value, measureSource1), formatter(rowHeader3_t.values[4].value, measureSource1), formatter(rowHeader3_t.values[5].value, measureSource1)],
-                    [rowHeader4.value.toString(), rowHeader4_1.value.toString(), formatter(rowHeader4_1.values[0].value, measureSource1), formatter(rowHeader4_1.values[1].value, measureSource1), formatter(rowHeader4_1.values[2].value, measureSource1), formatter(rowHeader4_1.values[3].value, measureSource1), formatter(rowHeader4_1.values[4].value, measureSource1), formatter(rowHeader4_1.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeader4_t.values[0].value, measureSource1), formatter(rowHeader4_t.values[1].value, measureSource1), formatter(rowHeader4_t.values[2].value, measureSource1), formatter(rowHeader4_t.values[3].value, measureSource1), formatter(rowHeader4_t.values[4].value, measureSource1), formatter(rowHeader4_t.values[5].value, measureSource1)],
-                    [TableTotalLabel, formatter(rowHeadert.values[0].value, measureSource1), formatter(rowHeadert.values[1].value, measureSource1), formatter(rowHeadert.values[2].value, measureSource1), formatter(rowHeadert.values[3].value, measureSource1), formatter(rowHeadert.values[4].value, measureSource1), formatter(rowHeadert.values[5].value, measureSource1)]
+                    ['', columnGroupSource1.displayName, colHeader1.value.toString(), colHeader2.value.toString()],
+                    ['', columnGroupSource2.displayName, colHeader1_1.value.toString(), colHeader1_2.value.toString(), TableTotalLabel, colHeader2_1.value.toString()],
+                    [rowGroupSource1.displayName, rowGroupSource2.displayName, measureSource1.displayName, measureSource2.displayName, measureSource1.displayName, measureSource2.displayName, measureSource1.displayName, measureSource2.displayName, measureSource1.displayName, measureSource2.displayName],
+                    [rowHeader1.value.toString(), rowHeader1_1.value.toString(), formatter(rowHeader1_1.values[0].value, measureSource1), formatter(rowHeader1_1.values[1].value, measureSource1), formatter(rowHeader1_1.values[2].value, measureSource1), formatter(rowHeader1_1.values[3].value, measureSource1), formatter(rowHeader1_1.values[4].value, measureSource1), formatter(rowHeader1_1.values[5].value, measureSource1), formatter(rowHeader1_1.values[6].value, measureSource1), formatter(rowHeader1_1.values[7].value, measureSource1)],
+                    [rowHeader1_2.value.toString(), formatter(rowHeader1_2.values[0].value, measureSource1), formatter(rowHeader1_2.values[1].value, measureSource1), formatter(rowHeader1_2.values[2].value, measureSource1), formatter(rowHeader1_2.values[3].value, measureSource1), formatter(rowHeader1_2.values[4].value, measureSource1), formatter(rowHeader1_2.values[5].value, measureSource1), formatter(rowHeader1_2.values[6].value, measureSource1), formatter(rowHeader1_2.values[7].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeader1_t.values[0].value, measureSource1), formatter(rowHeader1_t.values[1].value, measureSource1), formatter(rowHeader1_t.values[2].value, measureSource1), formatter(rowHeader1_t.values[3].value, measureSource1), formatter(rowHeader1_t.values[4].value, measureSource1), formatter(rowHeader1_t.values[5].value, measureSource1), formatter(rowHeader1_t.values[6].value, measureSource1), formatter(rowHeader1_t.values[7].value, measureSource1)],
+                    [rowHeader2.value.toString(), rowHeader2_1.value.toString(), formatter(rowHeader2_1.values[0].value, measureSource1), formatter(rowHeader2_1.values[1].value, measureSource1), formatter(rowHeader2_1.values[2].value, measureSource1), formatter(rowHeader2_1.values[3].value, measureSource1), formatter(rowHeader2_1.values[4].value, measureSource1), formatter(rowHeader2_1.values[5].value, measureSource1), formatter(rowHeader2_1.values[6].value, measureSource1), formatter(rowHeader2_1.values[7].value, measureSource1)],
+                    [rowHeader2_2.value.toString(), formatter(rowHeader2_2.values[0].value, measureSource1), formatter(rowHeader2_2.values[1].value, measureSource1), formatter(rowHeader2_2.values[2].value, measureSource1), formatter(rowHeader2_2.values[3].value, measureSource1), formatter(rowHeader2_2.values[4].value, measureSource1), formatter(rowHeader2_2.values[5].value, measureSource1), formatter(rowHeader2_2.values[6].value, measureSource1), formatter(rowHeader2_2.values[7].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeader2_t.values[0].value, measureSource1), formatter(rowHeader2_t.values[1].value, measureSource1), formatter(rowHeader2_t.values[2].value, measureSource1), formatter(rowHeader2_t.values[3].value, measureSource1), formatter(rowHeader2_t.values[4].value, measureSource1), formatter(rowHeader2_t.values[5].value, measureSource1), formatter(rowHeader2_t.values[6].value, measureSource1), formatter(rowHeader2_t.values[7].value, measureSource1)],
+                    [rowHeader3.value.toString(), rowHeader3_1.value.toString(), formatter(rowHeader3_1.values[0].value, measureSource1), formatter(rowHeader3_1.values[1].value, measureSource1), formatter(rowHeader3_1.values[2].value, measureSource1), formatter(rowHeader3_1.values[3].value, measureSource1), formatter(rowHeader3_1.values[4].value, measureSource1), formatter(rowHeader3_1.values[5].value, measureSource1), formatter(rowHeader3_1.values[6].value, measureSource1), formatter(rowHeader3_1.values[7].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeader3_t.values[0].value, measureSource1), formatter(rowHeader3_t.values[1].value, measureSource1), formatter(rowHeader3_t.values[2].value, measureSource1), formatter(rowHeader3_t.values[3].value, measureSource1), formatter(rowHeader3_t.values[4].value, measureSource1), formatter(rowHeader3_t.values[5].value, measureSource1), formatter(rowHeader3_t.values[6].value, measureSource1), formatter(rowHeader3_t.values[7].value, measureSource1)],
+                    [rowHeader4.value.toString(), rowHeader4_1.value.toString(), formatter(rowHeader4_1.values[0].value, measureSource1), formatter(rowHeader4_1.values[1].value, measureSource1), formatter(rowHeader4_1.values[2].value, measureSource1), formatter(rowHeader4_1.values[3].value, measureSource1), formatter(rowHeader4_1.values[4].value, measureSource1), formatter(rowHeader4_1.values[5].value, measureSource1), formatter(rowHeader4_1.values[6].value, measureSource1), formatter(rowHeader4_1.values[7].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeader4_t.values[0].value, measureSource1), formatter(rowHeader4_t.values[1].value, measureSource1), formatter(rowHeader4_t.values[2].value, measureSource1), formatter(rowHeader4_t.values[3].value, measureSource1), formatter(rowHeader4_t.values[4].value, measureSource1), formatter(rowHeader4_t.values[5].value, measureSource1), formatter(rowHeader4_t.values[6].value, measureSource1), formatter(rowHeader4_t.values[7].value, measureSource1)],
+                    [TableTotalLabel, formatter(rowHeadert.values[0].value, measureSource1), formatter(rowHeadert.values[1].value, measureSource1), formatter(rowHeadert.values[2].value, measureSource1), formatter(rowHeadert.values[3].value, measureSource1), formatter(rowHeadert.values[4].value, measureSource1), formatter(rowHeadert.values[5].value, measureSource1), formatter(rowHeadert.values[6].value, measureSource1), formatter(rowHeadert.values[7].value, measureSource1)]
                 ];
 
                 validateMatrix(expectedCells);
 
                 var expectedClassNames: string[][] = [
-                    [HeaderClass, RowHeaderLeafClass, HeaderClass],
-                    [HeaderClass, RowHeaderLeafClass, HeaderClass, HeaderClass, HeaderClass + ' ' + TotalClass],
-                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + TotalClass, ColumnHeaderLeafClass + ' ' + TotalClass],
-                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
-                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderLeafClass, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName],
+                    [HeaderClass, RowHeaderLeafClass, HeaderClass + NumericCellClassName, HeaderClass + NumericCellClassName, HeaderClass + ' ' + TotalClass + NumericCellClassName, HeaderClass + NumericCellClassName],
+                    [ColumnHeaderLeafClass, ColumnHeaderLeafClass + ' ' + RowHeaderLeafClass, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + ' ' + TotalClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName, ColumnHeaderLeafClass + NumericCellClassName],
+                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass],
+                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass],
+                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass],
+                    [RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass],
+                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass],
+                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [HeaderClass, RowHeaderStaticLeafClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass, BodyCellClass],
+                    [RowHeaderStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
+                    [RowHeaderTopLevelStaticLeafClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass, BodyCellClass + ' ' + TotalClass],
                 ];
 
                 validateClassNames(expectedClassNames);
@@ -5002,17 +5035,16 @@ module powerbitests {
         }
     });
 
-    describe("Matrix sort validation", () => {
+    describe("Matrix sort validation",() => {
         var element: JQuery;
 
         beforeEach((done) => {
-            powerbitests.helpers.suppressDebugAssertFailure();
             element = powerbitests.helpers.testDom('1800', '1800');
             element['visible'] = () => { return true; };
             done();
         });
 
-        it('matrix with single measure', (done) => {
+        it('matrix with single measure',(done) => {
             // Clicking on the measure will result in a sort event
             var data: powerbi.DataView = matrixOneMeasureDataView;
             var expectedColumnHeaders = [{ row: 0, col: 1, expectedText: "Measure1" }];
@@ -5021,7 +5053,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with one measure and one column group', (done) => {
+        it('matrix with one measure and one column group',(done) => {
             // Clicking on a column group (even if there is only a single instance) will not result in a sort event
             var data: powerbi.DataView = matrixOneMeasureOneColumnGroupOneGroupInstanceDataView;
             var expectedColumnHeaders = [{ row: 0, col: 1, expectedText: "Group A" }];
@@ -5030,7 +5062,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with three measures', (done) => {
+        it('matrix with three measures',(done) => {
             // Clicking on any measure will result in a sort event
             var data: powerbi.DataView = matrixThreeMeasuresDataView;
             var expectedColumnHeaders = [{ row: 0, col: 1, expectedText: "Measure1" }, { row: 0, col: 2, expectedText: "Measure2" }, { row: 0, col: 3, expectedText: "Measure3" }];
@@ -5039,7 +5071,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with three measures under one column group', (done) => {
+        it('matrix with three measures under one column group',(done) => {
             // Clicking on any column group or any measure underneath it will not result in a sort event
             var data: powerbi.DataView = matrixThreeMeasuresOneColumnGroupOneGroupInstanceDataView;
             var expectedColumnHeaders = [{ row: 0, col: 1, expectedText: "Group A" }, { row: 1, col: 1, expectedText: "Measure1" }, { row: 1, col: 2, expectedText: "Measure2" }, { row: 1, col: 3, expectedText: "Measure3" }];
@@ -5048,7 +5080,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with three measures and three row groups', (done) => {
+        it('matrix with three measures and three row groups',(done) => {
             // Clicking on any row group or any measure will result in a sort event
             var data: powerbi.DataView = matrixThreeMeasuresThreeRowGroupsDataView;
             var expectedColumnHeaders = [
@@ -5070,7 +5102,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with one row group and one column group', (done) => {
+        it('matrix with one row group and one column group',(done) => {
             // Clicking on the row group will result in a sort event; clicking on the column group will not
             var data: powerbi.DataView = matrixOneRowGroupOneColumnGroupOneGroupInstanceDataView;
             var expectedColumnHeaders = [
@@ -5083,7 +5115,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with one row group and one column group', (done) => {
+        it('matrix with one row group and one column group',(done) => {
             // Clicking on any row group will result in a sort event
             var data: powerbi.DataView = matrixThreeRowGroupsOneGroupInstanceDataView;
             var expectedColumnHeaders = [
@@ -5097,7 +5129,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with three column groups', (done) => {
+        it('matrix with three column groups',(done) => {
             // Clicking on any column group will not result in a sort event
             var data: powerbi.DataView = matrixThreeColumnGroupsDataView;
             var expectedColumnHeaders = [
@@ -5114,7 +5146,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with two row groups, two column groups and two measures', (done) => {
+        it('matrix with two row groups, two column groups and two measures',(done) => {
             // Clicking on any row group will result in a sort event, clicking on any column group or measure column will not result in a sort event
             var data: powerbi.DataView = matrixTwoRowGroupsTwoColumnGroupsTwoMeasuresDataView;
             var expectedColumnHeaders = [
@@ -5133,7 +5165,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with two row groups, two column groups and one measure with totals', (done) => {
+        it('matrix with two row groups, two column groups and one measure with totals',(done) => {
             // Clicking on any row group will result in a sort event, clicking on any column group or measure column will not result in a sort event; clicking on the column grand total will result in a sort (by measure)
             var data: powerbi.DataView = matrixTwoRowGroupsTwoColumnGroupsOneMeasureAndTotalsDataView;
             var expectedColumnHeaders = [
@@ -5151,7 +5183,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, "matrix", data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('matrix with two row groups, two column groups and two measures with totals', (done) => {
+        it('matrix with two row groups, two column groups and two measures with totals',(done) => {
             // Clicking on any row group will result in a sort event, clicking on any column group or measure column will not result in a sort event; clicking on the column grand total will result in a sort (by measure)
             var data: powerbi.DataView = matrixTwoRowGroupsTwoColumnGroupsTwoMeasuresAndTotalsDataView;
             var expectedColumnHeaders = [

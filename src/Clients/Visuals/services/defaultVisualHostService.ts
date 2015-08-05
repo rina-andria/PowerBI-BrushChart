@@ -88,6 +88,9 @@ module powerbi.visuals {
         'GeotaggingString_ZipCodes': 'zip codes',
         'GeotaggingString_Territory': 'territory',
         'GeotaggingString_Territories': 'territories',
+        'Waterfall_IncreaseLabel': 'Increase',
+        'Waterfall_DecreaseLabel': 'Decrease',
+        'Waterfall_TotalLabel': 'Total'
     };
 
     export class DefaultVisualHostServices implements IVisualHostServices {

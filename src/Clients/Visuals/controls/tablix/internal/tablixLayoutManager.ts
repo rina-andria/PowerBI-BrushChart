@@ -98,11 +98,11 @@ module powerbi.visuals.controls.internal {
             }
             else if (width <= 510) {
                 // Medium
-                return this.fitToColumnCount(4, totalColumnCount);
+                return this.fitToColumnCount(6, totalColumnCount);
             }
             else if (width <= 770) {
                 // Large
-                return this.fitToColumnCount(7, totalColumnCount);
+                return this.fitToColumnCount(9, totalColumnCount);
             }
 
             debug.assertFail("Fixed size is only for viewport up to 770px width.");
@@ -1290,7 +1290,7 @@ module powerbi.visuals.controls.internal {
             return false;
         }
 
-        public onStartRenderingSession(scrollingDimension: TablixDimension, parentElement: HTMLElement): void {
+        public onStartRenderingSession(scrollingDimension: TablixDimension, parentElement: HTMLElement, clear: boolean): void {
             if (this.showEmptySpaceHeader()) {
                 var cell: ITablixCell = this._grid.emptySpaceHeaderCell;
                 if (cell) {
@@ -1311,13 +1311,13 @@ module powerbi.visuals.controls.internal {
                 (<DimensionLayoutManager>this._scrollingDimension.layoutManager).startScrollingSession();
             }
 
-            this._grid.onStartRenderingSession();
             this._rowLayoutManager.onStartRenderingSession();
             this._columnLayoutManager.onStartRenderingSession();
+            this._grid.onStartRenderingSession(clear);
 
             var measureEnabled = this._columnLayoutManager.measureEnabled || this._rowLayoutManager.measureEnabled;
             if (measureEnabled)
-                this.measureSampleText(parentElement);
+                this.measureSampleText(parentElement);            
         }
 
         public onEndRenderingSession(): void {
@@ -1345,14 +1345,12 @@ module powerbi.visuals.controls.internal {
                     }
                 }
             }
-
-            this._grid.onEndRenderingSession();
         }
 
         public onStartRenderingIteration(clear: boolean): void {
             this._rowLayoutManager.onStartRenderingIteration(clear, this.getVisibleHeight());
             this._columnLayoutManager.onStartRenderingIteration(clear, this.getVisibleWidth());
-            this._grid.onStartRenderingIteration(clear); // TODO clearing should happen only once before the loop
+            this._grid.onStartRenderingIteration();  
         }
 
         public onEndRenderingIteration(): boolean {

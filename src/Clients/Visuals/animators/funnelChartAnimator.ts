@@ -25,9 +25,8 @@
  */
 
 module powerbi.visuals {
-    export interface FunnelAnimationOptions {
+    export interface FunnelAnimationOptions extends IAnimationOptions{
         viewModel: FunnelData;
-        interactivityService: IInteractivityService;
         layout: IFunnelLayout;
         axisGraphicsContext: D3.Selection;
         shapeGraphicsContext: D3.Selection;
@@ -37,19 +36,19 @@ module powerbi.visuals {
         labelLayout: ILabelLayout; 
     }
 
-    export interface FunnelAnimationResult {
-        failed: boolean;
+    export interface FunnelAnimationResult extends IAnimationResult {
         shapes: D3.UpdateSelection;
         dataLabels: D3.UpdateSelection;
     }
 
-    export interface IFunnelAnimator {
-        animate(options: FunnelAnimationOptions): FunnelAnimationResult;
-    }
+    export type IFunnelAnimator = Animator<IAnimatorOptions, FunnelAnimationOptions, FunnelAnimationResult>;
 
-    export class WebFunnelAnimator implements IFunnelAnimator {
+    export class WebFunnelAnimator extends Animator<IAnimatorOptions, FunnelAnimationOptions, FunnelAnimationResult> implements IFunnelAnimator {
         private previousViewModel: FunnelData;
-        private animationDuration: number = AnimatorCommon.MinervaAnimationDuration;
+
+        constructor(options?: IAnimatorOptions) {
+            super(options);
+        }
 
         public animate(options: FunnelAnimationOptions): FunnelAnimationResult {
             var result: FunnelAnimationResult = {
@@ -131,7 +130,6 @@ module powerbi.visuals {
         private animateHighlightedToNormal(options: FunnelAnimationOptions): FunnelAnimationResult {
             var data = options.viewModel;
             var layout = options.layout;
-            var hasHighlights = true;
             var hasSelection = options.interactivityService ? (<WebInteractivityService>options.interactivityService).hasSelection() : false;
 
             this.animateDefaultAxis(options.axisGraphicsContext, options.axisOptions);
@@ -145,7 +143,7 @@ module powerbi.visuals {
 
             shapes
                 .style("fill",(d: FunnelSlice) => d.color)
-                .style("fill-opacity", (d: FunnelSlice) => ColumnUtil.getFillOpacity(d.selected, d.highlight, false, hasHighlights))
+                .style("fill-opacity", (d: FunnelSlice) => ColumnUtil.getFillOpacity(d.selected, d.highlight, hasSelection, !d.selected))
                 .transition()
                 .duration(this.animationDuration)
                 .attr(layout.shapeLayoutWithoutHighlights); // Transition to layout without highlights
@@ -179,7 +177,9 @@ module powerbi.visuals {
                 .rangeBands([axisOptions.rangeStart, axisOptions.rangeEnd], axisOptions.barToSpaceRatio);
             var xAxis = d3.svg.axis()
                 .scale(xScaleForAxis)
-                .orient("right");
+                .orient("right")
+                .tickPadding(FunnelChart.TickPadding)
+                .innerTickSize(FunnelChart.InnerTickSize);
             graphicsContext.classed('axis', true)
                 .transition()
                 .duration(this.animationDuration)
@@ -210,7 +210,7 @@ module powerbi.visuals {
         private animateDefaultDataLabels(options: FunnelAnimationOptions): D3.UpdateSelection {
             var dataLabels: D3.UpdateSelection;
 
-            if (options.viewModel.dataLabelsSettings.show) {
+            if (options.viewModel.dataLabelsSettings.show && options.viewModel.canShowDataLabels) {
                 dataLabels = dataLabelUtils.drawDefaultLabelsForFunnelChart(options.slicesWithoutHighlights, options.labelGraphicsContext, options.labelLayout, true, this.animationDuration);
             }
             else {

@@ -28,8 +28,6 @@ module powerbitests {
     import ListViewFactory = powerbi.visuals.ListViewFactory;
     import ListViewOptions = powerbi.visuals.ListViewOptions;
 
-    var DefaultRenderTime = 10;
-
     describe("List view tests", () => {
         var element: JQuery;
 
@@ -166,7 +164,7 @@ module powerbitests {
                 expect(itemCount).toBeGreaterThan(0);
                 expect(itemCount).toBeLessThan(9); // Some should be virtualized, so shouldn't show all 9 items
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Create SVG List View Correctly', (done) => {
@@ -176,7 +174,7 @@ module powerbitests {
                 expect(itemCount).toBeGreaterThan(0);
                 expect(itemCount).toBeLessThan(9); // Some should be virtualized, so shouldn't show all 9 items
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Scroll to last to check if items come in view HTML', (done) => {
@@ -192,7 +190,7 @@ module powerbitests {
                 expect(lastElem2).toEqual('-->Sachin-->Patney');
                 expect(spy).toHaveBeenCalled();
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Scroll to last to check if items come in view SVG', (done) => {
@@ -208,7 +206,7 @@ module powerbitests {
                 expect(lastElem2).toEqual('-->Sachin-->Patney');
                 expect(spy).toHaveBeenCalled();
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
 
         it('Reset scrollbar position when ResetScrollbar flag is set',(done) => {
@@ -241,7 +239,7 @@ module powerbitests {
                     .render(true, true);
                 expect(element.find('.scrollRegion').first().parent().scrollTop()).toBe(0);
                 done();
-            }, DefaultRenderTime);
+            }, DefaultWaitForRender);
         });
     });
 }

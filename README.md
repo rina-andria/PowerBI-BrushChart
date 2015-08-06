@@ -22,7 +22,7 @@ In the meantime, you can contribute to Power BI visuals in a few different ways:
 ## Documentation
 
 *  [Getting started](https://github.com/Microsoft/PowerBI-visuals/wiki)
-*  [API specification](http://microsoft.github.io/PowerBI-visuals/docs/interfaces/powerbi.ivisual.html)
+*  [API specification](http://microsoft.github.io/PowerBI-visuals/interfaces/powerbi.ivisual.html)
 *  [Power BI visuals playground (see our visuals live in action)](http://microsoft.github.io/PowerBI-visuals/playground/index.html)
 *  [Power BI Homepage](https://powerbi.microsoft.com/)
 

@@ -39,6 +39,33 @@ var jasmineBrowser = require('gulp-jasmine-browser');
 var spritesmith = require('gulp.spritesmith');
 const tslint = require('gulp-tslint');
 
+var gulpOptions = {
+    compress: {
+        drop_console: true,
+        pure_funcs: [
+            'debug.assertValue',
+            'debug.assertFail',
+            'debug.assert',
+            'debug.assertAnyValue'
+        ],
+        warnings: false,
+        dead_code: true,
+        sequences: true,
+        properties: true,
+        conditionals: true,
+        comparisons: true,
+        booleans: true,
+        cascade: true,
+        unused: true,
+        loops: true,
+        if_return: true,
+        join_vars: true,
+        global_defs: {
+            'DEBUG': false
+        }
+    }
+};
+
 gulp.task('tslint', function(){
       return gulp.src(['src/Clients/VisualsCommon/**/*.ts','src/Clients/VisualsData/**/*.ts','src/Clients/Visuals/**/*.ts','!src/Clients/Visuals*/obj/*.*','!src/Clients/Visuals/**/*.obj.ts'])
         .pipe(tslint())
@@ -58,7 +85,7 @@ gulp.task('build_visuals_projects', function() {
 
   return merge([
 	    tsResult.js.pipe(concat('powerbi-visuals.js')).pipe(sourcemaps.write({ sourceRoot: '../'})).pipe(gulp.dest('src/Clients/PowerBIVisualsPlayground'))
-	    .pipe(uglify('powerbi-visuals.min.js')).pipe(gulp.dest('src/Clients/PowerBIVisualsPlayground')),
+	    .pipe(uglify('powerbi-visuals.min.js', gulpOptions)).pipe(gulp.dest('src/Clients/PowerBIVisualsPlayground')),
 	    tsResult.dts.pipe(concat('powerbi-visuals.d.ts')).pipe(gulp.dest('src/Clients/PowerBIVisualsPlayground'))
     ]);
 });

@@ -43,8 +43,6 @@ In order to run unit tests you will also need to do the following:
 1. Install [PhantomJS](http://phantomjs.org/) (PhantomJS is a headless WebKit scriptable with a JavaScript API. It has fast and native support for various web standards: DOM handling, CSS selector, JSON, Canvas, and SVG.)
  * Make sure it's running from command line typing 'phantomjs'. If it's not then you need to update your system PATH variable and add the path to phantomjs.exe file.
 
-2. Copy the [jasmine-jquery.js](https://raw.github.com/velesin/jasmine-jquery/master/lib/jasmine-jquery.js) Jasmine Extension Library file from GitHub into the following folder on your local machine "[PowerBIVisuals folder]\src\Clients\Externals\ThirdPartyIP\JasmineJQuery\" 
-
 ### Build Power BI visuals
 
 In order to build the Power BI visuals, ensure that you have [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git#Installing-on-Windows) and [Node.js](http://nodejs.org/download/) installed.

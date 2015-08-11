@@ -5,6 +5,7 @@
   "devDependencies": {
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
+    "gulp-download": "0.0.1",
     "gulp-ignore": "^1.2.1",
     "gulp-jasmine-browser": "^0.1.4",
     "gulp-less": "^3.0.3",
@@ -24,6 +25,6 @@
     "typescript": "1.5.3"
   },
   "scripts": {
-    "preinstall": "npm install -g gulp"   
+    "preinstall": "npm install -g gulp"
   }
 }

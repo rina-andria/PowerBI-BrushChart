@@ -35,6 +35,7 @@ var ts = require('gulp-typescript');
 var less = require('gulp-less');
 var minifyCSS = require('gulp-minify-css');
 var typedoc = require("gulp-typedoc");
+var download = require("gulp-download");
 var jasmineBrowser = require('gulp-jasmine-browser');
 var spritesmith = require('gulp.spritesmith');
 const tslint = require('gulp-tslint');
@@ -152,9 +153,15 @@ gulp.task('build_visuals_less', function () {
     .pipe(gulp.dest('src/Clients/PowerBIVisualsPlayground'));
 });
 
+// Download dependencies
+
+gulp.task('dependencies', function() {
+	download('https://raw.github.com/velesin/jasmine-jquery/master/lib/jasmine-jquery.js')
+    		.pipe(gulp.dest("src/Clients/Externals/ThirdPartyIP/JasmineJQuery"));
+});
 
 gulp.task('build', function() {
-	runSequence('tslint', 'build_visuals_projects', 'combine_js', 'combine_js_all_min', 'combine_dts', 'build_app', 'sprite', 'build_visuals_less');
+	runSequence('dependencies', 'tslint', 'build_visuals_projects', 'combine_js', 'combine_js_all_min', 'combine_dts', 'build_app', 'sprite', 'build_visuals_less');
 });
 
 

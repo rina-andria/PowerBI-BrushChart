@@ -1,5 +1,5 @@
 ## Contribution Guidelines
-This project is used by the Power BI Engineering team to build visualizations that ship with Power BI products and services.  By contributing, you can have your code ship within a Microsoft product.  For example, if you contribute a new visual, we could ship it to all Power BI users.  We’re looking forward the helping you get your contributions into the repository.
+This project is used by the Power BI Engineering team to build visualizations that ship with Power BI products and services.  By contributing, you can have your code ship within a Microsoft product.  For example, if you contribute a new visual, we could ship it to all Power BI users.  We’re looking forward to helping you get your contributions into the repository.
 
 
 Since it’s our production code, we have code guidelines that must be met for changes to be accepted.  The contribution guidelines are listed below.  Let us know if you have questions on the guidelines, we’re here to help.  One thing we encourage is that you fork the repo if you’re planning to do substantial work. This lets you move forward at the pace you want and when it comes time to submit a pull request, we’ll be able to refer to the fully working set of end to end code.

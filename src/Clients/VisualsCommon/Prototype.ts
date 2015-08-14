@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbi {
     export module Prototype {
         /** Returns a new object with the provided obj as its prototype. */

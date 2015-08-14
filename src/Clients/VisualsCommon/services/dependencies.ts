@@ -24,7 +24,7 @@
  *  THE SOFTWARE.
  */
 
-/// <reference path="requires.ts" />
+/// <reference path="../_references.ts"/>
 
 module jsCommon {
     // JavaScript files

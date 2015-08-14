@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+//// <reference path="../_references.ts"/>
+
 module powerbi.data {
 
     /** Allows generic traversal and type discovery for a SQExpr tree. */

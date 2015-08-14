@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     export module PrimitiveValueEncoding {
         export function decimal(value: number): string {

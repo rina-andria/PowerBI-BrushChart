@@ -24,16 +24,21 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface FunnelAnimationOptions extends IAnimationOptions{
         viewModel: FunnelData;
         layout: IFunnelLayout;
         axisGraphicsContext: D3.Selection;
         shapeGraphicsContext: D3.Selection;
+        percentGraphicsContext: D3.Selection;
         labelGraphicsContext: D3.Selection;
         axisOptions: FunnelAxisOptions;
         slicesWithoutHighlights: FunnelSlice[];
         labelLayout: ILabelLayout; 
+        isHidingPercentBars: boolean;
+        visualInitOptions: VisualInitOptions;
     }
 
     export interface FunnelAnimationResult extends IAnimationResult {
@@ -83,7 +88,7 @@ module powerbi.visuals {
             var hasHighlights = true;
             var hasSelection = false;
 
-            this.animateDefaultAxis(options.axisGraphicsContext, options.axisOptions);
+            this.animateDefaultAxis(options.axisGraphicsContext, options.axisOptions, options.isHidingPercentBars);
 
             var shapes = options.shapeGraphicsContext.selectAll('rect').data(data.slices, (d: FunnelSlice) => d.key);
 
@@ -101,6 +106,8 @@ module powerbi.visuals {
 
             shapes.exit().remove();
 
+            this.animatePercentBars(options);
+
             var dataLabels: D3.UpdateSelection = this.animateDefaultDataLabels(options);
 
             return {
@@ -114,10 +121,11 @@ module powerbi.visuals {
             var data = options.viewModel;
             var layout = options.layout;
 
-            this.animateDefaultAxis(options.axisGraphicsContext, options.axisOptions);
+            this.animateDefaultAxis(options.axisGraphicsContext, options.axisOptions, options.isHidingPercentBars);
 
             // Simply animate to the new shapes.
             var shapes = this.animateDefaultShapes(data, data.slices, options.shapeGraphicsContext, layout);
+            this.animatePercentBars(options);
             var dataLabels: D3.UpdateSelection = this.animateDefaultDataLabels(options);
 
             return {
@@ -132,10 +140,9 @@ module powerbi.visuals {
             var layout = options.layout;
             var hasSelection = options.interactivityService ? (<WebInteractivityService>options.interactivityService).hasSelection() : false;
 
-            this.animateDefaultAxis(options.axisGraphicsContext, options.axisOptions);
+            this.animateDefaultAxis(options.axisGraphicsContext, options.axisOptions, options.isHidingPercentBars);
 
             var shapes = options.shapeGraphicsContext.selectAll('rect').data(data.slices, (d: FunnelSlice) => d.key);
-            var endStyleApplied = false;
 
             shapes.enter()
                 .append('rect')
@@ -146,7 +153,11 @@ module powerbi.visuals {
                 .style("fill-opacity", (d: FunnelSlice) => ColumnUtil.getFillOpacity(d.selected, d.highlight, hasSelection, !d.selected))
                 .transition()
                 .duration(this.animationDuration)
-                .attr(layout.shapeLayoutWithoutHighlights); // Transition to layout without highlights
+                .attr(layout.shapeLayoutWithoutHighlights) // Transition to layout without highlights
+                .transition()
+                .duration(0)
+                .delay(this.animationDuration)
+                .style("fill-opacity", (d: FunnelSlice) => ColumnUtil.getFillOpacity(d.selected, d.highlight, hasSelection, false));
 
             var exitShapes = shapes.exit();
 
@@ -154,13 +165,9 @@ module powerbi.visuals {
                 .transition()
                 .duration(this.animationDuration)
                 .attr(hasSelection ? layout.zeroShapeLayout : layout.shapeLayoutWithoutHighlights) // Transition to layout without highlights
-                .each("end", (d: TreemapNode, i: number) => {
-                    if (!endStyleApplied) {
-                        shapes.style("fill-opacity", (d: FunnelSlice) => ColumnUtil.getFillOpacity(d.selected, d.highlight, hasSelection, false));
-                        endStyleApplied = true;
-                    }
-                })
                 .remove();
+
+            this.animatePercentBars(options);
 
             var dataLabels: D3.UpdateSelection = this.animateDefaultDataLabels(options);
 
@@ -171,10 +178,10 @@ module powerbi.visuals {
             };
         }
 
-        private animateDefaultAxis(graphicsContext: D3.Selection, axisOptions: FunnelAxisOptions): void {
+        private animateDefaultAxis(graphicsContext: D3.Selection, axisOptions: FunnelAxisOptions, isHidingPercentBars: boolean): void {
             var xScaleForAxis = d3.scale.ordinal()
                 .domain(axisOptions.categoryLabels)
-                .rangeBands([axisOptions.rangeStart, axisOptions.rangeEnd], axisOptions.barToSpaceRatio);
+                .rangeBands([axisOptions.rangeStart, axisOptions.rangeEnd], axisOptions.barToSpaceRatio, isHidingPercentBars ? axisOptions.barToSpaceRatio : FunnelChart.PercentBarToBarRatio);
             var xAxis = d3.svg.axis()
                 .scale(xScaleForAxis)
                 .orient("right")
@@ -218,6 +225,112 @@ module powerbi.visuals {
             }
 
             return dataLabels;
+        }
+
+        private animatePercentBars(options: FunnelAnimationOptions): void {
+            var data: FunnelData = options.viewModel;
+            var isHidingPercentBars: boolean = options.isHidingPercentBars;
+
+            if (isHidingPercentBars || !data.slices || (data.hasHighlights ? data.slices.length / 2 : data.slices.length) < 2) {
+                // TODO: call percentBarComponents with flag with empty data to clear drawing smoothly
+                this.animatePercentBarComponents([], options);
+                return;
+            }
+
+            var slices = [data.slices[data.hasHighlights ? 1 : 0], data.slices[data.slices.length - 1]];
+            var baseline = FunnelChart.getFunnelSliceValue(slices[0]);
+
+            if (baseline <= 0) {
+                // TODO: call percentBarComponents with flag with empty data to clear drawing smoothly
+                this.animatePercentBarComponents([], options);
+                return;
+            }
+
+            var percentData = slices.map((slice, i) => <FunnelPercent>{
+                value: FunnelChart.getFunnelSliceValue(slice),
+                percent: i === 0 ? 1 : FunnelChart.getFunnelSliceValue(slice) / baseline,
+                isTop: i === 0,
+            });
+
+            this.animatePercentBarComponents(percentData, options);
+        }
+
+        private animateToFunnelPercent(context: D3.Selection, targetData: FunnelPercent[], layout: any): D3.Transition.Transition {
+            return context
+                .data(targetData)
+                .transition()
+                .duration(this.animationDuration)
+                .attr(layout);
+        }
+
+        private animatePercentBarComponents(data: FunnelPercent[], options: FunnelAnimationOptions) {
+            var graphicsContext: D3.Selection = options.percentGraphicsContext;
+            var layout: IFunnelLayout = options.layout;
+            var zeroData: FunnelPercent[] = [
+                { percent: 0, value: 0, isTop: true },
+                { percent: 0, value: 0, isTop: false },
+            ];
+
+            // Main line
+            var mainLine: D3.UpdateSelection = graphicsContext.selectAll(FunnelChart.Selectors.percentBar.mainLine.selector).data(data);
+
+            this.animateToFunnelPercent(mainLine.exit(), zeroData, layout.percentBarLayout.mainLine)
+                .remove();
+
+            mainLine.enter()
+                .append('line')
+                .classed(FunnelChart.Selectors.percentBar.mainLine.class, true)
+                .data(zeroData)
+                .attr(layout.percentBarLayout.mainLine);
+
+            this.animateToFunnelPercent(mainLine, data, layout.percentBarLayout.mainLine);
+
+            // Left tick
+            var leftTick: D3.UpdateSelection = graphicsContext.selectAll(FunnelChart.Selectors.percentBar.leftTick.selector).data(data);
+
+            this.animateToFunnelPercent(leftTick.exit(), zeroData, layout.percentBarLayout.leftTick)
+                .remove();
+            
+            leftTick.enter()
+                .append('line')
+                .classed(FunnelChart.Selectors.percentBar.leftTick.class, true)
+                .data(zeroData)
+                .attr(layout.percentBarLayout.leftTick);
+
+            this.animateToFunnelPercent(leftTick, data, layout.percentBarLayout.leftTick);
+
+            // Right tick
+            var rightTick: D3.UpdateSelection = graphicsContext.selectAll(FunnelChart.Selectors.percentBar.rightTick.selector).data(data);
+            
+            this.animateToFunnelPercent(rightTick.exit(), zeroData, layout.percentBarLayout.rightTick)
+                .remove();
+
+            rightTick.enter()
+                .append('line')
+                .classed(FunnelChart.Selectors.percentBar.rightTick.class, true)
+                .data(zeroData)
+                .attr(layout.percentBarLayout.rightTick);
+
+            this.animateToFunnelPercent(rightTick, data, layout.percentBarLayout.rightTick);
+
+            // Text
+            var text: D3.UpdateSelection = graphicsContext.selectAll(FunnelChart.Selectors.percentBar.text.selector).data(data);
+            
+            this.animateToFunnelPercent(text.exit(), zeroData, layout.percentBarLayout.text)
+                .remove();
+
+            text.enter()
+                .append('text')
+                .classed(FunnelChart.Selectors.percentBar.text.class, true)
+                .data(zeroData)
+                .attr(layout.percentBarLayout.text);
+
+            this.animateToFunnelPercent(text, data, layout.percentBarLayout.text)
+                .text((fp: FunnelPercent) => {
+                    return formattingService.formatValue(fp.percent, valueFormatter.getLocalizedString("Percentage1"));
+                });
+
+            SVGUtil.flushAllD3TransitionsIfNeeded(options.visualInitOptions);
         }
     }
 }

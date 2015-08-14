@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbi.visuals {
     export enum LegendIcon {
         Box,
@@ -275,7 +277,8 @@ module powerbi.visuals {
                     return;
                 case LegendPosition.Right:
                 case LegendPosition.Left:
-                    this.viewport = { height: 0, width: this.parentViewport.width * SVGLegend.LegendMaxWidthFactor };
+                    var width = this.lastCalculatedWidth ? this.lastCalculatedWidth : this.parentViewport.width * SVGLegend.LegendMaxWidthFactor;
+                    this.viewport = { height: 0, width: width };
                     return;
 
                 case LegendPosition.None:
@@ -322,7 +325,7 @@ module powerbi.visuals {
             this.drawLegendInternal(data, viewport, true /* perform auto width */);
         }
 
-        public drawLegendInternal(data: LegendData, viewport: IViewport, autoWidth): void {
+        public drawLegendInternal(data: LegendData, viewport: IViewport, autoWidth: boolean): void {
             this.parentViewport = viewport;
             this.data = data;
 
@@ -451,10 +454,10 @@ module powerbi.visuals {
                 var isHorizontal = this.isTopOrBottom(this.orientation);
                 var fixedHorizontalIconShift = SVGLegend.TextAndIconPadding + SVGLegend.LegendIconRadius;
                 var fixedHorizontalTextShift = SVGLegend.LegendIconRadius + SVGLegend.TextAndIconPadding + fixedHorizontalIconShift;
-                var maxHorizotalSpaceAvaliable = this.parentViewport.width * SVGLegend.LegendMaxWidthFactor
+                var maxHorizontalSpaceAvaliable = this.parentViewport.width * SVGLegend.LegendMaxWidthFactor
                     - fixedHorizontalTextShift - SVGLegend.LegendEdgeMariginWidth;
 
-                var maxMeasureLength = isHorizontal ? SVGLegend.MaxTitleLength : maxHorizotalSpaceAvaliable;
+                var maxMeasureLength = isHorizontal ? SVGLegend.MaxTitleLength : maxHorizontalSpaceAvaliable;
 
                 var width = TextMeasurementService.measureSvgTextWidth(properties);
 
@@ -666,7 +669,7 @@ module powerbi.visuals {
             var extraShiftForTextAlignmentToIcon = 4;
             var fixedHorizontalIconShift = SVGLegend.TextAndIconPadding + SVGLegend.LegendIconRadius;
             var fixedHorizontalTextShift = SVGLegend.LegendIconRadius + SVGLegend.TextAndIconPadding + fixedHorizontalIconShift;
-            var maxHorizotalSpaceAvaliable = autoWidth
+            var maxHorizontalSpaceAvaliable = autoWidth
                 ? this.parentViewport.width * SVGLegend.LegendMaxWidthFactor
                 - fixedHorizontalTextShift - SVGLegend.LegendEdgeMariginWidth
                 : this.lastCalculatedWidth
@@ -710,10 +713,10 @@ module powerbi.visuals {
                     maxHorizontalSpaceUsed = width;
                 }
 
-                if (width > maxHorizotalSpaceAvaliable) {
+                if (width > maxHorizontalSpaceAvaliable) {
                     var text = TextMeasurementService.getTailoredTextOrDefault(
                         properties,
-                        maxHorizotalSpaceAvaliable);
+                        maxHorizontalSpaceAvaliable);
                     dp.label = text;
                 }
 
@@ -726,7 +729,7 @@ module powerbi.visuals {
             }
 
             if (autoWidth) {
-                if ((maxHorizontalSpaceUsed + fixedHorizontalTextShift) < maxHorizotalSpaceAvaliable) {
+                if (maxHorizontalSpaceUsed < maxHorizontalSpaceAvaliable) {
                     this.lastCalculatedWidth = this.viewport.width = Math.ceil(maxHorizontalSpaceUsed + fixedHorizontalTextShift + SVGLegend.LegendEdgeMariginWidth);
                 } else {
                     this.lastCalculatedWidth = this.viewport.width = Math.ceil(this.parentViewport.width * SVGLegend.LegendMaxWidthFactor);
@@ -961,12 +964,22 @@ module powerbi.visuals {
                         tx = Math.min(tx, 0);
                         tx = Math.max(tx, viewportWidth - $(legendTable[0]).width());
                         zoom.translate([tx, ty]);
+                    legendTable.style("-ms-transform",() => { /* IE 9 */
+                        return SVGUtil.translateXWithPixels(tx);
+                    });
+                    legendTable.style("-webkit-transform",() => { /* Safari */
+                        return SVGUtil.translateXWithPixels(tx);
+                    });
                         legendTable.style("transform", () => {
                             return SVGUtil.translateXWithPixels(tx);
                         });
                     }
                 });
-            legendTable.call(zoom);
+            if (this.legendContainerDiv) {
+                this.legendContainerDiv.call(zoom);
+            } else {
+                legendTable.call(zoom);
+            }
         }
 
         /**

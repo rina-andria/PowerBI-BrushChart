@@ -325,11 +325,27 @@
 }
 
 .funnelChart {
+    line {
+        shape-rendering: crispEdges;
+    }
+
+    .percentBars {
+        line {
+            fill: none;
+            stroke: @neutralTertiaryColor;
+            stroke-width: 1px;
+        }
+
+        text {
+            text-anchor: middle;
+            font-family: @regularSecondaryFontFamily;
+        }
+    }
+
     .axis {
         path, line {
             fill: none;
             stroke: #000;
-            shape-rendering: crispEdges;
         }
 
         .data-labels {

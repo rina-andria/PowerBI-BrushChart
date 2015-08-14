@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import IDataLabelInfo = powerbi.IDataLabelInfo;
     import ContentPositions = powerbi.ContentPositions;
@@ -32,37 +34,9 @@ module powerbitests {
     var RectOrientation = powerbi.RectOrientation;
     var OutsidePlacement = powerbi.OutsidePlacement;
 
-    function CreateSampleDataLabelInfo(): IDataLabelInfo[] {
-        var element1:  IDataLabelInfo = {
-            maximumMovingDistance: 12,
-            minimumMovingDistance: 2,
-            anchorMargin: 3,
-            anchorRectOrientation: RectOrientation.None,
-            contentPosition: ContentPositions.TopCenter,
-            outsidePlacement: OutsidePlacement.Disallowed,
-            validContentPositions: ContentPositions.All,
-            opacity: 1,
-            size: {width: 45, height: 20}
-        };
-        var element2:  IDataLabelInfo = {
-            maximumMovingDistance: 12,
-            minimumMovingDistance: 2,
-            anchorMargin: 3,
-            anchorRectOrientation: RectOrientation.None,
-            contentPosition: ContentPositions.TopCenter,
-            outsidePlacement: OutsidePlacement.Disallowed,
-            validContentPositions: ContentPositions.All,
-            opacity: 1,
-            size: {width: 45, height: 20}
-        };
-        var result: IDataLabelInfo[] = [];
-        result.push(element1,element2);
-        return result;
-    }
+    describe("Default Settings", () => {
 
-    describe("Default Settings",() => {
-
-        it("Check default values are true",() => {
+        it("Check default values are true", () => {
             var labelManager = new DataLabelManager();
             var defaultSettings = labelManager.defaultSettings;
             expect(defaultSettings.anchorMargin).toBe(0);
@@ -77,41 +51,27 @@ module powerbitests {
 
     });
 
-    describe("Get Label info - One value provided",() => {
+    describe("Get Label info - One value provided", () => {
 
-        it("Get Label info",() => { 
-            var labelManager = new DataLabelManager();
-            var defaultSettings = labelManager.defaultSettings;
-            var result: IDataLabelInfo = { minimumMovingDistance:10 };
-            result = labelManager.getLabelInfo(result);
+        var labelManager: powerbi.DataLabelManager = new DataLabelManager();
+        var defaultSettings: powerbi.IDataLabelSettings = labelManager.defaultSettings;
+
+        it("Get Label info", () => {
+            var result: IDataLabelInfo = labelManager.getLabelInfo({ minimumMovingDistance: 10 });
 
             expect(defaultSettings.minimumMovingDistance).toEqual(3);
-            expect(result.minimumMovingDistance).toEqual(10);  
+            expect(result.minimumMovingDistance).toEqual(10);
         });
 
-        it("Get Label info - all values Provided",() => {
-            var labelManager = new DataLabelManager();
-            var defaultSettings = labelManager.defaultSettings;
-            var result = CreateSampleDataLabelInfo();
-            labelManager.getLabelInfo(result);
+        it("Get Label info - all values Provided", () => {
+            var result: IDataLabelInfo = labelManager.getLabelInfo({ maximumMovingDistance: 12 });
 
             expect(defaultSettings.anchorMargin).toEqual(0);
-            expect(result[0].maximumMovingDistance).toEqual(12);
+            expect(result.maximumMovingDistance).toEqual(12);
         });
 
-        it("Get Label info - Default value should be taken",() => {
-            var labelManager = new DataLabelManager();  
-            var result: IDataLabelInfo = {
-                maximumMovingDistance: 12,
-                minimumMovingDistance: 2,
-                anchorRectOrientation: RectOrientation.None,
-                contentPosition: ContentPositions.TopCenter,
-                outsidePlacement: OutsidePlacement.Disallowed,
-                validContentPositions: ContentPositions.All,
-                opacity: 1
-            };
-            var defaultSettings = labelManager.defaultSettings;
-            labelManager.getLabelInfo(result);
+        it("Get Label info - Default value should be taken", () => {
+            var result: IDataLabelInfo = labelManager.getLabelInfo({});
 
             expect(defaultSettings.anchorMargin).toEqual(0);
             expect(result.anchorMargin).toEqual(0);
@@ -119,32 +79,22 @@ module powerbitests {
 
     });
 
-    describe("Is Valid Rect",() => {
+    describe("Is Valid Rect", () => {
 
-        var rect;
-
-        it("Is Valid Rect - Return true",() => {
-            rect = { left: 150, top: 130, width: 120, height: 110 };
-            var isValidRect = DataLabelManager.isValid(rect);
-            expect(isValidRect).toBe(true);
+        it("Is Valid Rect - Return true", () => {
+            expect(DataLabelManager.isValid({ left: 150, top: 130, width: 120, height: 110 })).toBe(true);
         });
 
         it("Is Valid Rect - Negative values", () => {
-            rect = { left: -150, top: -130, width: -120, height: -110 };
-            var isValidRect = DataLabelManager.isValid(rect);
-            expect(isValidRect).toBe(false);
+            expect(DataLabelManager.isValid({ left: -150, top: -130, width: -120, height: -110 })).toBe(false);
         });
 
-        it("Is Valid Rect - Empty Rect",() => {
-            rect = { left: 0, top: 0, width: 0, height: 0 };
-            var isValidRect = DataLabelManager.isValid(rect);
-            expect(isValidRect).toBe(false);
+        it("Is Valid Rect - Empty Rect", () => {
+            expect(DataLabelManager.isValid({ left: 0, top: 0, width: 0, height: 0 })).toBe(false);
         });
 
-        it("Is Valid Rect - null Rect",() => {
-            rect = null;
-            var isValidRect = DataLabelManager.isValid(rect);
-            expect(isValidRect).toBe(false);
+        it("Is Valid Rect - null Rect", () => {
+            expect(DataLabelManager.isValid(null)).toBe(false);
         });
     });
 }

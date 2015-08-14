@@ -24,103 +24,105 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import ColorHelper = powerbi.visuals.ColorHelper;
     import SQExprShortSerializer = powerbi.data.SQExprShortSerializer;
 
-    describe('Color Helper',() => {
+    describe("Color Helper", () => {
         var palette: powerbi.IDataColorPalette;
 
-        var columnIdentity = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'sales' });
-        var fillProp = <powerbi.DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'fill' };
+        var columnIdentity = powerbi.data.SQExprBuilder.fieldDef({ schema: "s", entity: "e", column: "sales" });
+        var fillProp = <powerbi.DataViewObjectPropertyIdentifier>{ objectName: "dataPoint", propertyName: "fill" };
 
         var colors = [
-            { value: '#000000' },
-            { value: '#000001' },
-            { value: '#000002' },
-            { value: '#000003' },
+            { value: "#000000" },
+            { value: "#000001" },
+            { value: "#000002" },
+            { value: "#000003" }
         ];
 
         beforeEach(() => {
             palette = new powerbi.visuals.DataColorPalette(colors);
         });
 
-        describe('getColorForSeriesValue',() => {
+        describe("getColorForSeriesValue", () => {
 
-            it('should return fill property value if it exists',() => {
-                var colorHelper = new ColorHelper(palette, fillProp, 'defaultColor');
+            it("should return fill property value if it exists", () => {
+                var colorHelper = new ColorHelper(palette, fillProp, "defaultColor");
 
                 var objects: powerbi.DataViewObjects = {
                     dataPoint: {
-                        fill: { solid: { color: 'red' } }
+                        fill: { solid: { color: "red" } }
                     }
                 };
 
-                var color = colorHelper.getColorForSeriesValue(objects, [columnIdentity], 'value');
+                var color = colorHelper.getColorForSeriesValue(objects, [columnIdentity], "value");
 
-                expect(color).toEqual('red');
+                expect(color).toEqual("red");
             });
 
-            it('should return default color if no fill property is defined',() => {
-                var colorHelper = new ColorHelper(palette, fillProp, 'defaultColor');
+            it("should return default color if no fill property is defined", () => {
+                var colorHelper = new ColorHelper(palette, fillProp, "defaultColor");
 
-                var color = colorHelper.getColorForSeriesValue(/* no objects */ undefined, [columnIdentity], 'value');
+                var color = colorHelper.getColorForSeriesValue(/* no objects */ undefined, [columnIdentity], "value");
 
-                expect(color).toEqual('defaultColor');
+                expect(color).toEqual("defaultColor");
             });
 
-            it('should return scale color if neither fill property nor default color is defined',() => {
+            it("should return scale color if neither fill property nor default color is defined", () => {
                 var colorHelper = new ColorHelper(palette, fillProp, /* no default color */ undefined);
 
-                var color = colorHelper.getColorForSeriesValue(/* no objects */ undefined, [columnIdentity], 'value');
+                var color = colorHelper.getColorForSeriesValue(/* no objects */ undefined, [columnIdentity], "value");
 
-                var expectedColor = palette.getColorScaleByKey(SQExprShortSerializer.serializeArray([columnIdentity])).getColor('value').value;
+                var expectedColor = palette.getColorScaleByKey(SQExprShortSerializer.serializeArray([columnIdentity])).getColor("value").value;
                 expect(color).toEqual(expectedColor);
             });
 
-            it('should handle undefined identity array',() => {
+            it("should handle undefined identity array", () => {
                 var colorHelper = new ColorHelper(palette, fillProp);
 
-                var color = colorHelper.getColorForSeriesValue(undefined, undefined, 'value');
+                var color = colorHelper.getColorForSeriesValue(undefined, undefined, "value");
 
-                var expectedColor = palette.getColorScaleByKey(SQExprShortSerializer.serializeArray([])).getColor('value').value;
+                var expectedColor = palette.getColorScaleByKey(SQExprShortSerializer.serializeArray([])).getColor("value").value;
                 expect(color).toEqual(expectedColor);
             });
 
-            it('should return the same color for the same series and value',() => {
+            it("should return the same color for the same series and value", () => {
                 var colorHelper = new ColorHelper(palette, fillProp);
 
-                var color1 = colorHelper.getColorForSeriesValue(null, [columnIdentity], 'value');
-                var color2 = colorHelper.getColorForSeriesValue(null, [columnIdentity], 'value');
+                var color1 = colorHelper.getColorForSeriesValue(null, [columnIdentity], "value");
+                var color2 = colorHelper.getColorForSeriesValue(null, [columnIdentity], "value");
 
                 expect(color1).toEqual(color2);
             });
         });
 
-        describe('getColorForMeasure',() => {
-            it('should return fill property value if it exists',() => {
-                var colorHelper = new ColorHelper(palette, fillProp, 'defaultColor');
+        describe("getColorForMeasure", () => {
+            it("should return fill property value if it exists", () => {
+                var colorHelper = new ColorHelper(palette, fillProp, "defaultColor");
 
                 var objects: powerbi.DataViewObjects = {
                     dataPoint: {
-                        fill: { solid: { color: 'red' } }
+                        fill: { solid: { color: "red" } }
                     }
                 };
 
                 var color = colorHelper.getColorForMeasure(objects, 0);
 
-                expect(color).toEqual('red');
+                expect(color).toEqual("red");
             });
 
-            it('should return default color if no fill property is defined',() => {
-                var colorHelper = new ColorHelper(palette, fillProp, 'defaultColor');
+            it("should return default color if no fill property is defined", () => {
+                var colorHelper = new ColorHelper(palette, fillProp, "defaultColor");
 
                 var color = colorHelper.getColorForMeasure(/* no objects */ undefined, 0);
 
-                expect(color).toEqual('defaultColor');
+                expect(color).toEqual("defaultColor");
             });
 
-            it('should return scale color if neither fill property nor default color is defined',() => {
+            it("should return scale color if neither fill property nor default color is defined", () => {
                 var colorHelper = new ColorHelper(palette, fillProp, /* no default color */ undefined);
 
                 var color = colorHelper.getColorForMeasure(undefined, 0);
@@ -128,11 +130,11 @@ module powerbitests {
                 expect(color).toEqual(colors[0].value);
             });
 
-            it('should return the nth color for the nth measure even if colors are explicitly set',() => {
+            it("should return the nth color for the nth measure even if colors are explicitly set", () => {
                 var colorHelper = new ColorHelper(palette, fillProp);
 
                 var objects: powerbi.DataViewObjects = {
-                    dataPoint: { fill: { solid: { color: 'red' } } },
+                    dataPoint: { fill: { solid: { color: "red" } } }
                 };
 
                 var color1 = colorHelper.getColorForMeasure(null, 0);
@@ -140,7 +142,7 @@ module powerbitests {
                 var color3 = colorHelper.getColorForMeasure(null, 2);
 
                 expect(color1).toEqual(colors[0].value);
-                expect(color2).toEqual('red');
+                expect(color2).toEqual("red");
                 expect(color3).toEqual(colors[2].value);
             });
         });

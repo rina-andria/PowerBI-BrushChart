@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
 
     export interface WaterfallChartData extends CartesianData {
@@ -71,7 +73,6 @@ module powerbi.visuals {
         public static formatStringProp: DataViewObjectPropertyIdentifier = { objectName: 'general', propertyName: 'formatString' };
         private static WaterfallClassName = 'waterfallChart';
         private static MainGraphicsContextClassName = 'mainGraphicsContext';
-        private static DataLabelsSVGClassName = 'dataLabelsSVG';
         private static IncreaseLabel = "Waterfall_IncreaseLabel";
         private static DecreaseLabel = "Waterfall_DecreaseLabel";
         private static TotalLabel = "Waterfall_TotalLabel";
@@ -88,7 +89,6 @@ module powerbi.visuals {
 
         private svg: D3.Selection;
         private mainGraphicsContext: D3.Selection;
-        private dataLabelsSVG: D3.Selection;
         private mainGraphicsSVG: D3.Selection;
         private clearCatcher: D3.Selection;
         private xAxisProperties: IAxisProperties;
@@ -133,8 +133,6 @@ module powerbi.visuals {
             this.mainGraphicsSVG = this.svg.append('svg');
             this.mainGraphicsContext = this.mainGraphicsSVG.append('g')
                 .classed(WaterfallChart.MainGraphicsContextClassName, true);
-            this.dataLabelsSVG = this.svg.append('g')
-                .classed(WaterfallChart.DataLabelsSVGClassName, true);
         }
 
         public static converter(
@@ -201,7 +199,8 @@ module powerbi.visuals {
                 else {
                     var categoryIdentities = categories[0].identity;
                     categoryMetadata = categories[0].source;
-                    categoryValues = categories[0].values;
+                    categoryValues = categories[0].values.slice();
+                    categoryValues.push(totalLabel);
 
                     for (var categoryIndex = 0, catLen = column.values.length; categoryIndex < catLen; categoryIndex++) {
                         var category = categoryValues[categoryIndex];
@@ -385,8 +384,7 @@ module powerbi.visuals {
             this.currentViewport = options.viewport;
             var margin = this.margin = options.margin;
             var data = this.clippedData = this.data;
-
-            var categoryCount = data.categories.length + 1;  // +1 for the total
+            var categoryCount = data.categories.length;
 
             /* preferredPlotArea would be same as currentViewport width when there is no scrollbar. 
              In that case we want to calculate the available plot area for the shapes by subtracting the margin from available viewport */
@@ -420,8 +418,9 @@ module powerbi.visuals {
             var categoryWidth = this.xAxisProperties.categoryThickness * (1 - CartesianChart.InnerPaddingRatio);
 
             var formattersCache = dataLabelUtils.createColumnFormatterCacheManager();
-            var value2: number = (yAxisProperties.formatter && yAxisProperties.formatter.displayUnit) ? yAxisProperties.formatter.displayUnit.value : null;
             var labelSettings = data.dataLabelsSettings;
+            var value2: number = WaterfallChart.getDisplayUnitValueFromAxisFormatter(yAxisProperties, labelSettings);
+
             this.layout = {
                 categoryCount: cartesianLayout.categoryCount,
                 categoryThickness: cartesianLayout.categoryThickness,
@@ -439,12 +438,8 @@ module powerbi.visuals {
                 },
                 style: {
                     'fill': (d: WaterfallChartDataPoint) => {
-                        var outsideLabelPoistion = WaterfallChart.getRectTop(yAxisProperties.scale, d.position, d.value) - dataLabelUtils.labelMargin;
-
-                        if (outsideLabelPoistion <= 0) {
-                            d.labelFill = dataLabelUtils.defaultInsideLabelColor;
-                        }
-
+                        if (d.isLabelInside)
+                            return dataLabelUtils.defaultInsideLabelColor;
                         return d.labelFill;
                     }
                 },
@@ -454,6 +449,10 @@ module powerbi.visuals {
             this.yAxisProperties.axisLabel = options.showValueAxisLabel ? data.axesLabels.y : null;
 
             return [xAxisProperties, yAxisProperties];
+        }
+
+        private static getDisplayUnitValueFromAxisFormatter(yAxisProperties: IAxisProperties, labelSettings: VisualDataLabelsSettings): number {
+            return (yAxisProperties.formatter && yAxisProperties.formatter.displayUnit && labelSettings.displayUnits === 0) ? yAxisProperties.formatter.displayUnit.value : null;
         }
 
         private static lookupXValue(data: WaterfallChartData, index: number, type: ValueType): any {
@@ -613,9 +612,9 @@ module powerbi.visuals {
                 });
 
             if (this.data.dataLabelsSettings.show) {
-                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.dataLabelsSVG, this.layout, this.currentViewport);
+                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.svg, this.layout, this.currentViewport);
             } else {
-                dataLabelUtils.cleanDataLabels(this.dataLabelsSVG);
+                dataLabelUtils.cleanDataLabels(this.svg);
             }
 
             if (this.interactivityService) {

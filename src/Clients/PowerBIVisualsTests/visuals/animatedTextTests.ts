@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import AnimatedText = powerbi.visuals.AnimatedText;
 
@@ -116,7 +118,6 @@ module powerbitests {
 
             v.hostServices = powerbitests.mocks.createVisualHostServices();
             v.svg = d3.select(element.get(0)).append('svg');
-            v.graphicsContext = v.svg.append('g');
             v.style = powerbi.visuals.visualStyles.create();
             done();
         });
@@ -159,7 +160,7 @@ module powerbitests {
             expect($('.mainText')).toBeInDOM();
             setTimeout(() => {
                 // IE and Chrome represent the transform differently
-                expect(v.graphicsContext.attr('transform')).toMatch(/translate\(\d+(,| )130\)/);
+                expect($(".mainText").attr('transform')).toMatch(/translate\(\d+(,| )130\)/);
                 done();
             }, DefaultWaitForRender);
         });

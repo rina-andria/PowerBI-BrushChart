@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface ComboChartDataViewObjects extends DataViewObjects {
         general: ComboChartDataViewObject;
@@ -71,6 +73,27 @@ module powerbi.visuals {
                             type: { text: true }
                         },
                     },
+                },
+                legend: {
+                    displayName: data.createDisplayNameGetter('Visual_Legend'),
+                    properties: {
+                        show: {
+                            displayName: data.createDisplayNameGetter('Visual_Show'),
+                            type: { bool: true }
+                        },
+                        position: {
+                            displayName: data.createDisplayNameGetter('Visual_LegendPosition'),
+                            type: { formatting: { legendPosition: true } }
+                        },
+                        showTitle: {
+                            displayName: data.createDisplayNameGetter('Visual_LegendShowTitle'),
+                            type: { bool: true }
+                        },
+                        titleText: {
+                            displayName: data.createDisplayNameGetter('Visual_LegendTitleText'),
+                            type: { text: true }
+                        }
+                    }
                 },
                 categoryAxis: {
                     displayName: data.createDisplayNameGetter('Visual_XAxis'),
@@ -162,28 +185,7 @@ module powerbi.visuals {
                             type: { formatting: { axisStyle: true } }
                         }
                     }
-                },
-                legend: {
-                    displayName: data.createDisplayNameGetter('Visual_Legend'),
-                    properties: {
-                        show: {
-                            displayName: data.createDisplayNameGetter('Visual_Show'),
-                            type: { bool: true }
-                        },
-                        position: {
-                            displayName: data.createDisplayNameGetter('Visual_LegendPosition'),
-                            type: { formatting: { legendPosition: true } }
-                        },
-                        showTitle: {
-                            displayName: data.createDisplayNameGetter('Visual_LegendShowTitle'),
-                            type: { bool: true }
-                        },
-                        titleText: {
-                            displayName: data.createDisplayNameGetter('Visual_LegendTitleText'),
-                            type: { text: true }
-                        }
-                    }
-                },
+                },                
                 dataPoint: {
                     displayName: data.createDisplayNameGetter('Visual_DataPoint'),
                     properties: {

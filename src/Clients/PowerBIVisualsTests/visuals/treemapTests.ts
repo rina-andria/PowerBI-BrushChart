@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import ArrayExtensions = jsCommon.ArrayExtensions;
     import CssConstants = jsCommon.CssConstants;
@@ -40,6 +42,9 @@ module powerbitests {
     import ValueType = powerbi.ValueType;
     import PrimitiveType = powerbi.PrimitiveType;
 
+    var dataTypeNumber = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double);
+    var dataTypeString = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text);
+
     var DefaultWaitForRender = 500;
 
     powerbitests.mocks.setLocale();
@@ -55,6 +60,21 @@ module powerbitests {
     };
     var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'Squad' });
     var seriesColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'Period' });
+
+    var dataViewMetadataCategoryColumn: powerbi.DataViewMetadata = {
+        columns: [
+            { displayName: 'Genre', queryName: 'select0', properties: { "Category": true }, type: dataTypeString },
+            { displayName: 'TotalSales', queryName: 'select1', isMeasure: true, properties: { "Values": true }, type: dataTypeNumber }
+        ]
+    };
+
+    var dataViewMetadataCategoryColumnAndLongText: powerbi.DataViewMetadata = {
+        columns: [
+            { displayName: 'Category group', queryName: 'select0', properties: { "Category": true }, type: dataTypeString },
+            { displayName: 'Measure with long name', queryName: 'select1', isMeasure: true, properties: { "Values": true }, type: dataTypeNumber },
+            { displayName: 'Measure', queryName: 'select2', isMeasure: true, properties: { "Values": true }, type: dataTypeNumber }
+        ]
+    };
 
     var dataViewMetadataCategoryAndMeasures: powerbi.DataViewMetadata = {
         columns: [
@@ -501,7 +521,10 @@ module powerbitests {
 
         it('labels should be visible',(done) => {
 
-            dataViewMetadataCategorySeriesColumns.objects = { labels: { show: true } };
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: true },
+                categoryLabels: { show: true }
+            };
 
             var dataChangedOptions = {
                 dataViews: [{
@@ -546,7 +569,10 @@ module powerbitests {
 
         it('labels should be hidden',(done) => {
 
-            dataViewMetadataCategorySeriesColumns.objects = { labels: { show: false } };
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: false },
+                categoryLabels: { show: false }
+            };
 
             var dataChangedOptions = {
                 dataViews: [{
@@ -589,9 +615,60 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
+        it('only category labels should be visible', (done) => {
+
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: false },
+                categoryLabels: { show: true }
+            };
+
+            var dataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110, 120],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210, 220],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310, 320],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(dataChangedOptions);
+
+            setTimeout(() => {
+                expect($('.treemap .labels .majorLabel').length).toEqual(0);
+                expect($('.treemap .labels .minorLabel').length).toEqual(6);
+                done();
+            }, DefaultWaitForRender);
+        });
+
         it('hidden labels with highlights dom validation',(done) => {
 
-            dataViewMetadataCategorySeriesColumns.objects = { labels: { show: false } };
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: false },
+                categoryLabels: { show: false }
+            };
             var categoryIdentities = [
                 mocks.dataViewScopeIdentity("Drama"),
                 mocks.dataViewScopeIdentity("Comedy"),
@@ -631,7 +708,8 @@ module powerbitests {
                 labels: {
                     color: { solid: { color: colorRgb } },
                     show: true,
-                }
+                },
+                categoryLabels: { show: true }
             };
             var dataChangedOptions = {
                 dataViews: [{
@@ -747,6 +825,707 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
     });
+
+    function treemapDomValidation(hasLegendObject: boolean) {
+        var v: powerbi.IVisual, element: JQuery;
+
+        var hostServices = powerbitests.mocks.createVisualHostServices();
+
+        if (hasLegendObject) {
+            dataViewMetadataCategorySeriesColumns.objects = { legend: { show: true } };
+        }
+        else {
+            dataViewMetadataCategorySeriesColumns.objects = undefined;
+        }
+
+        beforeEach(() => {
+            element = powerbitests.helpers.testDom('500', '500');
+            v = powerbi.visuals.visualPluginFactory.create().getPlugin('treemap').create();
+            v.init({
+                element: element,
+                host: hostServices,
+                style: powerbi.visuals.visualStyles.create(),
+                viewport: {
+                    height: element.height(),
+                    width: element.width()
+                },
+                animation: { transitionImmediate: true }
+            });
+        });
+
+        it('treemap categories and series dom validation', (done) => {
+            var dataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110, 120],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210, 220],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310, 320],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(dataChangedOptions);
+
+            var renderLegend = dataViewMetadataCategorySeriesColumns.objects && dataViewMetadataCategorySeriesColumns.objects['legend'];
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(2);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(6);
+                expect($('.treemap .labels .majorLabel').length).toBe(2);
+                expect($('.treemap .labels .majorLabel').last().text()).toBe('Skylarks');
+                expect($('.treemap .labels .minorLabel').length).toBe(6);
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('201503');
+                if (renderLegend) {
+                    expect($('.legend .item').length).toBe(2);
+                    expect($('.legend .item').first().text()).toBe('The Nuthatches');
+                    expect($('.legend .title').text()).toBe('Squad');
+                }
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap categories and series onDataChanged dom validation', (done) => {
+            var initialDataViews: DataView[] = [{
+                metadata: dataViewMetadataCategorySeriesColumns,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadataCategorySeriesColumns.columns[0],
+                        values: ['The Nuthatches', 'Skylarks'],
+                        identity: [
+                            mocks.dataViewScopeIdentity('a'),
+                            mocks.dataViewScopeIdentity('b'),
+                        ],
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewMetadataCategorySeriesColumns.columns[2],
+                            values: [110, 120],
+                            identity: mocks.dataViewScopeIdentity('201501'),
+                        }, {
+                            source: dataViewMetadataCategorySeriesColumns.columns[3],
+                            values: [210, 220],
+                            identity: mocks.dataViewScopeIdentity('201502'),
+                        }, {
+                            source: dataViewMetadataCategorySeriesColumns.columns[4],
+                            values: [310, 320],
+                            identity: mocks.dataViewScopeIdentity('201503'),
+                        }],
+                        undefined,
+                        dataViewMetadataCategorySeriesColumns.columns[1])
+                }
+            }];
+            var updatedMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    { displayName: 'Squad', properties: { "Category": true }, type: dataTypeString },
+                    { displayName: 'Period', properties: { "Series": true }, type: dataTypeNumber },
+                    { displayName: null, groupName: '201503', isMeasure: true, properties: { "Y": true }, type: dataTypeNumber },
+                    { displayName: null, groupName: '201504', isMeasure: true, properties: { "Y": true }, type: dataTypeNumber }
+                ]
+            };
+            var updatedDataViews: DataView[] = [{
+                metadata: updatedMetadata,
+                categorical: {
+                    categories: [{
+                        source: updatedMetadata.columns[0],
+                        values: ['The Nuthatches', 'OddOneOut'],
+                        identity: [
+                            mocks.dataViewScopeIdentity('a'),
+                            mocks.dataViewScopeIdentity('b'),
+                        ],
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: updatedMetadata.columns[2],
+                            values: [210, 220],
+                            identity: mocks.dataViewScopeIdentity('201503'),
+                        }, {
+                            source: updatedMetadata.columns[3],
+                            values: [310, 320],
+                            identity: mocks.dataViewScopeIdentity('201504'),
+                        }],
+                        undefined,
+                        dataViewMetadataCategorySeriesColumns.columns[1])
+                }
+            }];
+            v.onDataChanged({ dataViews: initialDataViews });
+
+            var renderLegend = dataViewMetadataCategorySeriesColumns.objects && dataViewMetadataCategorySeriesColumns.objects['legend'];
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(2);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(6);
+                expect($('.treemap .labels .majorLabel').length).toBe(2);
+                expect($('.treemap .labels .majorLabel').last().text()).toBe('Skylarks');
+                expect($('.treemap .labels .minorLabel').length).toBe(6);
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('201503');
+                if (renderLegend) {
+                    expect($('.legend .item').length).toBe(2);
+                    expect($('.legend .item').first().text()).toBe('The Nuthatches');
+                    expect($('.legend .item').last().text()).toBe('Skylarks');
+                    expect($('.legend .title').text()).toBe('Squad');
+                }
+                v.onDataChanged({ dataViews: updatedDataViews });
+                setTimeout(() => {
+                    expect($('.treemap .shapes .rootNode').length).toBe(1);
+                    expect($('.treemap .shapes .parentGroup').length).toBe(2);
+                    expect($('.treemap .shapes .nodeGroup').length).toBe(4);
+                    expect($('.treemap .labels .majorLabel').length).toBe(2);
+                    expect($('.treemap .labels .majorLabel').last().text()).toBe('OddOneOut');
+                    expect($('.treemap .labels .minorLabel').length).toBe(4);
+                    expect($('.treemap .labels .minorLabel').last().text()).toBe('201504');
+                    if (renderLegend) {
+                        expect($('.legend .item').first().text()).toBe('The Nuthatches');
+                        expect($('.legend .item').last().text()).toBe('OddOneOut');
+                        expect($('.legend .title').text()).toBe('Squad');
+                    }
+                    done();
+                }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap categories and series onResize from small to medium tile dom validation', (done) => {
+            var onDataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('a'),
+                                mocks.dataViewScopeIdentity('b'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110, 120],
+                                identity: mocks.dataViewScopeIdentity('201501'),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210, 220],
+                                identity: mocks.dataViewScopeIdentity('201502'),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310, 320],
+                                identity: mocks.dataViewScopeIdentity('201503'),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(onDataChangedOptions);
+
+            v.onResizing({
+                height: 100,
+                width: 200
+            });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(2);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(6);
+                expect($('.treemap .labels .majorLabel').length).toBe(2);
+                expect($('.treemap .labels .minorLabel').length).toBe(4);
+                v.onResizing({ height: 300, width: 300 });
+                setTimeout(() => {
+                    expect($('.treemap .shapes .rootNode').length).toBe(1);
+                    expect($('.treemap .shapes .parentGroup').length).toBe(2);
+                    expect($('.treemap .shapes .nodeGroup').length).toBe(6);
+                    expect($('.treemap .labels .majorLabel').length).toBe(2);
+                    expect($('.treemap .labels .minorLabel').length).toBe(6);
+                    done();
+                }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap categories and measure dom validation', (done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataCategoryColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategoryColumn.columns[0],
+                            values: ['Drama', 'Comedy', 'Documentary'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('a'),
+                                mocks.dataViewScopeIdentity('b'),
+                                mocks.dataViewScopeIdentity('c'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategoryColumn.columns[1],
+                                values: [110, 120, 130]
+                            }])
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(3);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(0);
+                expect($('.treemap .labels .majorLabel').length).toBe(3);
+                expect($('.treemap .labels .majorLabel').last().text()).toBe('Documentary');
+                expect($('.treemap .labels .minorLabel').length).toBe(0);
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap culls invisible rectangles dom validation', (done) => {
+            //spyOn(hostServices, 'setWarnings').and.callThrough();
+
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataCategoryColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategoryColumn.columns[0],
+                            values: ['Drama', 'Comedy', 'Documentary'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('a'),
+                                mocks.dataViewScopeIdentity('b'),
+                                mocks.dataViewScopeIdentity('c'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategoryColumn.columns[1],
+                                values: [110, 120, 0.000000001]
+                            }])
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(2);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(0);
+                expect($('.treemap .labels .majorLabel').length).toBe(2);
+                expect($('.treemap .labels .majorLabel').last().text()).toBe('Comedy');
+                expect($('.treemap .labels .minorLabel').length).toBe(0);
+                expect(hostServices.setWarnings).toHaveBeenCalledWith([new powerbi.visuals.GeometryCulledWarning()]);
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap categories and measure with highlights dom validation', (done) => {
+            var categoryIdentities = [
+                mocks.dataViewScopeIdentity("Drama"),
+                mocks.dataViewScopeIdentity("Comedy"),
+                mocks.dataViewScopeIdentity("Documentary"),
+            ];
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataCategoryColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategoryColumn.columns[0],
+                            values: ['Drama', 'Comedy', 'Documentary'],
+                            identity: categoryIdentities,
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategoryColumn.columns[1],
+                                values: [110, 120, 130],
+                                highlights: [60, 80, 20]
+                            }])
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(6);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(0);
+                expect($('.treemap .shapes .parentGroup.treemapNodeHighlight').length).toBe(3);
+                expect($('.treemap .shapes .nodeGroup.treemapNodeHighlight').length).toBe(0);
+                expect($('.treemap .labels .majorLabel').length).toBe(3);
+                expect($('.treemap .labels .majorLabel').last().text()).toBe('Documentary');
+                expect($('.treemap .labels .minorLabel').length).toBe(0);
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap categories and measure with overflowing highlights dom validation', (done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataCategoryColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategoryColumn.columns[0],
+                            values: ['Drama', 'Comedy', 'Documentary'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('a'),
+                                mocks.dataViewScopeIdentity('b'),
+                                mocks.dataViewScopeIdentity('c'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategoryColumn.columns[1],
+                                values: [110, 120, 130],
+                                highlights: [140, 160, 135]
+                            }])
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(3);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(0);
+                expect($('.treemap .shapes .parentGroup.treemapNodeHighlight').length).toBe(0);
+                expect($('.treemap .shapes .nodeGroup.treemapNodeHighlight').length).toBe(0);
+                expect($('.treemap .labels .majorLabel').length).toBe(3);
+                expect($('.treemap .labels .majorLabel').last().text()).toBe('Documentary');
+                expect($('.treemap .labels .minorLabel').length).toBe(0);
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap categories and measures with highlights dom validation', (done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataCategoryAndMeasures,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategoryAndMeasures.columns[0],
+                            values: ['Front end', 'Back end'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('f'),
+                                mocks.dataViewScopeIdentity('b'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategoryAndMeasures.columns[1],
+                                values: [110, 120],
+                                highlights: [60, 60]
+                            }, {
+                                source: dataViewMetadataCategoryAndMeasures.columns[2],
+                                values: [210, 220],
+                                highlights: [140, 200]
+                            }])
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(2);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(8);
+                expect($('.treemap .shapes .parentGroup.treemapNodeHighlight').length).toBe(0);
+                expect($('.treemap .shapes .nodeGroup.treemapNodeHighlight').length).toBe(4);
+                expect($('.treemap .labels .majorLabel').length).toBe(2);
+                expect($('.treemap .labels .majorLabel').last().text()).toBe('Back end');
+                expect($('.treemap .labels .minorLabel').length).toBe(4);
+
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap categories and measure onDataChanged dom validation', (done) => {
+            var initialDataViews: DataView[] = [{
+                metadata: dataViewMetadataCategoryColumn,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadataCategoryColumn.columns[0],
+                        values: ['Drama', 'Comedy', 'Documentary'],
+                        identity: [
+                            mocks.dataViewScopeIdentity('a'),
+                            mocks.dataViewScopeIdentity('b'),
+                            mocks.dataViewScopeIdentity('c'),
+                        ],
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewMetadataCategoryColumn.columns[1],
+                            values: [110, 120, 130]
+                        }])
+                }
+            }];
+            var updatedDataViews: DataView[] = [{
+                metadata: dataViewMetadataCategoryColumn,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadataCategoryColumn.columns[0],
+                        values: ['Comedy', 'Documentary'],
+                        identity: [
+                            mocks.dataViewScopeIdentity('b'),
+                            mocks.dataViewScopeIdentity('c'),
+                        ],
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewMetadataCategoryColumn.columns[1],
+                            values: [120, 130]
+                        }])
+                }
+            }];
+
+            v.onDataChanged({ dataViews: initialDataViews });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(3);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(0);
+                expect($('.treemap .labels .majorLabel').length).toBe(3);
+                expect($('.treemap .labels .majorLabel').first().text()).toBe('Drama');
+                expect($('.treemap .labels .minorLabel').length).toBe(0);
+                v.onDataChanged({ dataViews: updatedDataViews });
+                setTimeout(() => {
+                    expect($('.treemap .shapes .rootNode').length).toBe(1);
+                    expect($('.treemap .shapes .parentGroup').length).toBe(2);
+                    expect($('.treemap .shapes .nodeGroup').length).toBe(0);
+                    expect($('.treemap .labels .majorLabel').length).toBe(2);
+                    expect($('.treemap .labels .majorLabel').first().text()).toBe('Comedy');
+                    expect($('.treemap .labels .minorLabel').length).toBe(0);
+                    done();
+                }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap categories and measure onResize from small to medium tile dom validation', (done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataCategoryColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategoryColumn.columns[0],
+                            values: ['Drama', 'Comedy', 'Documentary'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('a'),
+                                mocks.dataViewScopeIdentity('b'),
+                                mocks.dataViewScopeIdentity('c'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategoryColumn.columns[1],
+                                values: [110, 120, 130]
+                            }])
+                    }
+                }]
+            });
+
+            v.onResizing({
+                height: 100,
+                width: 200
+            });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(3);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(0);
+                expect($('.treemap .labels .majorLabel').length).toBe(3);
+                expect($('.treemap .labels .minorLabel').length).toBe(0);
+                v.onResizing({ height: 300, width: 300 });
+                setTimeout(() => {
+                    expect($('.treemap .shapes .rootNode').length).toBe(1);
+                    expect($('.treemap .shapes .parentGroup').length).toBe(3);
+                    expect($('.treemap .shapes .nodeGroup').length).toBe(0);
+                    expect($('.treemap .labels .majorLabel').length).toBe(3);
+                    expect($('.treemap .labels .minorLabel').length).toBe(0);
+                    done();
+                }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+
+        it('treemap category and measure labeling validation', (done) => {
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataCategoryColumnAndLongText,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategoryColumnAndLongText.columns[0],
+                            values: ['Very very long value'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('a'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategoryColumnAndLongText.columns[1],
+                                values: [100]
+                            }, {
+                                source: dataViewMetadataCategoryColumnAndLongText.columns[2],
+                                values: [100]
+                            }])
+                    }
+                }]
+            });
+
+            v.onResizing({
+                height: 12,
+                width: 100
+            });
+
+            setTimeout(() => {
+                expect($('.treemap .shapes .rootNode').length).toBe(1);
+                expect($('.treemap .shapes .parentGroup').length).toBe(1);
+                expect($('.treemap .shapes .nodeGroup').length).toBe(2);
+                expect($('.treemap .labels .majorLabel').length).toBe(0);
+                expect($('.treemap .labels .minorLabel').length).toBe(0);
+                v.onResizing({ height: 24, width: 100 });
+                setTimeout(() => {
+                    expect($('.treemap .shapes .rootNode').length).toBe(1);
+                    expect($('.treemap .shapes .parentGroup').length).toBe(1);
+                    expect($('.treemap .shapes .nodeGroup').length).toBe(2);
+                    expect($('.treemap .labels .majorLabel').length).toBe(1);
+                    expect($('.treemap .labels .minorLabel').length).toBe(0);
+                    expect($('.treemap .labels .majorLabel').first().text().length).toBeGreaterThan(0);
+                    v.onResizing({ height: 32, width: 200 });
+                    setTimeout(() => {
+                        expect($('.treemap .shapes .rootNode').length).toBe(1);
+                        expect($('.treemap .shapes .parentGroup').length).toBe(1);
+                        expect($('.treemap .shapes .nodeGroup').length).toBe(2);
+                        expect($('.treemap .labels .majorLabel').length).toBe(1);
+                        expect($('.treemap .labels .minorLabel').length).toBe(0);
+                        expect($('.treemap .labels .majorLabel').first().text().length).toBeGreaterThan(0);
+                        v.onResizing({ height: 64, width: 200 });
+                        setTimeout(() => {
+                            expect($('.treemap .shapes .rootNode').length).toBe(1);
+                            expect($('.treemap .shapes .parentGroup').length).toBe(1);
+                            expect($('.treemap .shapes .nodeGroup').length).toBe(2);
+                            expect($('.treemap .labels .majorLabel').length).toBe(1);
+                            expect($('.treemap .labels .majorLabel').first().text().length).toBeGreaterThan(0);
+                            expect($('.treemap .labels .minorLabel').length).toBe(2);
+                            expect($('.treemap .labels .minorLabel').first().text().length).toBeGreaterThan(0);
+                            expect($('.treemap .labels .minorLabel').last().text().length).toBeGreaterThan(0);
+                            done();
+                        }, DefaultWaitForRender);
+                    }, DefaultWaitForRender);
+                }, DefaultWaitForRender);
+            }, DefaultWaitForRender);
+        });
+
+        if (hasLegendObject) {
+            it('legend formatting', (done) => {
+
+                var dataView = {
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110, 120],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210, 220],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310, 320],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                };
+
+                // Check legend should show, if show is undefined
+                dataView.metadata.objects = { legend: {} };
+
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+
+                setTimeout(() => {
+                    expect($('.legendItem')).toBeInDOM();
+                    //change legend position
+                    dataView.metadata.objects = { legend: { show: true } };
+                    v.onDataChanged({
+                        dataViews: [dataView]
+                    });
+
+                    setTimeout(() => {
+                        expect($('.legendItem')).toBeInDOM();
+                        //change legend position
+                        dataView.metadata.objects = { legend: { show: true, position: 'Right' } };
+                        v.onDataChanged({
+                            dataViews: [dataView]
+                        });
+                        setTimeout(() => {
+                            expect($('.legendItem')).toBeInDOM();
+                            //set title
+                            var testTitle = 'Test Title';
+                            dataView.metadata.objects = { legend: { show: true, position: 'Right', showTitle: true, titleText: testTitle } };
+                            v.onDataChanged({
+                                dataViews: [dataView]
+                            });
+                            setTimeout(() => {
+
+                                expect($('.legendItem')).toBeInDOM();
+                                expect($('.legendTitle').text()).toBe(testTitle);
+
+                                //hide legend
+                                dataView.metadata.objects = { legend: { show: false, position: 'Right' } };
+                                v.onDataChanged({
+                                    dataViews: [dataView]
+                                });
+                                setTimeout(() => {
+                                    expect($('.legendItem')).not.toBeInDOM();
+                                    done();
+                                }, DefaultWaitForRender);
+                            }, DefaultWaitForRender);
+                        }, DefaultWaitForRender);
+                    }, DefaultWaitForRender);
+                }, DefaultWaitForRender);
+            });
+        }
+    };
+
+    describe("Treemap DOM validation", () => treemapDomValidation(false));
+    describe("Treemap DOM validation - with legend", () => treemapDomValidation(true));
 
     describe("treemap web animation",() => {
         var v: powerbi.IVisual, element: JQuery;

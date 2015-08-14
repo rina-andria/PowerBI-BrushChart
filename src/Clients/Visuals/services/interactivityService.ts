@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     import ArrayExtensions = jsCommon.ArrayExtensions;
     import SemanticFilter = powerbi.data.SemanticFilter;
@@ -58,6 +60,9 @@ module powerbi.visuals {
 
         /** Sets the selected state on the given data points. */
         applySelectionStateToData(dataPoints: SelectableDataPoint[]): boolean;
+
+        /** Checks whether there is at least one item selected */
+        hasSelection(): boolean;
     }
 
     export class WebInteractivityService implements IInteractivityService {
@@ -184,7 +189,16 @@ module powerbi.visuals {
         private sendSelectToHost() {
             var host = this.hostService;
             if (host.onSelect) {
-                host.onSelect({ data: this.selectedIds.filter((value: SelectionId) => value.hasIdentity()).map((value: SelectionId) => value.getSelector()) });
+                var selectArgs: SelectEventArgs = {
+                    data: this.selectedIds.filter((value: SelectionId) => value.hasIdentity()).map((value: SelectionId) => value.getSelector())
+                };
+
+                var data2: SelectorsByColumn[] = this.selectedIds.filter((value: SelectionId) => value.getSelectorsByColumn() && value.hasIdentity()).map((value: SelectionId) => value.getSelectorsByColumn());
+                
+                if (data2 && data2.length > 0)
+                    selectArgs.data2 = data2;
+
+                host.onSelect(selectArgs);
             }
         }
 
@@ -345,12 +359,10 @@ module powerbi.visuals {
             this.initAndSyncSelectionState();
             var bars = options.bars;
             var clearCatcher = options.clearCatcher;
-            var hasHighlights = options.hasHighlights;
-            var graphicsContext = options.mainGraphicsContext;
 
             bars.on('click', (d: SelectableDataPoint, i: number) => {
                 this.select(d);
-                behavior.select(this.hasSelection(), bars, graphicsContext, hasHighlights);
+                behavior.select(this.hasSelection(), options);
                 this.sendSelectionToHost();
                 if (this.sendSelectionToLegend)
                     this.sendSelectionToLegend();
@@ -363,7 +375,7 @@ module powerbi.visuals {
             });
 
             this.sendSelectionToVisual = () => {
-                behavior.select(this.hasSelection(), bars, graphicsContext, hasHighlights);
+                behavior.select(this.hasSelection(), options);
             };
 
             this.hasColumnChart = true;
@@ -909,7 +921,6 @@ module powerbi.visuals {
                 this.makeDataPointsSelectable(options.dataPointsSelection);
                 this.makeRootSelectable(options.root);
                 this.makeDragable(options.root);
-                this.makeDragable(options.background);
 
                 behavior.selectRoot();
             }
@@ -933,6 +944,11 @@ module powerbi.visuals {
 
         public visitLegend(options: LegendBehaviorOptions): void {
             // No mobile interactions declared.
+        }
+        /** Checks whether there is at least one item selected */
+        public hasSelection(): boolean {
+            // No mobile interactions declared.
+            return false;
         }
     }
 }

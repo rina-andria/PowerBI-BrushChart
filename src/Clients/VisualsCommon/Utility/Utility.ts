@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 // Defined in host
 declare var clusterUri: string;
 
@@ -165,6 +167,43 @@ module jsCommon {
             }
 
             return uniqueName;
+        }
+
+        export function constructCommaSeparatedList(list: string[], resourceProvider: IStringResourceProvider, maxValue?: number): string {
+            if (!list || list.length === 0)
+                return '';
+
+            if (maxValue === null || maxValue === undefined)
+                maxValue = Number.MAX_VALUE;
+
+            var length = Math.min(maxValue, list.length);
+
+            var replacedList = [];
+            // Only need to replace user entries of {0} and {1} since we build the list in pairs.
+            for (var j = 0; j < 2; j++) {
+                var targetValue = '{' + j + '}';
+                var replaceValue = '_|_<' + j + '>_|_';
+                for (var i = 0; i < length; i++) {
+                    if (list[i].indexOf(targetValue) > -1) {
+                        list[i] = list[i].replace(targetValue, replaceValue);
+                        replacedList.push({ targetValue: targetValue, replaceValue: replaceValue });
+                    }
+                }
+            }
+
+            var commaSeparatedList: string = '';
+            for (var i = 0; i < length; i++) {
+                if (i === 0)
+                    commaSeparatedList = list[i];
+                else
+                    commaSeparatedList = StringExtensions.format(resourceProvider.get('FilterRestatement_Comma'), commaSeparatedList, list[i]);
+            }
+
+            for (var i = 0; i < replacedList.length; i++) {
+                commaSeparatedList = commaSeparatedList.replace(replacedList[i].replaceValue, replacedList[i].targetValue);
+            }
+
+            return commaSeparatedList;
         }
     }
 
@@ -753,6 +792,76 @@ module jsCommon {
             else {
                 return results[1] || 0;
             }
+        }
+
+        /**
+         * Return local timezone string or UTC if timezone cannot be found
+         * This function uses summer and winter offset to determine local time zone. The result localTimeZoneString must be a subset of the strings used by server, as
+         * documented here: https://msdn.microsoft.com/en-us/library/gg154758.aspx (Dynamic Daylight Savings Time (Compact 2013))
+         */
+        public static getLocalTimeZoneString(): string {
+            var timeSummer = new Date(Date.UTC(2005, 6, 30, 0, 0, 0, 0));
+            var summerOffset = -1 * timeSummer.getTimezoneOffset();
+            var timeWinter = new Date(Date.UTC(2005, 12, 30, 0, 0, 0, 0));
+            var winterOffset = -1 * timeWinter.getTimezoneOffset();
+            var localTimeZoneString;
+
+            if (-720 === summerOffset && -720 === winterOffset) { localTimeZoneString = 'Dateline Standard Time'; }
+            else if (-660 === summerOffset && -660 === winterOffset) { localTimeZoneString = 'UTC-11'; }
+            else if (-660 === summerOffset && -660 === winterOffset) { localTimeZoneString = 'Samoa Standard Time'; }
+            else if (-600 === summerOffset && -600 === winterOffset) { localTimeZoneString = 'Hawaiian Standard Time'; }
+            else if (-480 === summerOffset && -540 === winterOffset) { localTimeZoneString = 'Alaskan Standard Time'; }
+            else if (-420 === summerOffset && -480 === winterOffset) { localTimeZoneString = 'Pacific Standard Time'; }
+            else if (-420 === summerOffset && -420 === winterOffset) { localTimeZoneString = 'US Mountain Standard Time'; }
+            else if (-360 === summerOffset && -420 === winterOffset) { localTimeZoneString = 'Mountain Standard Time'; }
+            else if (-360 === summerOffset && -360 === winterOffset) { localTimeZoneString = 'Central America Standard Time'; }
+            else if (-300 === summerOffset && -360 === winterOffset) { localTimeZoneString = 'Central Standard Time'; }
+            else if (-300 === summerOffset && -300 === winterOffset) { localTimeZoneString = 'SA Pacific Standard Time'; }
+            else if (-240 === summerOffset && -300 === winterOffset) { localTimeZoneString = 'Eastern Standard Time'; }
+            else if (-270 === summerOffset && -270 === winterOffset) { localTimeZoneString = 'Venezuela Standard Time'; }
+            else if (-240 === summerOffset && -240 === winterOffset) { localTimeZoneString = 'SA Western Standard Time'; }
+            else if (-240 === summerOffset && -180 === winterOffset) { localTimeZoneString = 'Central Brazilian Standard Time'; }
+            else if (-180 === summerOffset && -240 === winterOffset) { localTimeZoneString = 'Atlantic Standard Time'; }
+            else if (-180 === summerOffset && -180 === winterOffset) { localTimeZoneString = 'Montevideo Standard Time'; }
+            else if (-180 === summerOffset && -120 === winterOffset) { localTimeZoneString = 'E. South America Standard Time'; }
+            else if (-150 === summerOffset && -210 === winterOffset) { localTimeZoneString = 'Mid-Atlantic Standard Time'; }
+            else if (-120 === summerOffset && -120 === winterOffset) { localTimeZoneString = 'SA Eastern Standard Time'; }
+            else if (0 === summerOffset && 0 === winterOffset) { localTimeZoneString = 'UTC'; }
+            else if (60 === summerOffset && 0 === winterOffset) { localTimeZoneString = 'GMT Standard Time'; }
+            else if (60 === summerOffset && 120 === winterOffset) { localTimeZoneString = 'Namibia Standard Time'; }
+            else if (120 === summerOffset && 60 === winterOffset) { localTimeZoneString = 'Romance Standard Time'; }
+            else if (120 === summerOffset && 120 === winterOffset) { localTimeZoneString = 'South Africa Standard Time'; }
+            else if (180 === summerOffset && 120 === winterOffset) { localTimeZoneString = 'GTB Standard Time'; }
+            else if (180 === summerOffset && 180 === winterOffset) { localTimeZoneString = 'E. Africa Standard Time'; }
+            else if (240 === summerOffset && 180 === winterOffset) { localTimeZoneString = 'Russian Standard Time'; }
+            else if (240 === summerOffset && 240 === winterOffset) { localTimeZoneString = 'Arabian Standard Time'; }
+            else if (270 === summerOffset && 210 === winterOffset) { localTimeZoneString = 'Iran Standard Time'; }
+            else if (270 === summerOffset && 270 === winterOffset) { localTimeZoneString = 'Afghanistan Standard Time'; }
+            else if (300 === summerOffset && 240 === winterOffset) { localTimeZoneString = 'Pakistan Standard Time'; }
+            else if (300 === summerOffset && 300 === winterOffset) { localTimeZoneString = 'West Asia Standard Time'; }
+            else if (330 === summerOffset && 330 === winterOffset) { localTimeZoneString = 'India Standard Time'; }
+            else if (345 === summerOffset && 345 === winterOffset) { localTimeZoneString = 'Nepal Standard Time'; }
+            else if (360 === summerOffset && 300 === winterOffset) { localTimeZoneString = 'N. Central Asia Standard Time'; }
+            else if (360 === summerOffset && 360 === winterOffset) { localTimeZoneString = 'Central Asia Standard Time'; }
+            else if (390 === summerOffset && 390 === winterOffset) { localTimeZoneString = 'Myanmar Standard Time'; }
+            else if (420 === summerOffset && 360 === winterOffset) { localTimeZoneString = 'North Asia Standard Time'; }
+            else if (420 === summerOffset && 420 === winterOffset) { localTimeZoneString = 'SE Asia Standard Time'; }
+            else if (480 === summerOffset && 420 === winterOffset) { localTimeZoneString = 'North Asia East Standard Time'; }
+            else if (480 === summerOffset && 480 === winterOffset) { localTimeZoneString = 'China Standard Time'; }
+            else if (540 === summerOffset && 480 === winterOffset) { localTimeZoneString = 'Yakutsk Standard Time'; }
+            else if (540 === summerOffset && 540 === winterOffset) { localTimeZoneString = 'Tokyo Standard Time'; }
+            else if (570 === summerOffset && 570 === winterOffset) { localTimeZoneString = 'Cen. Australia Standard Time'; }
+            else if (600 === summerOffset && 600 === winterOffset) { localTimeZoneString = 'E. Australia Standard Time'; }
+            else if (600 === summerOffset && 660 === winterOffset) { localTimeZoneString = 'AUS Eastern Standard Time'; }
+            else if (660 === summerOffset && 600 === winterOffset) { localTimeZoneString = 'Tasmania Standard Time'; }
+            else if (660 === summerOffset && 660 === winterOffset) { localTimeZoneString = 'West Pacific Standard Time'; }
+            else if (690 === summerOffset && 690 === winterOffset) { localTimeZoneString = 'Central Pacific Standard Time'; }
+            else if (720 === summerOffset && 660 === winterOffset) { localTimeZoneString = 'Magadan Standard Time'; }
+            else if (720 === summerOffset && 720 === winterOffset) { localTimeZoneString = 'Fiji Standard Time'; }
+            else if (720 === summerOffset && 780 === winterOffset) { localTimeZoneString = 'New Zealand Standard Time'; }
+            else if (780 === summerOffset && 780 === winterOffset) { localTimeZoneString = 'Tonga Standard Time'; }
+            else { localTimeZoneString = 'UTC'; }
+            return localTimeZoneString;
         }
     }
 

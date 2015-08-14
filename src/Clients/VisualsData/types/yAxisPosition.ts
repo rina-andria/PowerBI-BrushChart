@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi {
     export module yAxisPosition {
         export const left: string = 'Left';

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 // IMPORTANT: This chart is not currently enabled in the PBI system and is under development.
 module powerbi.visuals {
 
@@ -47,6 +49,11 @@ module powerbi.visuals {
 
     export interface DataDotChartDataPoint extends CartesianDataPoint, SelectableDataPoint {
         highlight: boolean;
+    }
+
+    export interface DataDotChartConstructorOptions {
+        isScrollable: boolean;
+        interactivityService: IInteractivityService;
     }
 
     /* The data dot chart shows a set of circles with the data value inside them. 
@@ -84,6 +91,7 @@ module powerbi.visuals {
         private cartesianVisualHost: ICartesianVisualHost;
         private style: IVisualStyle;
         private colors: IDataColorPalette;
+        private isScrollable: boolean;
 
         // Cartesian chart properties
         private xAxisProperties: IAxisProperties;
@@ -139,6 +147,11 @@ module powerbi.visuals {
             }]
         };
 
+        constructor(options: DataDotChartConstructorOptions) {
+            this.isScrollable = options.isScrollable;
+            this.interactivityService = options.interactivityService;
+        }
+
         public init(options: CartesianVisualInitOptions): void {
             this.options = options;
 
@@ -155,7 +168,6 @@ module powerbi.visuals {
             this.colors = this.style.colorPalette.dataColors;
 
             // Interactivity properties
-            this.interactivityService = VisualInteractivityFactory.buildInteractivityService(options);
             this.interactivity = options.interactivity;
 
             var element = this.element = options.element;
@@ -194,11 +206,20 @@ module powerbi.visuals {
             }
         }
 
+        public setFilteredData(startIndex: number, endIndex: number): any {
+            var data = this.clippedData = Prototype.inherit(this.data);
+
+            if (data && data.series && data.series.data)
+                data.series = { data: data.series.data.slice(startIndex, endIndex), xCol: data.series.xCol, yCol: data.series.yCol };
+
+            return data;
+        }
+
         public calculateAxesProperties(options: CalculateScaleAndDomainOptions): IAxisProperties[] {
             this.currentViewport = options.viewport;
             this.margin = options.margin;
 
-            var data = this.data;
+            var data = this.clippedData = this.data;
             var viewport = this.currentViewport;
             var margin = this.margin;
             var series: DataDotChartSeries = data ? data.series : null;
@@ -228,12 +249,14 @@ module powerbi.visuals {
                     categoryCount: categoryCount,
                     domain: null,
                     isScalar: false,
-                    isScrollable: false
+                    isScrollable: this.isScrollable
                 });
             var outerPadding = layout.categoryThickness * CartesianChart.OuterPaddingRatio;
 
-            // I clip data the won't fit
-            this.clippedData = DataDotChart.createClippedDataIfOverflowed(data, layout.categoryCount);
+            // clip data that won't fit
+            if (!this.isScrollable) {
+                this.clippedData = DataDotChart.createClippedDataIfOverflowed(data, layout.categoryCount);
+            }
 
             var yDomain = AxisHelper.createValueDomain(seriesArray, /*includeZero:*/ true) || fallBackDomain;
 
@@ -292,7 +315,7 @@ module powerbi.visuals {
         }
 
         private lookupXValue(index: number, type: ValueType): any {
-            var data = this.clippedData;
+            var data = this.data;
 
             var isDateTime = AxisHelper.isDateTime(type);
             if (isDateTime)
@@ -317,6 +340,8 @@ module powerbi.visuals {
         }
 
         public render(suppressAnimations: boolean): void {
+            if (!this.clippedData)
+                return;
             var data = this.clippedData;
             var dataPoints = data.series.data;
             var hasHighlights = data.hasHighlights;
@@ -532,7 +557,7 @@ module powerbi.visuals {
             }
 
             return {
-                series: <DataDotChartSeries>{
+                series: <DataDotChartSeries> {
                     data: <DataDotChartDataPoint[]>[]
                 },
                 hasHighlights: false,

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
 
     export interface GradientSettings {
@@ -130,6 +132,7 @@ module powerbi.visuals {
             var dataPointProperties: any = definitions["dataPoint"][0].properties;
             var fillRule: any = dataPointProperties.fillRule;
             var numericValueExpr: data.SQConstantExpr;
+            var colorValueExpr: data.SQExpr;
 
             if (!fillRule) {
                 return;
@@ -139,14 +142,18 @@ module powerbi.visuals {
                 numericValueExpr = propertyValue !== undefined ? SQExprBuilder.double(+propertyValue) : undefined;;
             }
 
+            if (propertyName === "minColor" || propertyName === "midColor" || propertyName === "maxColor") {
+                colorValueExpr = getColorExpressionValue(fillRule, propertyName, propertyValue);
+            }
+
             if (propertyName === "minColor") {
-                updateMinColor(fillRule, propertyValue);
+                updateMinColor(fillRule, colorValueExpr);
             }
             else if (propertyName === "midColor") {
-                updateMidColor(fillRule, propertyValue);
+                updateMidColor(fillRule, colorValueExpr);
             }
             else if (propertyName === "maxColor") {
-                updateMaxColor(fillRule, propertyValue);
+                updateMaxColor(fillRule, colorValueExpr);
             }
             else if (propertyName === "minValue") {
                 updateMinValue(fillRule, numericValueExpr);
@@ -286,27 +293,67 @@ module powerbi.visuals {
             return fillRuleDefinition;
         }
 
-        function updateMinColor(fillRule: FillRuleDefinition, value: string) {
-            if (fillRule.linearGradient2) {
-                fillRule.linearGradient2.min.color = SQExprBuilder.text(value);
-            }
-            else if (fillRule.linearGradient3) {
-                fillRule.linearGradient3.min.color = SQExprBuilder.text(value);
-            }
-        }
+        function getDefaultColorExpression(fillRule: FillRuleDefinition, propertyName: string): data.SQExpr {
+            var defaultColor: data.SQExpr;
+            var defaultFillRule: FillRuleDefinition;
 
-        function updateMidColor(fillRule: FillRuleDefinition, value: string) {
             if (fillRule.linearGradient3) {
-                fillRule.linearGradient3.mid.color = SQExprBuilder.text(value);
+                defaultFillRule = getLinearGradien3FillRuleDefinition();
+                if (propertyName === "minColor") {
+                    defaultColor = defaultFillRule.linearGradient3.min.color;
+                }
+                else if (propertyName === "midColor") {
+                    defaultColor = defaultFillRule.linearGradient3.mid.color;
+                }
+                else if (propertyName === "maxColor") {
+                    defaultColor = defaultFillRule.linearGradient3.max.color;
+                }
+            }
+            else if (fillRule.linearGradient2) {
+                defaultFillRule = getLinearGradien2FillRuleDefinition();
+                if (propertyName === "minColor") {
+                    defaultColor = defaultFillRule.linearGradient2.min.color;
+                }
+                else if (propertyName === "maxColor") {
+                    defaultColor = defaultFillRule.linearGradient2.max.color;
+                }
+            }
+
+            return defaultColor;
+        }
+
+        function getColorExpressionValue(fillRule: FillRuleDefinition, propertyName: string, propertyValue: string): data.SQExpr {
+            var colorExpressionValue: data.SQExpr;
+            if (propertyValue) {
+                colorExpressionValue = SQExprBuilder.text(propertyValue);
+            }
+            else {
+                colorExpressionValue = getDefaultColorExpression(fillRule, propertyName);
+            }
+            return colorExpressionValue;
+        }
+
+        function updateMinColor(fillRule: FillRuleDefinition, colorExpressionValue: data.SQExpr) {
+            if (fillRule.linearGradient2) {
+                fillRule.linearGradient2.min.color = colorExpressionValue;
+            }
+            else if (fillRule.linearGradient3) {
+                fillRule.linearGradient3.min.color = colorExpressionValue;
             }
         }
 
-        function updateMaxColor(fillRule: FillRuleDefinition, value: string) {
+        function updateMidColor(fillRule: FillRuleDefinition, colorExpressionValue: data.SQExpr) {
+            if (fillRule.linearGradient3) {
+                fillRule.linearGradient3.mid.color = colorExpressionValue;
+            }
+        }
+
+        function updateMaxColor(fillRule: FillRuleDefinition, colorExpressionValue: data.SQExpr) {
             if (fillRule.linearGradient2) {
-                fillRule.linearGradient2.max.color = SQExprBuilder.text(value);
+                fillRule.linearGradient2.max.color = colorExpressionValue;
             }
             else if (fillRule.linearGradient3) {
-                fillRule.linearGradient3.max.color = SQExprBuilder.text(value);
+                fillRule.linearGradient3.max.color = colorExpressionValue;
             }
         }
 

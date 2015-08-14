@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi {
     export interface DataViewMapping {
         /**
@@ -43,7 +45,12 @@ module powerbi {
         [dataRole: string]: NumberRange;
     }
 
-    export interface DataViewCategoricalMapping {
+    /** Describes a mapping which supports a data volume level. */
+    export interface HasDataVolume {
+        dataVolume?: number;
+    }
+
+    export interface DataViewCategoricalMapping extends HasDataVolume {
         categories?: DataViewRoleMappingWithReduction;
         values?: DataViewRoleMapping | DataViewGroupedRoleMapping | DataViewListRoleMapping;
 
@@ -68,7 +75,7 @@ module powerbi {
         roles: string[];
     }
 
-    export interface DataViewTableMapping {
+    export interface DataViewTableMapping extends HasDataVolume {
         rows: DataViewRoleMappingWithReduction | DataViewListRoleMappingWithReduction;
 
         /** Specifies a constraint on the number of data rows supported by the visual. */
@@ -82,7 +89,7 @@ module powerbi {
 	    depth?: AcceptabilityNumberRange;
     }
 
-    export interface DataViewMatrixMapping {
+    export interface DataViewMatrixMapping extends HasDataVolume {
         rows?: DataViewRoleForMappingWithReduction;
         columns?: DataViewRoleForMappingWithReduction;
         values?: DataViewRoleForMapping;

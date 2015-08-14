@@ -25,6 +25,8 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
+Docs
+/src/.vs
 
 # ThirdPartyIP
 src/Clients/Externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js
@@ -38,3 +40,6 @@ src/Clients/PowerBIVisualsPlayground/visuals.min.css
 
 # Test Files
 VisualsTests
+
+# Obj dirs
+src/Clients/**/obj/*.*

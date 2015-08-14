@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals.BI.Services {
     import GeocodeQuery = GeocodingManager.GeocodeQuery;
     import IGeocodeCoordinate = GeocodingManager.IGeocodeCoordinate;

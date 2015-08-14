@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbi {
 
     /** Class Double contains a set of constants and precision based utility methods for dealing with doubles and their decimal garbage in the javascript */

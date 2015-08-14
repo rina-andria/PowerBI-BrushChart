@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     export interface CompiledDataViewMapping {
         metadata: CompiledDataViewMappingMetadata;
@@ -39,7 +41,7 @@ module powerbi.data {
         objects?: DataViewObjects;
     }
 
-    export interface CompiledDataViewCategoricalMapping {
+    export interface CompiledDataViewCategoricalMapping extends HasDataVolume {
         categories?: CompiledDataViewRoleMappingWithReduction;
         values?: CompiledDataViewRoleMapping | CompiledDataViewGroupedRoleMapping | CompiledDataViewListRoleMapping;
         includeEmptyGroups?: boolean;
@@ -57,7 +59,7 @@ module powerbi.data {
         roles: CompiledDataViewRole[];
     }
 
-    export interface CompiledDataViewTableMapping {
+    export interface CompiledDataViewTableMapping extends HasDataVolume {
         rows: CompiledDataViewRoleMappingWithReduction | CompiledDataViewListRoleMappingWithReduction;
     }
 
@@ -66,7 +68,7 @@ module powerbi.data {
         values?: CompiledDataViewValuesRoleMapping;
     }
 
-    export interface CompiledDataViewMatrixMapping {
+    export interface CompiledDataViewMatrixMapping extends HasDataVolume {
         rows?: CompiledDataViewRoleForMappingWithReduction;
         columns?: CompiledDataViewRoleForMappingWithReduction;
         values?: CompiledDataViewRoleForMapping;

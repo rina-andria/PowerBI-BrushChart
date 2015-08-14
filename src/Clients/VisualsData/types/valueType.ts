@@ -24,13 +24,13 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi {
     import EnumExtensions = jsCommon.EnumExtensions;
 
-    /* tslint:disable:no-unused-expression */
     /** Describes instances of value type objects. */
     export type PrimitiveValue = string | number | boolean | Date;
-    /* tslint: enable */
 
     /** Describes a data value type in the client type system. Can be used to get a concrete ValueType instance. */
     export interface ValueTypeDescriptor {

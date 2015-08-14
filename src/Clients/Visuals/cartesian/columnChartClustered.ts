@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export class ClusteredColumnChartStrategy implements IColumnChartStrategy {
         private static classes = {
@@ -89,8 +91,6 @@ module powerbi.visuals {
                 .domain(this.data.series.map(s => s.index))
                 .rangeBands([0, seriesLength * columnWidth]);
 
-            props.xLabelMaxWidth = this.categoryLayout.isScalar ? (width / props.values.length) : this.categoryLayout.categoryThickness;
-
             return props;
         }
 
@@ -144,7 +144,7 @@ module powerbi.visuals {
             return yProps;
         }
 
-        public drawColumns(useAnimation: boolean): D3.Selection {
+        public drawColumns(useAnimation: boolean): ColumnChartDrawInfo {
             var data = this.data;
             debug.assertValue(data, 'data could not be null or undefined');
 
@@ -165,7 +165,7 @@ module powerbi.visuals {
             var dataLabelSettings = data.labelSettings;
             var dataLabelLayout = null;
             if (dataLabelSettings != null) {
-                dataLabelLayout = dataLabelUtils.getColumnChartLabelLayout(data, this.getLabelLayoutXY(axisOptions, dataLabelSettings), true, false, this.yProps.formatter, axisOptions);
+                dataLabelLayout = dataLabelUtils.getColumnChartLabelLayout(data, this.getLabelLayoutXY(axisOptions, dataLabelSettings), true, false, this.yProps.formatter, axisOptions, this.interactivityService);
             }
 
             var result: ColumnChartAnimationResult;
@@ -178,7 +178,7 @@ module powerbi.visuals {
                     layout: clusteredColumnLayout,
                     itemCS: ClusteredColumnChartStrategy.classes.item,
                     interactivityService: this.interactivityService,
-                    labelGraphicsContext: this.graphicsContext.labelGraphicsContext,
+                    mainGraphicsContext: this.graphicsContext.mainGraphicsContext,
                     labelLayout: dataLabelLayout,
                     viewPort: { height: this.height, width: this.width }
                 });
@@ -188,17 +188,22 @@ module powerbi.visuals {
                 shapes = ColumnUtil.drawDefaultShapes(data, series, clusteredColumnLayout, ClusteredColumnChartStrategy.classes.item, !this.animator);
                 if (dataLabelLayout !== null) {
                     if (dataLabelSettings.show) {
-                        ColumnUtil.drawDefaultLabels(series, this.graphicsContext.labelGraphicsContext, dataLabelLayout, { height: this.height, width: this.width });
+                        ColumnUtil.drawDefaultLabels(series, this.graphicsContext.mainGraphicsContext, dataLabelLayout, { height: this.height, width: this.width });
                 }
                     else {
-                        dataLabelUtils.cleanDataLabels(this.graphicsContext.labelGraphicsContext);
+                        dataLabelUtils.cleanDataLabels(this.graphicsContext.mainGraphicsContext);
                     }
                 }
             }
 
             ColumnUtil.applyInteractivity(shapes, this.graphicsContext.onDragStart);
-
-            return shapes;
+           
+            return {
+                shapesSelection: shapes,
+                labelLayout: dataLabelLayout,
+                viewport: { height: this.height, width: this.width },
+                axisOptions: axisOptions
+            };
         }
 
         public selectColumn(selectedColumnIndex: number, lastSelectedColumnIndex: number): void {
@@ -443,7 +448,7 @@ module powerbi.visuals {
             return xProps;
         }
 
-        public drawColumns(useAnimation: boolean): D3.Selection {
+        public drawColumns(useAnimation: boolean): ColumnChartDrawInfo {
             var data = this.data;
             debug.assertValue(data, 'data could not be null or undefined');
 
@@ -464,7 +469,7 @@ module powerbi.visuals {
             var dataLabelSettings = data.labelSettings;
             var dataLabelLayout = null;
             if (dataLabelSettings != null) {
-                dataLabelLayout = dataLabelUtils.getColumnChartLabelLayout(data, this.getLabelLayoutXY(axisOptions,this.width, dataLabelSettings), false, false, this.xProps.formatter, axisOptions, this.width);
+                dataLabelLayout = dataLabelUtils.getColumnChartLabelLayout(data, this.getLabelLayoutXY(axisOptions,this.width, dataLabelSettings), false, false, this.xProps.formatter, axisOptions, this.interactivityService, this.width);
             }
 
             var result: ColumnChartAnimationResult;
@@ -477,7 +482,7 @@ module powerbi.visuals {
                     layout: clusteredBarLayout,
                     itemCS: ClusteredBarChartStrategy.classes.item,
                     interactivityService: this.interactivityService,
-                    labelGraphicsContext: this.graphicsContext.labelGraphicsContext,
+                    mainGraphicsContext: this.graphicsContext.mainGraphicsContext,
                     labelLayout: dataLabelLayout,
                     viewPort: { height: this.height, width: this.width }
                 });
@@ -487,17 +492,22 @@ module powerbi.visuals {
                 shapes = ColumnUtil.drawDefaultShapes(data, series, clusteredBarLayout, ClusteredBarChartStrategy.classes.item, !this.animator);
                 if (dataLabelLayout !== null) {
                     if (dataLabelSettings.show) {
-                        ColumnUtil.drawDefaultLabels(series, this.graphicsContext.labelGraphicsContext, dataLabelLayout, { height: this.height, width: this.width });
+                        ColumnUtil.drawDefaultLabels(series, this.graphicsContext.mainGraphicsContext, dataLabelLayout, { height: this.height, width: this.width });
                 }
                     else {
-                        dataLabelUtils.cleanDataLabels(this.graphicsContext.labelGraphicsContext);
+                        dataLabelUtils.cleanDataLabels(this.graphicsContext.mainGraphicsContext);
                     }
             }
             }
 
             ColumnUtil.applyInteractivity(shapes, this.graphicsContext.onDragStart);
 
-            return shapes;
+            return {
+                shapesSelection: shapes,
+                labelLayout: dataLabelLayout,
+                viewport: { height: this.height, width: this.width },
+                axisOptions: axisOptions
+            };
         }
 
         public selectColumn(selectedColumnIndex: number, lastSelectedColumnIndex: number): void {

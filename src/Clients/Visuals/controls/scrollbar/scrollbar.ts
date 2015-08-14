@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbi.visuals.controls {
 
     var UNSELECTABLE_CLASS_NAME = "unselectable";

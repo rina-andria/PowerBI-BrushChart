@@ -23,7 +23,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-///<reference path="enumType.ts"/>
+
+/// <reference path="../_references.ts"/>
+
 module powerbi {
     export module axisType {
         export const scalar: string = 'Scalar';

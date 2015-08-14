@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import AxisHelper = powerbi.visuals.AxisHelper;
     import ValueType = powerbi.ValueType;
@@ -67,9 +69,74 @@ module powerbitests {
         });
     });
 
-    describe("AxisHelper create scales tests",() => {
+    describe("AxisHelper createDomain tests",() => {
+        var scalarCartesianSeries = [
+            {
+                data: [{
+                    categoryValue: 7,
+                    value: 11,
+                    categoryIndex: 0,
+                    seriesIndex: 0,
+                }, {
+                    categoryValue: 9,
+                    value: 9,
+                    categoryIndex: 1,
+                    seriesIndex: 0,
+                }, {
+                    categoryValue: 15,
+                    value: 6,
+                    categoryIndex: 2,
+                    seriesIndex: 0,
+                }, {
+                    categoryValue: 22,
+                    value: 7,
+                    categoryIndex: 3,
+                    seriesIndex: 0,
+                }]
+            },
+        ];
+
+        it("ordinal - text",() => {
+            var domain = AxisHelper.createDomain(scalarCartesianSeries, ValueType.fromDescriptor({ text: true }), false, []);
+            expect(domain).toEqual([0,1,2,3]);
+        });
+
+        it("scalar - two values",() => {
+            var domain = AxisHelper.createDomain(scalarCartesianSeries, ValueType.fromDescriptor({ numeric: true }), true, [5, 20]);
+            expect(domain).toEqual([5,20]);
+        });
+
+        it("scalar - undefined, val",() => {
+            var domain = AxisHelper.createDomain(scalarCartesianSeries, ValueType.fromDescriptor({ numeric: true }), true, [undefined, 20]);
+            expect(domain).toEqual([7, 20]);
+        });
+
+        it("scalar - val, undefined",() => {
+            var domain = AxisHelper.createDomain(scalarCartesianSeries, ValueType.fromDescriptor({ numeric: true }), true, [5, undefined]);
+            expect(domain).toEqual([5, 22]);
+        });
+
+        it("scalar - undefined, undefined",() => {
+            var domain = AxisHelper.createDomain(scalarCartesianSeries, ValueType.fromDescriptor({ numeric: true }), true, [undefined, undefined]);
+            expect(domain).toEqual([7, 22]);
+        });
+
+        it("scalar - null",() => {
+            var domain = AxisHelper.createDomain(scalarCartesianSeries, ValueType.fromDescriptor({ numeric: true }), true, null);
+            expect(domain).toEqual([7, 22]);
+        });
+
+        // invalid case with min > max, take actual domain
+        it("scalar - min > max",() => {
+            var domain = AxisHelper.createDomain(scalarCartesianSeries, ValueType.fromDescriptor({ numeric: true }), true, [15, 10]);
+            expect(domain).toEqual([7, 22]);
+        });
+    });
+
+    describe("AxisHelper createAxis tests",() => {
         var dataStrings = ['Sun', 'Mon', 'Holiday'];
         var dataNumbers = [47.5, 98.22, 127.3];
+        var dataPercent = [0.0, 0.33, 0.49];
         var dataTime = [new Date('10/15/2014'), new Date('10/15/2015'), new Date('10/15/2016')];
         var domainOrdinal3 = [0, 1, 2];
         var domainBoolIndex = [0, 1];
@@ -81,7 +148,21 @@ module powerbitests {
         };
         var metaDataColumnNumeric: powerbi.DataViewMetadataColumn = {
             displayName: 'Column',
-            type: ValueType.fromDescriptor({ numeric: true })
+            type: ValueType.fromDescriptor({ numeric: true }),
+            objects: {
+                general: {
+                    formatString: '0.00;-0.00;0.00',
+                }
+            }
+        };
+        var metaDataColumnPercent: powerbi.DataViewMetadataColumn = {
+            displayName: 'Column',
+            type: ValueType.fromDescriptor({ numeric: true }),
+            objects: {
+                general: {
+                    formatString: '0 %;-0 %;0 %',
+                }
+            }
         };
         var metaDataColumnBool: powerbi.DataViewMetadataColumn = {
             displayName: 'Column',
@@ -127,7 +208,7 @@ module powerbitests {
             // Proves label max width is pixelSpan/tickValues when categoryThickness not defined
             var xLabelMaxWidth = <any>os.xLabelMaxWidth;
             expect(xLabelMaxWidth).toBeDefined();
-            expect(xLabelMaxWidth).toEqual(25);
+            expect(xLabelMaxWidth).toEqual(21);
         });
 
         it('create ordinal scale with linear values',() => {
@@ -201,7 +282,7 @@ module powerbitests {
                 outerPadding: 0.5,
                 isScalar: false,
                 isVertical: false,
-                categoryThickness: 5,
+                categoryThickness: 14,
                 getValueFn: (index, type) => { return dataStrings[index]; }
             });
 
@@ -213,12 +294,12 @@ module powerbitests {
             // Provides category thickness set when defined
             var categoryThickness = <any>os.categoryThickness;
             expect(categoryThickness).toBeDefined();
-            expect(categoryThickness).toEqual(5);
+            expect(categoryThickness).toEqual(14);
 
             // Provides category thickness used as xLabelMaxWidth when not is scalar
             var xLabelMaxWidth = <any>os.xLabelMaxWidth;
             expect(xLabelMaxWidth).toBeDefined();
-            expect(xLabelMaxWidth).toEqual(5);
+            expect(xLabelMaxWidth).toEqual(10);
         });
 
         it('create linear scale',() => {
@@ -248,8 +329,8 @@ module powerbitests {
             // Proves label max width is pixelSpan/tickValues when is scalar and category thickness not defined
             var xLabelMaxWidth = <any>os.xLabelMaxWidth;
             expect(xLabelMaxWidth).toBeDefined();
-            expect(xLabelMaxWidth).toBeGreaterThan(33);
-            expect(xLabelMaxWidth).toBeLessThan(34);
+            expect(xLabelMaxWidth).toBeGreaterThan(28);
+            expect(xLabelMaxWidth).toBeLessThan(33);
         });
 
         it('create linear scale with NaN domain',() => {
@@ -319,7 +400,7 @@ module powerbitests {
             // Proves category thickness not considered for label max width when is scalar
             var xLabelMaxWidth = <any>os.xLabelMaxWidth;
             expect(xLabelMaxWidth).toBeDefined();
-            expect(xLabelMaxWidth).toBe(25);
+            expect(xLabelMaxWidth).toBe(21);
         });
 
         it('create linear scale with category thickness that needs to change',() => {
@@ -483,6 +564,28 @@ module powerbitests {
             expect(values).toBeDefined();
             expect(values.length).toEqual(3);
             expect(values[0]).toBe('2014');
+        });
+
+        it('create linear percent value scale',() => {
+            var os = AxisHelper.createAxis({
+                pixelSpan: 100,
+                dataDomain: [dataPercent[0], dataPercent[2]],
+                metaDataColumn: metaDataColumnPercent,
+                formatStringProp: formatStringProp,
+                outerPadding: 0.5,
+                isScalar: true,
+                isVertical: true,
+            });
+            var scale = <any>os.scale;
+            expect(scale).toBeDefined();
+            
+            // Proves scale is linear
+            expect(scale.invert).toBeDefined();
+
+            var values = <any>os.values;
+            expect(values).toBeDefined();
+            expect(values.length).toEqual(2);
+            expect(values[1]).toBe('50 %');
         });
     });
 

@@ -24,8 +24,10 @@
  *  THE SOFTWARE.
  */
 
-module powerbi.data {
+/// <reference path="../_references.ts"/>
 
+module powerbi.data {
+    
     /** Represents a projection from a query result. */
     export interface QueryProjection {
         /** Name of item in the semantic query Select clause. */
@@ -42,11 +44,13 @@ module powerbi.data {
 
     export class QueryProjectionCollection {
         private items: QueryProjection[];
+        private _activeProjectionRef: string;
 
-        public constructor(items: QueryProjection[]) {
+        public constructor(items: QueryProjection[], activeProjectionRef?: string) {
             debug.assertValue(items, 'items');
 
             this.items = items;
+            this._activeProjectionRef = activeProjectionRef;
         }
 
         /** Returns all projections in a mutable array. */
@@ -54,8 +58,19 @@ module powerbi.data {
             return this.items;
         }
 
+        public get activeProjectionQueryRef(): string {
+            return this._activeProjectionRef;
+        }
+
+        public set activeProjectionQueryRef(value: string) {
+            var queryRefs = this.items.map(val => val.queryRef);
+            if (!_.contains(queryRefs, value))
+                return;
+            this._activeProjectionRef = value;
+        }
+        
         public clone(): QueryProjectionCollection {
-            return new QueryProjectionCollection(_.clone(this.items));
+            return new QueryProjectionCollection(_.clone(this.items), this._activeProjectionRef);
         }
     }
 
@@ -72,7 +87,7 @@ module powerbi.data {
             return clonedRoles;
         }
 
-        /** Returns the non-empty QueryProjectionCollection for that role.  Empty collections return undefined. */
+        /** Returns the QueryProjectionCollection for that role.  Even returns empty collections so that 'drillable' and 'activeProjection' fields are preserved. */
         export function getRole(roles: QueryProjectionsByRole, name: string): QueryProjectionCollection {
             debug.assertAnyValue(roles, 'roles');
             debug.assertValue(name, 'name');
@@ -80,9 +95,7 @@ module powerbi.data {
             if (!roles)
                 return;
 
-            let projections = roles[name];
-            if (projections && projections.all().length > 0)
-                return projections;
+            return roles[name];
         }
     }
 }

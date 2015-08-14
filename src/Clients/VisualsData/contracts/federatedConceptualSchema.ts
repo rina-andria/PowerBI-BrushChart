@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     export interface FederatedConceptualSchemaInitOptions {
         schemas: { [name: string]: ConceptualSchema };
@@ -38,7 +40,7 @@ module powerbi.data {
         constructor(options: FederatedConceptualSchemaInitOptions) {
             debug.assertValue(options, 'options');
 
-            this.schemas = options.schemas;
+            this.schemas = options.schemas; 
             if (options.links)
                 this.links = options.links;
         }

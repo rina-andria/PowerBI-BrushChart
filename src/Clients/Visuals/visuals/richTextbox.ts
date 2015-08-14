@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
 
     export interface TextRunStyle {
@@ -58,7 +60,7 @@ module powerbi.visuals {
         private editor: RichText.QuillWrapper;
         private element: JQuery;
         private host: IVisualHostServices;
-        private viewPort: IViewport;
+        private viewport: IViewport;
         private readOnly: boolean;
         private paragraphs: ParagraphContext[];
 
@@ -78,7 +80,7 @@ module powerbi.visuals {
         public init(options: VisualInitOptions) {
             this.element = options.element;
             this.host = options.host;
-            this.viewPort = options.viewport;
+            this.viewport = options.viewport;
             this.element.addClass('richtextbox');
             this.element.css({
                 'font-family': RichText.defaultFont,
@@ -95,7 +97,7 @@ module powerbi.visuals {
         }
 
         public onResizing(viewport: IViewport): void {
-            this.viewPort = viewport;
+            this.viewport = viewport;
             this.updateSize();
         }
 
@@ -182,7 +184,7 @@ module powerbi.visuals {
 
         private updateSize(): void {
             if (this.editor)
-                this.editor.resize(this.viewPort);
+                this.editor.resize(this.viewport);
         }
 
         private static convertDeltaToParagraphs(contents: quill.Delta): ParagraphContext[] {
@@ -488,6 +490,13 @@ module powerbi.visuals {
             private static textChangeThrottle = 200; // ms
             private static formatUrlThrottle = 1000; // ms
 
+            public static preventDefaultKeys: number[] = [
+                jsCommon.DOMConstants.aKeyCode,  // A
+                jsCommon.DOMConstants.cKeyCode,  // C
+                jsCommon.DOMConstants.xKeyCode,  // X
+                jsCommon.DOMConstants.vKeyCode,  // V
+            ];
+
             public static loadQuillResources: boolean = true;
 
             // TODO: How to choose between minified/unminified?
@@ -562,9 +571,6 @@ module powerbi.visuals {
             }
 
             public resize(viewport: IViewport): void {
-                if (!this.initialized)
-                    return;
-
                 this.$container.width(viewport.width);
                 this.$container.height(viewport.height);
             }
@@ -633,8 +639,12 @@ module powerbi.visuals {
 
                 this.$container.empty();
 
-                // Prevent canvas from handling keyboard shortcuts like ctrl+a that the browser will handle.
-                this.$container.keydown((e) => e.stopPropagation());
+                // Prevent parent elements from handling keyboard shortcuts (e.g. ctrl+a) that have special meaning for textboxes.
+                // Quill will also capture and prevent bubbling of some keyboard shortcuts, such as ctrl+c, ctrl+b, etc.
+                this.$container.keydown((e) => {
+                    if (e.ctrlKey && _.contains(QuillWrapper.preventDefaultKeys, e.which))
+                        e.stopPropagation();
+                });
 
                 var $editorDiv = this.$editorDiv = $('<div>');
 

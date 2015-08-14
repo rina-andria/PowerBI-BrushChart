@@ -23,7 +23,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-///<reference path="../common/svgUtil.ts"/>
+
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     import EnumExtensions = jsCommon.EnumExtensions;
 
@@ -164,10 +166,11 @@ module powerbi.visuals {
         public static MinScalarRectThickness = 2;
         public static OuterPaddingRatio = 0.4;
         public static InnerPaddingRatio = 0.2;
+        public static TickLabelPadding = 2;
 
         private static ClassName = 'cartesianChart';
         private static AxisGraphicsContextClassName = 'axisGraphicsContext';
-        private static MaxMarginFactor = 0.18;
+        private static MaxMarginFactor = 0.25;
         private static MinBottomMargin = 25;
         private static TopMargin = 8;
         private static LeftPadding = 10;
@@ -226,9 +229,10 @@ module powerbi.visuals {
         private brushGraphicsContext: D3.Selection;
         private brushContext: D3.Selection;
         private brush: D3.Svg.Brush;
-        private brushMinExtent: number;
         private static ScrollBarWidth = 10;
         private static fillOpacity = 0.125;
+        private brushMinExtent: number;
+        private scrollScale: D3.Scale.OrdinalScale;
 
         // TODO: Remove onDataChanged & onResizing once all visuals have implemented update.
         private dataViews: DataView[];
@@ -600,7 +604,7 @@ module powerbi.visuals {
             var layersLength = this.layers ? this.layers.length : 0;
 
             if (options.objectName === 'legend') {
-                if (layersLength > 0 && !this.layers[0].hasLegend())
+                if (!this.shouldShowLegendCard())
                     return;
                 var show = DataViewObject.getValue(this.legendObjectProperties, legendProps.show, this.legend.isVisible());
                 var showTitle = DataViewObject.getValue(this.legendObjectProperties, legendProps.showTitle, true);
@@ -664,6 +668,50 @@ module powerbi.visuals {
                 }
             }
             return objectInstances;
+        }
+
+        private shouldShowLegendCard(): boolean {
+            var layers = this.layers;
+            var dataViews = this.dataViews;
+
+            if (layers && dataViews) {
+                var layersLength = layers.length;
+                var layersWithValuesCtr = 0;                
+
+                for (var i = 0; i < layersLength; i++) {
+                    if (layers[i].hasLegend()) {
+                        return true;
+                    }
+
+                    // if there are at least two layers with values legend card should be shown (even if each of the individual layers don't have legend)
+                    var dataView = dataViews[i];
+                    if (dataView && dataView.categorical && dataView.categorical.values && dataView.categorical.values.length > 0) {
+                        layersWithValuesCtr++;
+                        if (layersWithValuesCtr > 1) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;            
+        }
+
+        public scrollTo(position: number): void {
+            debug.assert(this.isXScrollBarVisible || this.isYScrollBarVisible, 'scrolling is not available');
+            debug.assertValue(this.scrollScale, 'scrollScale');
+
+            var extent = this.brush.extent();
+            var extentLength = extent[1] - extent[0];
+            extent[0] = this.scrollScale(position);
+            extent[1] = extent[0] + extentLength;
+            this.brush.extent(extent);
+
+            var scrollSpaceLength = this.scrollScale.rangeExtent()[1];
+            this.setMinBrush(scrollSpaceLength, this.brushMinExtent);
+
+            var triggerBrush = this.brush.on('brush');
+            triggerBrush(null, 0);  // We don't use the data or index.
         }
 
         private getCategoryAxisValues(): VisualObjectInstance[] {
@@ -1121,9 +1169,9 @@ module powerbi.visuals {
             suppressAnimations: boolean): void {
 
             var mainAxisScale = <D3.Scale.OrdinalScale>inputMainAxisScale;
-            var miniAxisScale = <D3.Scale.OrdinalScale>mainAxisScale.copy();
+            var scrollScale = this.scrollScale = <D3.Scale.OrdinalScale>mainAxisScale.copy();
             var brush = this.brush;
-            var viewportLength;
+            var scrollSpaceLength;
             var marginTop = this.margin.top;
             var marginLeft = this.margin.left;
             var marginRight = this.margin.right;
@@ -1131,25 +1179,24 @@ module powerbi.visuals {
             var minExtent;
 
             if (this.isXScrollBarVisible) {
-                viewportLength = viewport.width - (marginLeft + marginRight);
-                minExtent = this.getMinExtent(svgLength, viewportLength);
-                miniAxisScale.rangeBands([0, viewportLength]);
-                brush.x(miniAxisScale)
+                scrollSpaceLength = viewport.width - (marginLeft + marginRight);
+                minExtent = this.getMinExtent(svgLength, scrollSpaceLength);
+                scrollScale.rangeBands([0, scrollSpaceLength]);
+                brush.x(scrollScale)
                     .extent([0, minExtent]);
             }
             else {
-                viewportLength = viewport.height - (marginTop + marginBottom);
-                minExtent = this.getMinExtent(svgLength, viewportLength);
-                miniAxisScale.rangeBands([0, viewportLength]);
-                brush.y(miniAxisScale)
+                scrollSpaceLength = viewport.height - (marginTop + marginBottom);
+                minExtent = this.getMinExtent(svgLength, scrollSpaceLength);
+                scrollScale.rangeBands([0, scrollSpaceLength]);
+                brush.y(scrollScale)
                     .extent([0, minExtent]);
             }
 
             this.brushMinExtent = minExtent;
-            var viewportToSvgRatio = svgLength / viewportLength;
 
             brush
-                .on("brush", () => window.requestAnimationFrame(() => this.onBrushed(miniAxisScale, mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, viewportLength)))
+                .on("brush", () => window.requestAnimationFrame(() => this.onBrushed(scrollScale, mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, scrollSpaceLength)))
                 .on("brushend", () => this.onBrushEnd(minExtent));
 
             var brushContext = this.brushContext = this.brushGraphicsContext
@@ -1159,16 +1206,12 @@ module powerbi.visuals {
                 })
                 .call(brush);  /*call the brush function, causing it to create the rectangles   */              
               
-            /* Disabling the zooming feature*/
+            /* Disabling the zooming feature */
             brushContext.selectAll(".resize rect")
                 .remove();
 
-            var minBrushExtent = this.setMinBrush(viewportLength, minExtent, viewportToSvgRatio);
-
             brushContext.select(".background")
-                .style('cursor', 'pointer')
-                .on("mousedown.brush", () => minBrushExtent)
-                .on("touchstart.brush", () => minBrushExtent);
+                .style('cursor', 'pointer');
 
             brushContext.selectAll(".extent")
                 .style({
@@ -1181,15 +1224,14 @@ module powerbi.visuals {
             else
                 brushContext.selectAll("rect").attr("width", CartesianChart.ScrollBarWidth);
 
-            if (mainAxisScale && miniAxisScale) {
-                mainAxisScale.domain(miniAxisScale.domain());
-                mainAxisScale.rangeBands([0, viewportLength]);
-                this.renderChart(mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, suppressAnimations, miniAxisScale, brush.extent());
+            if (mainAxisScale && scrollScale) {
+                mainAxisScale.rangeBands([0, scrollSpaceLength]);
+                this.renderChart(mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, suppressAnimations, scrollScale, brush.extent());
             }
         }
 
-        private getMinExtent(svgLength: number, viewportLength: number): number {
-            return viewportLength * viewportLength / (svgLength);
+        private getMinExtent(svgLength: number, scrollSpaceLength: number): number {
+            return scrollSpaceLength * scrollSpaceLength / (svgLength);
         }
 
         private onBrushEnd(minExtent: number): void {
@@ -1201,23 +1243,22 @@ module powerbi.visuals {
                 brushContext.select(".extent").attr("height", minExtent);
         }
 
-        private onBrushed(miniAxisScale: any, mainAxisScale: any, axes: CartesianAxisProperties, width: number, margins: any, chartHasAxisLabels: boolean, axisLabels: ChartAxesLabels, viewport: IViewport, viewportLength: number): void {
+        private onBrushed(scrollScale: any, mainAxisScale: any, axes: CartesianAxisProperties, width: number, margins: any, chartHasAxisLabels: boolean, axisLabels: ChartAxesLabels, viewport: IViewport, scrollSpaceLength: number): void {
             var brush = this.brush;
 
-            if (mainAxisScale && miniAxisScale) {
-                mainAxisScale.domain(miniAxisScale.domain());
-                this.setBrushExtent(this.brush, viewportLength, this.brushMinExtent);
+            if (mainAxisScale && scrollScale) {
+                CartesianChart.clampBrushExtent(this.brush, scrollSpaceLength, this.brushMinExtent);
                 var extent = brush.extent();
-                this.renderChart(mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, true /* suppressAnimations */, miniAxisScale, extent);
+                this.renderChart(mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, true /* suppressAnimations */, scrollScale, extent);
             }
         }
 
         /* To show brush every time when mouse is clicked on the empty background */
-        private setMinBrush(viewportLength: number, minExtent: number, viewportToSvgRatio: number): void {
-            this.setBrushExtent(this.brush, viewportLength, minExtent);
+        private setMinBrush(scrollSpaceLength: number, minExtent: number): void {
+            CartesianChart.clampBrushExtent(this.brush, scrollSpaceLength, minExtent);
         }
 
-        private setBrushExtent(brush: D3.Svg.Brush, viewportWidth: number, minExtent: number): void {
+        private static clampBrushExtent(brush: D3.Svg.Brush, viewportWidth: number, minExtent: number): void {
             var extent = brush.extent();
             var width = extent[1] - extent[0];
 
@@ -1262,7 +1303,7 @@ module powerbi.visuals {
             axisLabels: ChartAxesLabels,
             viewport: IViewport,
             suppressAnimations: boolean,
-            miniAxisScale?: any,
+            scrollScale?: any,
             extent?: number[]) {
 
             var bottomMarginLimit = this.bottomMarginLimit;
@@ -1274,29 +1315,26 @@ module powerbi.visuals {
             debug.assertValue(layers, 'layers');
 
             // Filter data that fits viewport
-            if (miniAxisScale) {
+            if (scrollScale) {
                 var selected: number[];
                 var data: CartesianData[] = [];
 
                 var startValue = extent[0];
                 var endValue = extent[1];
 
-                var pixelStepSize = miniAxisScale(1) - miniAxisScale(0);
+                var pixelStepSize = scrollScale(1) - scrollScale(0);
                 var startIndex = Math.floor(startValue / pixelStepSize);
                 var sliceLength = Math.ceil((endValue - startValue) / pixelStepSize);
                 var endIndex = startIndex + sliceLength; //intentionally one past the end index for use with slice(start,end)
+                var domain = scrollScale.domain();
 
-                selected = mainAxisScale.domain().slice(startIndex, endIndex); //up to but not including 'end'
+                mainAxisScale.domain(domain);
+                selected = domain.slice(startIndex, endIndex); //up to but not including 'end'
                 if (selected && selected.length > 0) {
                     for (var i = 0; i < layers.length; i++) {
                         data[i] = layers[i].setFilteredData(selected[0], selected[selected.length - 1] + 1);
                     }
                     mainAxisScale.domain(selected);
-
-                    var dataType: ValueType = AxisHelper.getCategoryValueType(data[0].categoryMetadata);
-                    var newTickValues = AxisHelper.getRecommendedTickValuesForAnOrdinalRange(sliceLength, mainAxisScale.domain());
-                    var dw = new DataWrapper(data[0], false);
-                    var getValueFn = (index, type) => dw.lookupXValue(index - startIndex, type);
 
                     var axisPropsToUpdate: IAxisProperties;
                     if (this.isXScrollBarVisible) {
@@ -1308,11 +1346,14 @@ module powerbi.visuals {
 
                     axisPropsToUpdate.axis.scale(mainAxisScale);
                     axisPropsToUpdate.scale(mainAxisScale);
-                    axisPropsToUpdate.axis.ticks(sliceLength);
-                    // set an ordinal index array, not the actual values
+
+                    // tick values are indices for ordinal axes
+                    axisPropsToUpdate.axis.ticks(selected.length);
                     axisPropsToUpdate.axis.tickValues(selected); 
-                    // this will call axes.x.axis.tickFormat() for us to convert the index to a real formatted value
-                    axisPropsToUpdate.values = AxisHelper.formatAxisTickValues(axisPropsToUpdate.axis, newTickValues, axisPropsToUpdate.formatter, dataType, false, getValueFn);
+
+                    // use the original tick format to format the tick values
+                    var tickFormat = axisPropsToUpdate.axis.tickFormat();
+                    axisPropsToUpdate.values = _.map(selected, (d) => tickFormat(d));
                 }
             }
 
@@ -1662,7 +1703,7 @@ module powerbi.visuals {
                 layers.push(new LineChart({ chartType: (LineChartType.default | LineChartType.lineShadow), isScrollable: isScrollable, interactivityService: interactivityService, animator: animator }));
                 return;
             case CartesianChartType.DataDot:
-                layers.push(new DataDotChart());
+                layers.push(new DataDotChart({ isScrollable: isScrollable, interactivityService: interactivityService }));
                 return;
             case CartesianChartType.LineClusteredColumnCombo:
                 layers.push(new ColumnChart({
@@ -1689,7 +1730,7 @@ module powerbi.visuals {
                     isScrollable: isScrollable,
                     interactivityService: interactivityService
                 }));
-                layers.push(new DataDotChart());
+                layers.push(new DataDotChart({ isScrollable: isScrollable, interactivityService: interactivityService }));
                 return;
             case CartesianChartType.DataDotStackedColumnCombo:
                 layers.push(new ColumnChart({
@@ -1698,7 +1739,7 @@ module powerbi.visuals {
                     isScrollable: isScrollable,
                     interactivityService: interactivityService
                 }));
-                layers.push(new DataDotChart());
+                layers.push(new DataDotChart({ isScrollable: isScrollable, interactivityService: interactivityService }));
                 return;
         }
     }

@@ -24,35 +24,34 @@
  *  THE SOFTWARE.
  */
 
-describe("VisualFactory", () => {
-    var mockVisualKey = 'mock';
-    var mockFactoryMethod: powerbi.IVisualFactoryMethod;
+/// <reference path="../_references.ts"/>
 
-    beforeEach(() => {
-        mockFactoryMethod = () => { return <powerbi.IVisual>{}; };
+module powerbitests {
 
-        var plugin: powerbi.IVisualPlugin = {
-            name: mockVisualKey,
-            capabilities: {},
-            create: mockFactoryMethod
-        };
-        powerbi.visuals.plugins[mockVisualKey] = plugin;
+    describe("VisualFactory", () => {
+        var mockVisualKey = "mock";
+
+        beforeEach(() => {
+            var plugin: powerbi.IVisualPlugin = {
+                name: mockVisualKey,
+                capabilities: {},
+                create: () => { return <powerbi.IVisual>{}; }
+            };
+
+            powerbi.visuals.plugins[mockVisualKey] = plugin;
+        });
+
+        it("getPlugin finds mock", () => {
+            var plugin = powerbi.visuals.visualPluginFactory.create().getPlugin(mockVisualKey);
+
+            expect(plugin).toBe(powerbi.visuals.plugins[mockVisualKey]);
+        });
+
+        it("getRegisteredVisuals includes test", () => {
+            var registered = powerbi.visuals.visualPluginFactory.create().getVisuals()
+                .filter(v => v.name === mockVisualKey);
+
+            expect(registered).toEqual([powerbi.visuals.plugins[mockVisualKey]]);
+        });
     });
-
-    afterEach(() => {
-        delete powerbi.visuals.plugins[mockVisualKey];
-    });
-
-    it('getPlugin finds mock', () => {
-        var plugin = powerbi.visuals.visualPluginFactory.create().getPlugin(mockVisualKey);
-
-        expect(plugin).toBe(powerbi.visuals.plugins[mockVisualKey]);
-    });
-
-    it('getRegisteredVisuals includes test', () => {
-        var registered = powerbi.visuals.visualPluginFactory.create().getVisuals()
-            .filter(v => v.name === mockVisualKey);
-
-        expect(registered).toEqual([powerbi.visuals.plugins[mockVisualKey]]);
-    });
-});
+}

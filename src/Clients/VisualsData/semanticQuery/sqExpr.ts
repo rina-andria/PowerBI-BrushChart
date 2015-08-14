@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     import StringExtensions = jsCommon.StringExtensions;
     /** Represents an immutable expression within a SemanticQuery. */
@@ -35,10 +37,9 @@ module powerbi.data {
             return SQExprEqualityVisitor.run(x, y, ignoreCase);
         }
 
-        public validate(schema: FederatedConceptualSchema): SQExprValidationError[] {
-            var validator = new SQExprValidationVisitor(schema);
+        public validate(schema: FederatedConceptualSchema, errors?: SQExprValidationError[]): SQExprValidationError[] {
+            var validator = new SQExprValidationVisitor(schema, errors);
             this.accept(validator);
-
             return validator.errors;
         }
 
@@ -90,7 +91,7 @@ module powerbi.data {
         }
 
         /** Return the SQExpr[] of group on columns if it has group on keys otherwise return the SQExpr of the column.*/
-        public getKeyColumns(schema: FederatedConceptualSchema): SQExpr[]{
+        public getKeyColumns(schema: FederatedConceptualSchema): SQExpr[] {
             var columnRefExpr = SQExprColumnRefInfoVisitor.getColumnRefSQExpr(this);
             if (!columnRefExpr)
                 return;
@@ -109,12 +110,12 @@ module powerbi.data {
         }
 
         /** Returns a value indicating whether the expression would group on keys other than itself.*/
-        public hasGroupOnKeys(schema: FederatedConceptualSchema): boolean{
+        public hasGroupOnKeys(schema: FederatedConceptualSchema): boolean {
             var columnRefExpr = SQExprColumnRefInfoVisitor.getColumnRefSQExpr(this);
             if (!columnRefExpr)
                 return;
             var keys = this.getPropertyKeys(schema);
-            
+
             if (!keys || keys.length < 1)
                 return false;
 
@@ -519,7 +520,7 @@ module powerbi.data {
 
         public accept<T, TArg>(visitor: ISQExprVisitorWithArg<T, TArg>, arg?: TArg): T {
             return visitor.visitDateSpan(this, arg);
-    }
+        }
     }
 
     export class SQDateAddExpr extends SQExpr {
@@ -700,7 +701,7 @@ module powerbi.data {
             expr: SQExpr,
             schema: FederatedConceptualSchema,
             aggregateNonNumericFields: boolean): SQExpr {
-            
+
             debug.assertValue(expr, 'expr');
             debug.assertValue(expr, 'schema');
 
@@ -767,13 +768,13 @@ module powerbi.data {
 
         public visitBetween(expr: SQBetweenExpr, comparand: SQExpr): boolean {
             return comparand instanceof SQBetweenExpr &&
-                this.equals(expr.arg,(<SQBetweenExpr>comparand).arg) &&
-                this.equals(expr.lower,(<SQBetweenExpr>comparand).lower) &&
-                this.equals(expr.upper,(<SQBetweenExpr>comparand).upper);
+                this.equals(expr.arg, (<SQBetweenExpr>comparand).arg) &&
+                this.equals(expr.lower, (<SQBetweenExpr>comparand).lower) &&
+                this.equals(expr.upper, (<SQBetweenExpr>comparand).upper);
         }
 
         public visitIn(expr: SQInExpr, comparand: SQExpr): boolean {
-            if (!(comparand instanceof SQInExpr) || !this.equalsAll(expr.args,(<SQInExpr>comparand).args))
+            if (!(comparand instanceof SQInExpr) || !this.equalsAll(expr.args, (<SQInExpr>comparand).args))
                 return false;
 
             var values = expr.values,
@@ -818,20 +819,20 @@ module powerbi.data {
         public visitContains(expr: SQContainsExpr, comparand: SQExpr): boolean {
             return comparand instanceof SQContainsExpr &&
                 this.equals(expr.left, (<SQContainsExpr>comparand).left) &&
-                this.equals(expr.right,(<SQContainsExpr>comparand).right);
+                this.equals(expr.right, (<SQContainsExpr>comparand).right);
         }
 
         public visitDateSpan(expr: SQDateSpanExpr, comparand: SQExpr): boolean {
             return comparand instanceof SQDateSpanExpr &&
                 expr.unit === (<SQDateSpanExpr>comparand).unit &&
-                this.equals(expr.arg,(<SQDateSpanExpr>comparand).arg);
+                this.equals(expr.arg, (<SQDateSpanExpr>comparand).arg);
         }
 
         public visitDateAdd(expr: SQDateAddExpr, comparand: SQExpr): boolean {
             return comparand instanceof SQDateAddExpr &&
                 expr.unit === (<SQDateAddExpr>comparand).unit &&
-                expr.amount === (<SQDateAddExpr>comparand).amount && 
-                this.equals(expr.arg,(<SQDateAddExpr>comparand).arg);
+                expr.amount === (<SQDateAddExpr>comparand).amount &&
+                this.equals(expr.arg, (<SQDateAddExpr>comparand).arg);
         }
 
         public visitExists(expr: SQExistsExpr, comparand: SQExpr): boolean {
@@ -857,9 +858,9 @@ module powerbi.data {
         public visitConstant(expr: SQConstantExpr, comparand: SQExpr): boolean {
             if (comparand instanceof SQConstantExpr && expr.type === (<SQConstantExpr>comparand).type)
                 return expr.type.text && this.ignoreCase ?
-                    StringExtensions.equalIgnoreCase(expr.valueEncoded,(<SQConstantExpr>comparand).valueEncoded) :
-                expr.valueEncoded === (<SQConstantExpr>comparand).valueEncoded;
-            
+                    StringExtensions.equalIgnoreCase(expr.valueEncoded, (<SQConstantExpr>comparand).valueEncoded) :
+                    expr.valueEncoded === (<SQConstantExpr>comparand).valueEncoded;
+
             return false;
         }
 
@@ -906,15 +907,17 @@ module powerbi.data {
         invalidRightOperandType,
     }
 
-    class SQExprValidationVisitor extends SQExprRewriter {
+    export class SQExprValidationVisitor extends SQExprRewriter {
         public errors: SQExprValidationError[];
         private schema: FederatedConceptualSchema;
 
-        constructor(schema: FederatedConceptualSchema) {
+        constructor(schema: FederatedConceptualSchema, errors?: SQExprValidationError[]) {
             debug.assertValue(schema, 'schema');
 
             super();
             this.schema = schema;
+            if(errors)
+                this.errors = errors;
         }
 
         public visitColumnRef(expr: SQColumnRefExpr): SQExpr {
@@ -923,7 +926,9 @@ module powerbi.data {
                 var entity = this.validateEntity(fieldDef.schema, fieldDef.entity);
                 if (entity) {
                     var prop = entity.properties.withName(fieldDef.column);
-                    if (!prop || prop.kind !== ConceptualPropertyKind.Column)
+                    if (!prop ||
+                        prop.kind !== ConceptualPropertyKind.Column ||
+                        !this.isQueryable(fieldDef))
                         this.register(SQExprValidationError.invalidColumnReference);
                 }
             }
@@ -936,7 +941,9 @@ module powerbi.data {
                 var entity = this.validateEntity(fieldDef.schema, fieldDef.entity);
                 if (entity) {
                     var prop = entity.properties.withName(fieldDef.measure);
-                    if (!prop || prop.kind !== ConceptualPropertyKind.Measure)
+                    if (!prop ||
+                        prop.kind !== ConceptualPropertyKind.Measure ||
+                        !this.isQueryable(fieldDef))
                         this.register(SQExprValidationError.invalidMeasureReference);
                 }
             }
@@ -945,7 +952,7 @@ module powerbi.data {
 
         public visitAggr(expr: SQAggregationExpr): SQExpr {
             var aggregateExpr = <SQAggregationExpr>super.visitAggr(expr);
-            
+
             var columnRefExpr = SQExprColumnRefInfoVisitor.getColumnRefSQExpr(aggregateExpr.arg);
             if (columnRefExpr) {
                 var supportedFuncs = SQExprUtils.getSupportedAggregates(columnRefExpr, false, this.schema);
@@ -967,8 +974,11 @@ module powerbi.data {
 
             if (!(left instanceof SQColumnRefExpr))
                 this.register(SQExprValidationError.invalidLeftOperandType);
-            else if (!(right instanceof SQConstantExpr) || !(<SQConstantExpr>right).type.text)
-                this.register(SQExprValidationError.invalidRightOperandType);
+            else {
+                this.visitColumnRef(<SQColumnRefExpr>left);
+                if (!(right instanceof SQConstantExpr) || !(<SQConstantExpr>right).type.text)
+                    this.register(SQExprValidationError.invalidRightOperandType);
+            }
 
             return expr;
         }
@@ -979,8 +989,11 @@ module powerbi.data {
 
             if (!(left instanceof SQColumnRefExpr))
                 this.register(SQExprValidationError.invalidLeftOperandType);
-            else if (!(right instanceof SQConstantExpr) || !(<SQConstantExpr>right).type.text)
-                this.register(SQExprValidationError.invalidRightOperandType);
+            else {
+                this.visitColumnRef(<SQColumnRefExpr>left);
+                if (!(right instanceof SQConstantExpr) || !(<SQConstantExpr>right).type.text)
+                    this.register(SQExprValidationError.invalidRightOperandType);
+            }
 
             return expr;
         }
@@ -1003,6 +1016,10 @@ module powerbi.data {
             if (!this.errors)
                 this.errors = [];
             this.errors.push(error);
+        }
+
+        private isQueryable(fieldDef: SQFieldDef): boolean {
+            return this.schema.schema(fieldDef.schema).findProperty(fieldDef.entity, fieldDef.column || fieldDef.measure).queryable !== ConceptualQueryableState.Error;
         }
     }
 

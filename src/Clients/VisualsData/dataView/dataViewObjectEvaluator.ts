@@ -23,8 +23,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-///<reference path="../types/valueType.ts"/>
-///<reference path="../semanticQuery/sqExprVisitor.ts"/>
+ 
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     /** Responsible for evaluating object property expressions to be applied at various scopes in a DataView. */
     export module DataViewObjectEvaluator {

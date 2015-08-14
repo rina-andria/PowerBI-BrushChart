@@ -4,26 +4,46 @@
     <title>Power BI visualization playground</title>
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="visuals.min.css" />
+    
+    <script type="text/javascript" src="powerbi-visuals.all.min.js"></script>    
+    <script type="text/javascript" src ="PowerBIVisualsPlayground.js"></script>
+    
 </head>
 <body>
-    <div class="topBar">
-        <div style="float:left;">
-             <div>
-                <span>Select a visual:</span>
-                <select id="visualTypes"></select>
+    <section id="sample">
+        <div class="topBar">
+            <div style="float:left;">
+                <div>
+                    <span>Select a visual:</span>
+                    <select id="visualTypes"></select>
+                </div>
             </div>
         </div>
-    </div>  
-    
-    <div id="container">
-        <div id="optionsContainer"></div>
-        <div id="itemContainer"></div>
-    </div>
 
-    <script type="text/javascript" src="powerbi-visuals.all.min.js"></script>
-
-    <script type="text/javascript" src="sampleData.js"></script>
-    <script type="text/javascript" src="app.js"></script>
+        <div id="container"></div>
+    </section>
+    <section id="options">
+        <h4>Options:</h4>
+        <ul id="options-list">
+            <li>
+                <span>DataView:</span>
+                <select id="dataViewsSelect"></select>
+                <button id="randomize">Randomize</button>
+            </li>
+            <li>
+                <span>Animations:</span>
+                <input type="checkbox" name="suppressAnimations" value="">
+            </li>
+            <li>
+                <span>Animation duration:</span>
+                <input type="text" name="animation_duration" pattern="[0-9]{5}" maxlength="5" value="100">
+            </li>
+            <li>
+                <span>Interactions:</span>
+                <input type="checkbox" name="is_interactions" value="">
+            </li>
+        </ul>
+    </section>
 
     <script type="text/javascript">
         $(document).ready(function () {

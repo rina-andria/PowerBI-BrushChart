@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface ScatterChartConstructorOptions {
         interactivityService: IInteractivityService;
@@ -94,7 +96,6 @@ module powerbi.visuals {
         private static MaxSizeRange = 3000;
         private static ClassName = 'scatterChart';
         private static MainGraphicsContextClassName = 'mainGraphicsContext';
-        private static DataLabelsContextClassName = 'dataLabelsContext';
 
         private static DotClasses: ClassAndSelector = {
             class: 'dot',
@@ -104,7 +105,6 @@ module powerbi.visuals {
         private svg: D3.Selection;
         private element: JQuery;
         private mainGraphicsContext: D3.Selection;
-        private dataLabelsContext: D3.Selection;
         private clearCatcher: D3.Selection;
         private mainGraphicsG: D3.Selection;
         private currentViewport: IViewport;
@@ -151,8 +151,6 @@ module powerbi.visuals {
                 .classed(ScatterChart.MainGraphicsContextClassName, true);
 
             this.mainGraphicsContext = this.mainGraphicsG.append('svg');
-            this.dataLabelsContext = this.mainGraphicsG.append('g')
-                .classed(ScatterChart.DataLabelsContextClassName, true);
         }
 
         public static converter(dataView: DataView, currentViewport: IViewport, colorPalette: IDataColorPalette, interactivityService?: IInteractivityService, categoryAxisProperties?: DataViewObject, valueAxisProperties?: DataViewObject): ScatterChartData {
@@ -703,10 +701,10 @@ module powerbi.visuals {
 
             if (this.data.dataLabelsSettings.show) {
                 var layout = dataLabelUtils.getScatterChartLabelLayout(xScale, yScale, this.data.dataLabelsSettings, viewport, data.sizeRange);
-                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.dataLabelsContext, layout, this.currentViewport);
+                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.mainGraphicsG, layout, this.currentViewport);
             }
             else {
-                dataLabelUtils.cleanDataLabels(this.dataLabelsContext);
+                dataLabelUtils.cleanDataLabels(this.mainGraphicsG);
             }
 
             if (this.interactivityService) {

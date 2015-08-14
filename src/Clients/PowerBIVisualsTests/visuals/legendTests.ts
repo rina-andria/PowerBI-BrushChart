@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
 import ILegend = powerbi.visuals.ILegend;
 import LegendIcon = powerbi.visuals.LegendIcon;

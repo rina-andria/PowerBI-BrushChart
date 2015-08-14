@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
 
     export interface SlicerData {
@@ -194,8 +196,12 @@ module powerbi.visuals {
                 this.dataView = dataViews[0];
             }
 
-            var resetScrollbarPosition = options.operationKind !== VisualDataChangeOperationKind.Append
+            var resetScrollbarPosition = false;
+            // Null check is needed here. If we don't check for null, selecting a value on loadMore event will evaluate the below condition to true and resets the scrollbar
+            if (options.operationKind != null) {
+                resetScrollbarPosition = options.operationKind !== VisualDataChangeOperationKind.Append
                 && !DataViewAnalysis.hasSameCategoryIdentity(existingDataView, this.dataView);
+            }
             this.updateInternal(resetScrollbarPosition);
             this.waitingForData = false;
         }

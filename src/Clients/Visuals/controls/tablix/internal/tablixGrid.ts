@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../../_references.ts"/>
+
 module powerbi.visuals.controls.internal {
 
     export interface ITablixResizeHandler {
@@ -60,185 +62,6 @@ module powerbi.visuals.controls.internal {
         getCellContextualSpan(cell: TablixCell): number;
     }
 
-    /** This class is responsible for tablix header resizing
-      */
-    export class TablixResizer {
-        private _element: HTMLElement;
-        private _handler: ITablixResizeHandler;
-        private _elementMouseDownWrapper: any;
-        private _elementMouseMoveWrapper: any;
-        private _elementMouseOutWrapper: any;
-        private _elementMouseDoubleClickOutWrapper: any;
-        private _documentMouseMoveWrapper: any;
-        private _documentMouseUpWrapper: any;
-        private _startMousePosition: { x: number; y: number; };
-        private _originalCursor: string;
-
-        static resizeHandleSize = 4;
-        static resizeCursor = "e-resize";
-
-        constructor(element: HTMLElement, handler: ITablixResizeHandler) {
-            this._element = element;
-            this._handler = handler;
-            this._elementMouseDownWrapper = null;
-            this._elementMouseMoveWrapper = null;
-            this._elementMouseOutWrapper = null;
-            this._documentMouseMoveWrapper = null;
-            this._documentMouseUpWrapper = null;
-            this._startMousePosition = null;
-            this._originalCursor = null;
-        }
-
-        static addDocumentMouseUpEvent(listener: EventListener): void {
-            document.addEventListener("mouseup", listener);
-        }
-
-        static removeDocumentMouseUpEvent(listener: EventListener): void {
-            document.removeEventListener("mouseup", listener);
-        }
-
-        static addDocumentMouseMoveEvent(listener: EventListener): void {
-            document.addEventListener("mousemove", listener);
-        }
-
-        static removeDocumentMouseMoveEvent(listener: EventListener): void {
-            document.removeEventListener("mousemove", listener);
-        }
-
-        static getMouseCoordinates(event: MouseEvent): { x: number; y: number; } {
-            return { x: event.pageX, y: event.pageY };
-        }
-
-        static getMouseCoordinateDelta(previous: { x: number; y: number; }, current: { x: number; y: number; }): { x: number; y: number; } {
-            return { x: current.x - previous.x, y: current.y - previous.y };
-        }
-
-        public initialize(): void {
-            this._elementMouseDownWrapper = e => this.onElementMouseDown(<MouseEvent>e);
-            this._element.addEventListener("mousedown", this._elementMouseDownWrapper);
-            this._elementMouseMoveWrapper = e => this.onElementMouseMove(<MouseEvent>e);
-            this._element.addEventListener("mousemove", this._elementMouseMoveWrapper);
-            this._elementMouseOutWrapper = e => this.onElementMouseOut(<MouseEvent>e);
-            this._element.addEventListener("mouseout", this._elementMouseOutWrapper);
-            this._elementMouseDoubleClickOutWrapper = e => this.onElementMouseDoubleClick(<MouseEvent>e);
-            this._element.addEventListener("dblclick", this._elementMouseDoubleClickOutWrapper);
-        }
-
-        public uninitialize(): void {
-            this._element.removeEventListener("mousedown", this._elementMouseDownWrapper);
-            this._elementMouseDownWrapper = null;
-            this._element.removeEventListener("mousemove", this._elementMouseMoveWrapper);
-            this._elementMouseMoveWrapper = null;
-            this._element.removeEventListener("mouseout", this._elementMouseOutWrapper);
-            this._elementMouseOutWrapper = null;
-            this._element.removeEventListener("dblclick", this._elementMouseDoubleClickOutWrapper);
-            this._elementMouseDoubleClickOutWrapper = null;
-        }
-
-        public get cell(): TablixCell {
-            // abstract
-            debug.assertFail("PureVirtualMethod: TablixResizer.cell");
-            return null;
-        }
-
-        public get element(): HTMLElement {
-            return this._element;
-        }
-
-        // Protected
-        public _hotSpot(position: { x: number; y: number; }) {
-            // abstract
-            debug.assertFail("PureVirtualMethod: TablixResizer._hotSpot");
-            return false;
-        }
-                
-        private onElementMouseDown(event: MouseEvent): void {
-            var position = TablixResizer.getMouseCoordinates(event);
-            if (!this._hotSpot(position))
-                return;
-
-            if ("setCapture" in this._element) {
-                this._element.setCapture();
-            }
-
-            event.cancelBubble = true;
-            this._startMousePosition = position;
-            this._documentMouseMoveWrapper = e => this.onDocumentMouseMove(e);
-            TablixResizer.addDocumentMouseMoveEvent(this._documentMouseMoveWrapper);
-            this._documentMouseUpWrapper = e => this.onDocumentMouseUp(e);
-            TablixResizer.addDocumentMouseUpEvent(this._documentMouseUpWrapper);
-
-            if (document.documentElement) {
-                this._originalCursor = document.documentElement.style.cursor;
-                document.documentElement.style.cursor = TablixResizer.resizeCursor;
-            }
-            
-            this._handler.onStartResize(this.cell, this._startMousePosition.x, this._startMousePosition.y);
-        }
-
-        private onElementMouseMove(event: MouseEvent) {
-            if (!this._startMousePosition) {
-                if (this._hotSpot(TablixResizer.getMouseCoordinates(event))) {
-                    if (this._originalCursor === null) {
-                        this._originalCursor = this._element.style.cursor;
-                        this._element.style.cursor = TablixResizer.resizeCursor;
-                    }
-                } else {
-                    if (this._originalCursor !== null) {
-                        this._element.style.cursor = this._originalCursor;
-                        this._originalCursor = null;
-                    }
-                }
-            }
-        }
-
-        private onElementMouseOut(event: MouseEvent) {
-            if (!this._startMousePosition) {
-                if (this._originalCursor !== null) {
-                    this._element.style.cursor = this._originalCursor;
-                    this._originalCursor = null;
-                }
-            }
-        }
-
-        private onElementMouseDoubleClick(event: MouseEvent) {
-            if (!this._hotSpot(TablixResizer.getMouseCoordinates(event)))
-                return;
-
-            this._handler.onReset(this.cell);
-        }
-
-        private onDocumentMouseMove(event: MouseEvent): void {
-            if (!this._startMousePosition)
-                return;
-
-            var delta = TablixResizer.getMouseCoordinateDelta(this._startMousePosition, TablixResizer.getMouseCoordinates(event));
-            this._handler.onResize(this.cell, delta.x, delta.y);
-        }
-
-        private onDocumentMouseUp(event: MouseEvent): void {
-            this._startMousePosition = null;
-
-            if ("releaseCapture" in this._element) {
-                this._element.releaseCapture();
-            }
-
-            TablixResizer.removeDocumentMouseMoveEvent(this._documentMouseMoveWrapper);
-            this._documentMouseMoveWrapper = null;
-
-            TablixResizer.removeDocumentMouseUpEvent(this._documentMouseUpWrapper);
-            this._documentMouseUpWrapper = null;
-
-            if (document.documentElement)
-                document.documentElement.style.cursor = this._originalCursor;
-
-            if (event.preventDefault)
-                event.preventDefault(); // prevent other events
-
-            this._handler.onEndResize(this.cell);
-        }
-    }
-
     export class TablixCell implements ITablixCell {
         private _horizontalOffset: number;
         private _verticalOffset: number;
@@ -256,7 +79,7 @@ module powerbi.visuals.controls.internal {
         public item: any;
 
         public _presenter: TablixCellPresenter; // internal
-        public extension: any; 
+        public extension: any;
 
         constructor(presenter: TablixCellPresenter, extension: any, row: TablixRow) {
             this._presenter = presenter;
@@ -469,7 +292,7 @@ module powerbi.visuals.controls.internal {
             return this._items[this._items.length - 1];
         }
 
-        public columnHeaderOrCornerEquals(type1: TablixCellType, item1: any, type2: TablixCellType, item2: any, hierarchyNavigator: ITablixHierarchyNavigator): boolean{
+        public columnHeaderOrCornerEquals(type1: TablixCellType, item1: any, type2: TablixCellType, item2: any, hierarchyNavigator: ITablixHierarchyNavigator): boolean {
             if (type1 !== type2)
                 return false;
 
@@ -549,7 +372,7 @@ module powerbi.visuals.controls.internal {
         public get footer(): TablixCell {
             return this._footerCell;
         }
-                
+
         public resize(width: number): void {
             if (width === this.getContentContextualWidth())
                 return;
@@ -1141,7 +964,7 @@ module powerbi.visuals.controls.internal {
             this._presenter = presenter;
             this._footerRow = null;
         }
-            
+
         public initialize(owner: TablixControl, gridHost: HTMLElement, footerHost: HTMLElement) {
             this._owner = owner;
             this._presenter.initialize(this, gridHost, footerHost, owner);
@@ -1173,8 +996,16 @@ module powerbi.visuals.controls.internal {
             return this._realizedColumns;
         }
 
+        public set realizedColumns(columns: TablixColumn[]) {
+            this._realizedColumns = columns;
+        }
+
         public get realizedRows(): TablixRow[] {
             return this._realizedRows;
+        }
+
+        public set realizedRows(rows: TablixRow[]) {
+            this._realizedRows = rows;
         }
 
         public get footerRow(): TablixRow {
@@ -1190,9 +1021,9 @@ module powerbi.visuals.controls.internal {
         }
 
         public ShowEmptySpaceCells(rowSpan: number, width: number): void {
-            if (this._realizedRows.length === 0) 
+            if (this._realizedRows.length === 0)
                 return;
-            
+
             if (this._realizedRows.length !== 0 && !this._emptySpaceHeaderCell) {
                 this._emptySpaceHeaderCell = this._realizedRows[0].getOrCreateEmptySpaceCell();
                 this._emptySpaceHeaderCell.rowSpan = rowSpan;
@@ -1383,7 +1214,7 @@ module powerbi.visuals.controls.internal {
                 this._footerRow.initialize(this);
             }
         }
-           
+
         private clearRows() {
             var rows: TablixRow[] = this._rows;
             if (rows) {
@@ -1401,7 +1232,7 @@ module powerbi.visuals.controls.internal {
                 this._realizedRows = null;
             }
         }
-             
+
         public getWidth(): number {
             return this._presenter.getWidth();
         }

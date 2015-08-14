@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     export class ConceptualSchema {
         public entities: jsCommon.ArrayNamedItems<ConceptualEntity>;

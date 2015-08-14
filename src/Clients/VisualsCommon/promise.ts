@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbi {
     /** An interface to promise/deferred, which abstracts away the underlying mechanism (e.g., Angular, jQuery, etc.). */
     export interface IPromiseFactory {

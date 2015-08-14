@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module jsCommon {
     export interface ArrayIdItems<T> extends Array<T> {
         withId(id: number): T;
@@ -241,6 +243,10 @@ module jsCommon {
                 return true;
             }
             return false;
+        }
+
+        export function isArray(object: any): boolean {
+            return Object.prototype.toString.call(object) === '[object Array]';
         }
     }
 } 

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface DonutChartAnimationOptions extends IAnimationOptions {
         viewModel: DonutData;
@@ -124,7 +126,6 @@ module powerbi.visuals {
 
         private animateHighlightedToNormal(options: DonutChartAnimationOptions): DonutChartAnimationResult {
             var hasSelection = options.interactivityService && (<WebInteractivityService>options.interactivityService).hasSelection();
-            var endStylesApplied = false;
             var duration = this.animationDuration;
 
             var shapes = options.graphicsContext.select('.slices')
@@ -143,7 +144,11 @@ module powerbi.visuals {
                 .style('fill-opacity', (d: DonutArcDescriptor) => ColumnUtil.getFillOpacity(d.data.selected, false, d.data.selected, !d.data.selected))
                 .transition()
                 .duration(duration)
-                .attr(options.layout.shapeLayout);
+                .attr(options.layout.shapeLayout)
+                .transition()
+                .duration(0)
+                .delay(duration)
+                .style("fill-opacity", (d: DonutArcDescriptor) => ColumnUtil.getFillOpacity(d.data.selected, false, hasSelection, false));;
 
             shapes.exit()
                 .remove();
@@ -163,13 +168,7 @@ module powerbi.visuals {
                 .transition()
                 .duration(duration)
                 .attr(hasSelection ? options.layout.zeroShapeLayout : options.layout.shapeLayout)  // Transition to the non-highlight layout
-                .each("end", (d: DonutArcDescriptor) => {
-                    if (!endStylesApplied) {
-                        shapes.style("fill-opacity", (d: DonutArcDescriptor) => ColumnUtil.getFillOpacity(d.data.selected, false, hasSelection, false));
-                        highlightShapes.remove(); // Then remove highlight shapes and set normal shapes to non-highlighted opacities.
-                        endStylesApplied = true;
-                    }
-                });
+                .remove();
 
             highlightShapes.exit()
                 .remove();

@@ -24,12 +24,12 @@
  *  THE SOFTWARE.
  */
 
-///<reference path="../../typedefs/d3/d3.d.ts"/>
-///<reference path="../../typedefs/jquery-visible/jquery-visible.d.ts"/>
-///<reference path="../../typedefs/jQuery/jQuery.d.ts"/>
-///<reference path="../../typedefs/microsoftMaps/Microsoft.Maps.d.ts" />
-///<reference path="../../typedefs/moment/moment.d.ts"/>
-///<reference path="../../typedefs/velocity/velocity-animate.d.ts"/>
-///<reference path="../../typedefs/lodash/lodash.d.ts"/>
-///<reference path="../../typedefs/quill/quill.d.ts"/>
-///<reference path="../../typedefs/ie/ie.d.ts"/>
+///<reference path="../../Typedefs/d3/d3.d.ts"/>
+///<reference path="../../Typedefs/jquery-visible/jquery-visible.d.ts"/>
+///<reference path="../../Typedefs/jquery/jquery.d.ts"/>
+///<reference path="../../Typedefs/microsoftMaps/Microsoft.Maps.d.ts" />
+///<reference path="../../Typedefs/moment/moment.d.ts"/>
+///<reference path="../../Typedefs/velocity/velocity-animate.d.ts"/>
+///<reference path="../../Typedefs/lodash/lodash.d.ts"/>
+///<reference path="../../Typedefs/quill/quill.d.ts"/>
+///<reference path="../../Typedefs/ie/ie.d.ts"/>

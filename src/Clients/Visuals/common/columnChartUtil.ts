@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     var rectName = 'rect';
 
@@ -249,7 +251,7 @@ module powerbi.visuals {
         export function drawDefaultLabels(series: D3.UpdateSelection, context: D3.Selection, layout: ILabelLayout, viewPort: IViewport, isAnimator: boolean = false, animationDuration?: number): D3.UpdateSelection {
             if (series) {
                 var seriesData = series.data();
-                var dataPoints: LineChartDataPoint[] = [];
+                var dataPoints: ColumnChartDataPoint[] = [];
 
                 for (var i = 0, len = seriesData.length; i < len; i++) {
                     Array.prototype.push.apply(dataPoints, seriesData[i].data);

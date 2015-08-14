@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi {
     export class NumericSequence {
         private static MIN_COUNT: number = 1;

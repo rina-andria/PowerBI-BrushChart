@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import TooltipBuilder = powerbi.visuals.TooltipBuilder;
     import TooltipManager = powerbi.visuals.TooltipManager;

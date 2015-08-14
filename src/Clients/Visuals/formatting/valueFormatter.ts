@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     /** Formats the value using provided format expression and culture
     * @param value - value to be formatted and converted to string.

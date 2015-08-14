@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbi {
     import DataViewObjectDescriptors = powerbi.data.DataViewObjectDescriptors;
     import DataViewObjectDescriptor = powerbi.data.DataViewObjectDescriptor;
@@ -105,6 +107,9 @@ module powerbi {
           * so the visual can translate its state into options understood by the query generator. 
           */
         customizeQuery?: CustomizeQueryMethod;
+
+        /** The class of the plugin.  At the moment it is only used to have a way to indicate the class name that a custom visual has. */
+        class?: string;
 
         /* Function to get the list of sortable roles */
         getSortableRoles?: (visualSortableOptions?: VisualSortableOptions) => string[];
@@ -384,8 +389,26 @@ module powerbi {
         data: VisualDragPayload;
     }
 
+    export interface SelectorForColumn {
+        queryName: string;
+        data: data.DataRepetitionSelector;
+    }
+
+    export interface SelectorsByColumn {
+        /** Data-bound repetition selection. */
+        dataMap?: SelectorForColumn[];
+
+        /** Metadata-bound repetition selection.  Refers to a DataViewMetadataColumn queryName. */
+        metadata?: string;
+
+        /** User-defined repetition selection. */
+        id?: string;
+    }
+
+    // TODO: Consolidate these two into one object and add a method to transform SelectorsByColumn[] into Selector[] for components that need that structure
     export interface SelectEventArgs {
         data: Selector[];
+        data2?: SelectorsByColumn[];
     }
 
     export interface SelectObjectEventArgs {

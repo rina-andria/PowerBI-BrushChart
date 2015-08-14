@@ -1787,6 +1787,7 @@ declare module D3 {
                 (): number;
                 (value: number): Axis;
             }
+            tickFormat(): (any) => string;
             tickFormat(formatter: (value: any) => string): Axis;
             nice(count?: number): Axis;
         }

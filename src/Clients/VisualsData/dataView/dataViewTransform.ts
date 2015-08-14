@@ -24,7 +24,8 @@
  *  THE SOFTWARE.
  */
 
-///<reference path="rules/colorRuleEvaluation.ts"/>
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     import inherit = Prototype.inherit;
     import ArrayExtensions = jsCommon.ArrayExtensions;

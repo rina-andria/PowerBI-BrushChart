@@ -23,7 +23,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-///<reference path="animatedText.ts"/>
+
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     /** Renders a number that can be animate change in value */
     export class AnimatedNumber extends AnimatedText implements IVisual {
@@ -55,7 +57,6 @@ module powerbi.visuals {
             if (!this.svg)
                 this.svg = d3.select(element.get(0)).append('svg');
 
-            this.graphicsContext = this.svg.append('g');
             this.currentViewport = options.viewport;
             this.hostServices = options.host;
             this.style = options.style;

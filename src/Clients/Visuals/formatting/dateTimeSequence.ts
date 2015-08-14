@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi {
     /** Repreasents the sequence of the dates/times */
     export class DateTimeSequence {

@@ -24,13 +24,15 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface ColumnChartAnimationOptions extends IAnimationOptions {
         viewModel: ColumnChartData;
         series: D3.UpdateSelection;
         layout: IColumnLayout;
         itemCS: ClassAndSelector;
-        labelGraphicsContext: D3.Selection;
+        mainGraphicsContext: D3.Selection;
         labelLayout: ILabelLayout; 
         viewPort: IViewport;
     }
@@ -123,7 +125,6 @@ module powerbi.visuals {
         private animateHighlightedToNormal(options: ColumnChartAnimationOptions): ColumnChartAnimationResult {
             var itemCS = options.itemCS;
             var shapeSelection = options.series.selectAll(itemCS.selector);
-            var endStyleApplied = false;
             var shapes = shapeSelection.data((d: ColumnChartSeries) => d.data, (d: ColumnChartDataPoint) => d.key);
             var hasSelection = options.interactivityService && (<WebInteractivityService>options.interactivityService).hasSelection();
 
@@ -137,19 +138,17 @@ module powerbi.visuals {
                 .style("fill-opacity", (d: ColumnChartDataPoint) => ColumnUtil.getFillOpacity(d.selected, d.highlight, d.selected, !d.selected))
                 .transition()
                 .duration(this.animationDuration)
-                .attr(options.layout.shapeLayout);
+                .attr(options.layout.shapeLayout)
+                .transition()
+                .duration(0)
+                .delay(this.animationDuration)
+                .style("fill-opacity", (d: ColumnChartDataPoint) => ColumnUtil.getFillOpacity(d.selected, d.highlight, hasSelection, false));
 
             shapes
                 .exit()
                 .transition()
                 .duration(this.animationDuration)
                 .attr(hasSelection ? options.layout.zeroShapeLayout : options.layout.shapeLayoutWithoutHighlights)
-                .each("end", () => {
-                    if (!endStyleApplied) {
-                        shapes.style("fill-opacity", (d: ColumnChartDataPoint) => ColumnUtil.getFillOpacity(d.selected, d.highlight, hasSelection, false));
-                        endStyleApplied = true;
-                    }
-                })
                 .remove();
 
             var dataLabels: D3.UpdateSelection = this.animateDefaultDataLabels(options);
@@ -188,10 +187,10 @@ module powerbi.visuals {
             var dataLabels: D3.UpdateSelection;
 
             if (options.viewModel.labelSettings.show) {
-                dataLabels = ColumnUtil.drawDefaultLabels(options.series, options.labelGraphicsContext, options.labelLayout, options.viewPort, true, this.animationDuration);
+                dataLabels = ColumnUtil.drawDefaultLabels(options.series, options.mainGraphicsContext, options.labelLayout, options.viewPort, true, this.animationDuration);
             }
             else {
-                dataLabelUtils.cleanDataLabels(options.labelGraphicsContext);
+                dataLabelUtils.cleanDataLabels(options.mainGraphicsContext);
             }
 
             return dataLabels;

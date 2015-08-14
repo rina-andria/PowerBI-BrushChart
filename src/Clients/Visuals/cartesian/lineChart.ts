@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     import EnumExtensions = jsCommon.EnumExtensions;
 
@@ -77,7 +79,6 @@ module powerbi.visuals {
     export class LineChart implements ICartesianVisual, IInteractiveVisual {
         private static ClassName = 'lineChart';
         private static MainGraphicsContextClassName = 'mainGraphicsContext';
-        private static DataLabelsSVGClassName = 'dataLabelsSVG';
         private static CategoryClassName = 'cat';
         private static CategoryClassSelector = '.cat';
         private static CategoryValuePoint: ClassAndSelector = {
@@ -100,7 +101,6 @@ module powerbi.visuals {
 
         private element: JQuery;
         private mainGraphicsContext: D3.Selection;
-        private dataLabelsSVG: D3.Selection;
         private clearCatcher: D3.Selection;
         private mainGraphicsSVG: D3.Selection;
         private toolTipContext: D3.Selection;
@@ -225,7 +225,7 @@ module powerbi.visuals {
                 var valuesMetadata = column.source;
                 var dataPoints: LineChartDataPoint[] = [];
                 var groupedIdentity = grouped[seriesIndex];
-                var identity = hasDynamicSeries ?
+                var identity = hasDynamicSeries && groupedIdentity ?
                     SelectionId.createWithIdAndMeasure(groupedIdentity.identity, column.source.queryName) :
                     SelectionId.createWithMeasure(column.source.queryName);
                 var key = identity.getKey();
@@ -307,6 +307,10 @@ module powerbi.visuals {
             };
         }
 
+        public static getInteractiveLegendDomElement(element: JQuery): HTMLElement {
+            return element.children(".interactive-legend").get(0);
+        }
+
         private static getColor(
             colorHelper: ColorHelper,
             hasDynamicSeries: boolean,
@@ -317,14 +321,14 @@ module powerbi.visuals {
 
             var objects: DataViewObjects;
             if (hasDynamicSeries) {
-                if (grouped)
+                if (grouped && grouped[seriesIndex])
                     objects = grouped[seriesIndex].objects;
             }
-            else {
+            else if (values[seriesIndex]) {
                 objects = values[seriesIndex].source.objects;
             }
 
-            return hasDynamicSeries
+            return hasDynamicSeries && groupedIdentity 
                 ? colorHelper.getColorForSeriesValue(objects, values.identityFields, groupedIdentity.name)
                 : colorHelper.getColorForMeasure(objects, values[seriesIndex].source.queryName);
         }
@@ -350,13 +354,14 @@ module powerbi.visuals {
             var svg = options.svg;
             this.clearCatcher = svg.select(".clearCatcher");
 
-            this.mainGraphicsSVG = svg.append('svg');
+            this.mainGraphicsSVG = svg.append('svg')
+                .classed('lineChartSVG', true)
+                .style('overflow', 'visible');
             this.mainGraphicsContext = this.mainGraphicsSVG
+                .append('svg')
+                .style('overflow', 'hidden')
                 .append('g')
                 .classed(LineChart.MainGraphicsContextClassName, true);
-
-            this.dataLabelsSVG = svg.append('g')
-                .classed(LineChart.DataLabelsSVGClassName, true);
 
             this.toolTipContext = svg.append('g')
                 .classed('hover-line', true);
@@ -402,14 +407,15 @@ module powerbi.visuals {
             };
 
             if (this.isInteractiveChart) {
+                var legend: EventTarget = LineChart.getInteractiveLegendDomElement(this.element);
                 // assign drag and onClick events
                 var drag = d3.behavior.drag()
                     .origin(Object)
                     .on("drag", dragMove);
                 svg.call(drag);
-                d3.select(this.element.get(0)).call(drag);
+                d3.select(legend).call(drag);
                 svg.on('click', dragMove);
-                d3.select(this.element.get(0)).on('click', dragMove);
+                d3.select(legend).on('click', dragMove);
             }
         }
 
@@ -640,9 +646,8 @@ module powerbi.visuals {
             var extraLineShift = this.extraLineShift();
 
             this.mainGraphicsContext.attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
-            this.dataLabelsSVG.attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
 
-            this.mainGraphicsSVG.attr('height', this.getAvailableHeight())
+            this.mainGraphicsContext.attr('height', this.getAvailableHeight())
                 .attr('width', this.getAvailableWidth());
             this.toolTipContext.attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
 
@@ -741,10 +746,11 @@ module powerbi.visuals {
                     Array.prototype.push.apply(dataPoints, data.series[i].data);
                 }
 
-                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.dataLabelsSVG, layout, this.currentViewport);
+                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.mainGraphicsSVG, layout, this.currentViewport);
+                this.mainGraphicsSVG.select('.labels').attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
             }
             else {
-                dataLabelUtils.cleanDataLabels(this.dataLabelsSVG);
+                dataLabelUtils.cleanDataLabels(this.mainGraphicsSVG);
             }
 
             // Add tooltips
@@ -819,9 +825,8 @@ module powerbi.visuals {
             var extraLineShift = this.extraLineShift();
 
             this.mainGraphicsContext.attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
-            this.dataLabelsSVG.attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
-
-            this.mainGraphicsSVG.attr('height', this.getAvailableHeight())
+            
+            this.mainGraphicsContext.attr('height', this.getAvailableHeight())
                 .attr('width', this.getAvailableWidth());
             this.toolTipContext.attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
 
@@ -955,10 +960,11 @@ module powerbi.visuals {
                     Array.prototype.push.apply(dataPoints, data.series[i].data);
                 }
 
-                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.dataLabelsSVG, layout, this.currentViewport);
+                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.mainGraphicsSVG, layout, this.currentViewport);
+                this.mainGraphicsSVG.select('.labels').attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
             }
             else {
-                dataLabelUtils.cleanDataLabels(this.dataLabelsSVG);
+                dataLabelUtils.cleanDataLabels(this.mainGraphicsSVG);
             }
 
             TooltipManager.addTooltip(catSelect, (tooltipEvent: TooltipEvent) => {

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     import StringExtensions = jsCommon.StringExtensions;
 
@@ -115,6 +117,13 @@ module powerbi.data {
             return expr.accept(SQExprDefaultNameGenerator.instance, fallback);
         }
 
+        /** Gets a value indicating whether the expr is a model measure or an aggregate. */
+        export function isMeasure(expr: SQExpr): boolean {
+            debug.assertValue(expr, 'expr');
+
+            return expr.accept(IsMeasureVisitor.instance);
+        }
+
         function getMetadataForUnderlyingType(expr: SQExpr, schema: FederatedConceptualSchema): SQExprMetadata {
             // Unwrap the aggregate (if the expr has one), and look at the underlying type.
             var metadata = SQExprBuilder.removeAggregate(expr).getMetadata(schema);
@@ -146,6 +155,22 @@ module powerbi.data {
 
             public visitDefault(expr: SQExpr, fallback: string): string {
                 return fallback || 'expr';
+            }
+        }
+
+        class IsMeasureVisitor extends DefaultSQExprVisitor<boolean> {
+            public static instance: IsMeasureVisitor = new IsMeasureVisitor();
+
+            public visitMeasureRef(expr: SQMeasureRefExpr): boolean {
+                return true;
+            }
+
+            public visitAggr(expr: SQAggregationExpr): boolean {
+                return true;
+            }
+
+            public visitDefault(expr: SQExpr): boolean {
+                return false;
             }
         }
     }

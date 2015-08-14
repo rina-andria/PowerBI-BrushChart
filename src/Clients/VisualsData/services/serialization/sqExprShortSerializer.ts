@@ -23,7 +23,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-///<reference path="../../semanticQuery/sqExprVisitor.ts"/>
+
+/// <reference path="../../_references.ts"/>
+
 module powerbi.data {
     /** Serializes SQExpr in a form optimized in-memory comparison, but not intended for storage on disk. */
     export module SQExprShortSerializer {

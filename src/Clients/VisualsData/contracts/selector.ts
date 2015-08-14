@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     /** Defines a selector for content, including data-, metadata, and user-defined repetition. */
     export interface Selector {

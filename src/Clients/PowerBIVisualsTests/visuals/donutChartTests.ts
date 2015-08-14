@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import ColorConvertor = powerbitests.utils.ColorUtility.convertFromRGBorHexToHex;
     import DataViewTransform = powerbi.data.DataViewTransform;
@@ -253,6 +255,59 @@ module powerbitests {
                 setTimeout(() => {
                     expect(warningSpy).not.toHaveBeenCalled();
                     done();
+                }, DefaultWaitForRender);
+            });
+
+            it('Layout - with labels and without',(done) => {
+                var dataViewMetadataWithLabels = powerbi.Prototype.inherit(dataViewMetadata);
+                dataViewMetadataWithLabels.objects = {
+                    labels: { show: true, labelPrecision: 0 },
+                    categoryLabels: { show: false }
+                };
+
+                var dataViews = [{
+                    metadata: dataViewMetadataWithLabels,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataWithLabels.columns[0],
+                            values: ['a', 'b', 'c'],
+                            identity: [mocks.dataViewScopeIdentity('a'), mocks.dataViewScopeIdentity('b'), mocks.dataViewScopeIdentity('c')],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadataWithLabels.columns[1],
+                            values: [100, 200, 700],
+                        }])
+                    }
+                }];
+                
+                v.onDataChanged({
+                    dataViews: dataViews,
+                });
+
+                setTimeout(() => {
+                    var dataLabelsWidth = v['radius'];
+                    dataViewMetadataWithLabels.objects['labels']['show'] = false;
+                    dataViewMetadataWithLabels.objects['categoryLabels']['show'] = true;
+                    dataViews[0].metadata = dataViewMetadataWithLabels;
+                    v.onDataChanged({
+                        dataViews: dataViews,
+                    });
+                    setTimeout(() => {
+                        var categoryLabelsWidth = v['radius'];
+                        dataViewMetadataWithLabels.objects['labels']['show'] = false;
+                        dataViewMetadataWithLabels.objects['categoryLabels']['show'] = false;
+                        dataViews[0].metadata = dataViewMetadataWithLabels;
+                        v.onDataChanged({
+                            dataViews: dataViews,
+                        });
+                        setTimeout(() => {
+                            var noLabelsWidth = v['radius'];
+                            expect(dataLabelsWidth).toEqual(categoryLabelsWidth);
+                            expect(noLabelsWidth).toBeGreaterThan(categoryLabelsWidth);
+                            done();
+                        }, DefaultWaitForRender);
+                    }, DefaultWaitForRender);
                 }, DefaultWaitForRender);
             });
 

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbi.data {
     export class FilterRuleEvaluation extends RuleEvaluation {
         private selection: FilterValueScopeIdsContainer;

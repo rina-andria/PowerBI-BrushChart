@@ -24,5 +24,5 @@
  *  THE SOFTWARE.
  */
 
-///<reference path="../../typedefs/jQuery/jQuery.d.ts"/>
-///<reference path="../../typedefs/d3/d3.d.ts"/>
+///<reference path="../../Typedefs/jquery/jquery.d.ts"/>
+///<reference path="../../Typedefs/d3/d3.d.ts"/>

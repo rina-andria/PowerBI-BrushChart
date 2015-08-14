@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import DataViewTransform = powerbi.data.DataViewTransform;
     import ValueType = powerbi.ValueType;
@@ -98,8 +100,8 @@ module powerbitests {
             });
             setTimeout(() => {
                 // Only the top two label should be hidden
-                expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBe(3);
-                expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().text()).toContain("495");
+                expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(3);
+                expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toContain("495");
                 done();
             }, DefaultWaitForRender);
         });
@@ -126,7 +128,46 @@ module powerbitests {
             });
             setTimeout(() => {
                 // Two label should be hidden because it collides
-                expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBe(2);
+                expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(2);
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Hide labels DOM validation', (done) => {
+            var metadata = powerbi.Prototype.inherit(dataViewMetadata);
+            //label format will be overriden by label settings
+            metadata.objects = { labels: { show: true, labelPrecision: 3 } };
+
+            element = powerbitests.helpers.testDom('10', '10');
+            v.init({
+                element: element,
+                host: hostServices,
+                style: powerbi.visuals.visualStyles.create(),
+                viewport: {
+                    height: element.height(),
+                    width: element.width()
+                },
+                animation: { transitionImmediate: true },
+            });
+
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: metadata,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadata.columns[0],
+                            values: ['a', 'b', 'c', 'd', 'e']
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadata.columns[1],
+                            values: [500000, 495000, 495050, 480000, 500000],
+                        }])
+                    }
+                }]
+            });
+            setTimeout(() => {
+                // All labels should be hidden and no 'labels' class should be created
+                expect($('.lineChart .axisGraphicsContext .labels').length).toBe(0);
                 done();
             }, DefaultWaitForRender);
         });
@@ -548,7 +589,8 @@ module powerbitests {
         var v: powerbi.IVisual, element: JQuery;;
         var DataViewTransform = powerbi.data.DataViewTransform;
 
-        var values = [100, -200, 250];
+        //only 2 values should be visible due to collision detection
+        var values = [100, 50, 100];
         var categories = [2010, 2011, 2012];
 
         var categoryIdentities = [
@@ -610,8 +652,7 @@ module powerbitests {
             v.onDataChanged(dataChangedOptions);
 
             setTimeout(() => {
-                // Two last labels are hidden due to collision detection
-                expect($('.dataLabelsSVG text').length).toBe(4);
+                expect($('.labels text').length).toBe(4);
                 done();
             }, DefaultWaitForRender);
         });
@@ -641,7 +682,7 @@ module powerbitests {
             v.onDataChanged(dataChangedOptions);
 
             setTimeout(() => {
-                expect($('.dataLabelsSVG text').length).toBe(2);
+                expect($('.labels text').length).toBe(2);
                 done();
             }, DefaultWaitForRender);
         });

@@ -23,19 +23,19 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-///<reference path="externals.d.ts"/>
-///<reference path="powerbi-visuals.d.ts"/>
-///<reference path="sampledata.ts"/>
+
+/// <reference path="_references.ts"/>
 
 interface JQuery {
     // Demonstrates how Power BI visual creation could be implemented as jQuery plugin
-    visual(plugin: Object, dataView: Object): JQuery;
+    visual(plugin: Object, dataView?: Object): JQuery;
 }
 
 module powerbi.visuals {
     
     import defaultVisualHostServices = powerbi.visuals.defaultVisualHostServices;
-    import DataViewTransform = powerbi.data.DataViewTransform;
+
+    import HostControls = powerbi.visuals.HostControls;
     
     var dataColors: DataColorPalette = new powerbi.visuals.DataColorPalette();
 
@@ -59,23 +59,26 @@ module powerbi.visuals {
     };
 
     /**
-     * Demonstrates Power BI visualization elements and the way to embeed them in standalone web page.
+     * Demonstrates Power BI visualization elements and the way to embed them in standalone web page.
      */
     export class Playground {
 
         // Represents sample data view used by visualization elements.
         private static pluginService: IVisualPluginService = powerbi.visuals.visualPluginFactory.create();
+        private static visualElement: IVisual;
 
-        // Represents sample data view used by visualization elements.
-        private static dataView: DataView[];
+        private static hostControls: HostControls;
+        private static container: JQuery;
 
         // Performs sample app initialization.
         public static initialize(): void {
+            this.hostControls = new HostControls($('#options'));
+            this.container = $('#container');
 
             this.populateVisualTypeSelect();
 
-            // Wrapper function to simplify visuallization element creation when using jQuery
-            $.fn.visual = function (plugin: IVisualPlugin, dataView: DataView[]) {
+            // Wrapper function to simplify visualization element creation when using jQuery
+            $.fn.visual = function (plugin: IVisualPlugin, dataView?: DataView[]) {
 
                 // Step 1: Create new DOM element to represent Power BI visual
                 var element = $('<div/>');
@@ -89,111 +92,74 @@ module powerbi.visuals {
                 element['visible'] = () => { return true; };
                 this.append(element);
 
-                // Step 2: Instantiate Power BI visual
-                var host = $('#itemContainer');
-                var viewport: IViewport = { height: host.height(), width: host.width()-100 };
-                var visualElement = plugin.create();
-                visualElement.init({
-                    element: element,
-                    host: defaultVisualHostServices,
-                    style: visualStyle,
-                    viewport: viewport,
-                    settings: { slicingEnabled: true },
-                    interactivity: { isInteractiveLegend: false, selection: false },
-                    animation: { transitionImmediate: true }
-                });
+                Playground.createVisualElement(element, plugin, dataView);
 
-                if (visualElement.update) {
-                    visualElement.update({ dataViews:dataView, duration: 250, viewport: viewport});
-                } else if (visualElement.onDataChanged) {
-                    visualElement.onDataChanged({ dataViews: dataView });
-                }
                 return this;
             };
 
             var visualByDefault = jsCommon.Utility.getURLParamValue('visual');
             if (visualByDefault) {
-                $('.topBar').css({ "display": "none" });
+                $('.topBar, #options').css({ "display": "none" });
                 Playground.onVisualTypeSelection(visualByDefault.toString());
             }
 
         }
 
+        private static createVisualElement(element: JQuery, plugin: IVisualPlugin, dataView?: DataView[]) {
+
+            // Step 2: Instantiate Power BI visual
+            var host = this.container;
+            var viewport: IViewport = { height: host.height(), width: host.width() - 100 };
+            this.visualElement = plugin.create();
+            this.visualElement.init({
+                element: element,
+                host: defaultVisualHostServices,
+                style: visualStyle,
+                viewport: viewport,
+                settings: { slicingEnabled: true },
+                interactivity: { isInteractiveLegend: false, selection: false },
+                animation: { transitionImmediate: true }
+            });
+            
+            this.hostControls.setVisual(this.visualElement);
+        };
+
         private static populateVisualTypeSelect(): void {
            
-                var typeSelect = $('#visualTypes');
-                typeSelect.append('<option value="">(none)</option>');
+            var typeSelect = $('#visualTypes');
+            typeSelect.append('<option value="">(none)</option>');
 
-                var visuals = this.pluginService.getVisuals();
-                visuals.sort(function (a, b) {
-                    if (a.name < b.name) return -1;
-                    if (a.name > b.name) return 1;
-                    return 0;
-                });
+            var visuals = this.pluginService.getVisuals();
+            visuals.sort(function (a, b) {
+                if (a.name < b.name) return -1;
+                if (a.name > b.name) return 1;
+                return 0;
+            });
 
-                for (var i = 0, len = visuals.length; i < len; i++) {
-                    var visual = visuals[i];
-                    typeSelect.append('<option value="' + visual.name + '">' + visual.name + '</option>');
-                }
-
-                typeSelect.change(() => this.onVisualTypeSelection(typeSelect.val()));
-        }
-
-
-        private static createOptionsSelect(pluginName: string, options: any): JQuery {
-            var typeSelect = $('<select>');
-
-            for (var i = 0; i < options.values.length; i++) {
-                var item = options.values[i];
-                typeSelect.append('<option ' + ((item.default) ? 'selected="selected"' : '') + '"value="' + item.value + '">' + item.displayName + '</option>');
+            for (var i = 0, len = visuals.length; i < len; i++) {
+                var visual = visuals[i];
+                typeSelect.append('<option value="' + visual.name + '">' + visual.name + '</option>');
             }
 
-            typeSelect.change(() => this.createVisualPlugin(pluginName, {
-                                    name: options.name,
-                                    value: typeSelect.val()
-                                }));
-
-            return typeSelect;
+            typeSelect.change(() => this.onVisualTypeSelection(typeSelect.val()));
         }
-
-
-        private static populateVisualOptions(pluginName: string, options: any[]): void {
-
-            var optionsContainer = $('#optionsContainer');
-                        
-            for (var i = 0; i < options.length; i++) {
-                if (options[i].type === "select") {
-                    var content: JQuery = this.createOptionsSelect(pluginName, options[i]);
-
-                    optionsContainer.append($("<span>Choose number of columns:</span>"));
-                    optionsContainer.append(content);
-                }
-            }
-        }
-
 
         private static onVisualTypeSelection(pluginName: string): void {
-            $('#itemContainer, #optionsContainer').empty();
-            if (pluginName.length == 0) return;
-
-            var sampleOptions = sampleData.getVisualizationOptions(pluginName);
-            if (sampleOptions.length > 0) {
-                this.populateVisualOptions(pluginName, sampleOptions);
-            }
+            this.container.empty();
+            if (pluginName.length === 0) return;
 
             this.createVisualPlugin(pluginName);
+            this.hostControls.onPluginChange(pluginName);
         }        
 
-        private static createVisualPlugin(pluginName: string, options?: any): void {
+        private static createVisualPlugin(pluginName: string): void {
 
             var plugin = this.pluginService.getPlugin(pluginName);
             if (!plugin) {
-                $('#container').html('<div class="wrongVisualWarning">Wrong visual name <span>\'' + pluginName + '\'</span> in parameters</div>'); return;
+                this.container.html('<div class="wrongVisualWarning">Wrong visual name <span>\'' + pluginName + '\'</span> in parameters</div>'); return;
             }
-            var sampleDataView = sampleData.getVisualizationData(pluginName, options);
-            $('#itemContainer').visual(plugin, sampleDataView);
-        }
+            this.container.visual(plugin);
+        }       
+        
     }   
 }
-
-

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests.utils {
     export module ColorUtility {
         var HexPattern = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$";

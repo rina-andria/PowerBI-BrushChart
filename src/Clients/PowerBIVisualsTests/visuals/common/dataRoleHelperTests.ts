@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     var DataRoleHelper = powerbi.visuals.DataRoleHelper;
     import DataViewTransform = powerbi.data.DataViewTransform;

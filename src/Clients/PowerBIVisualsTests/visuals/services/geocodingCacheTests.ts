@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import IGeocodeCache = powerbi.visuals.BI.Services.IGeocodingCache;
     import GeocodeQuery = powerbi.visuals.BI.Services.GeocodingManager.GeocodeQuery;

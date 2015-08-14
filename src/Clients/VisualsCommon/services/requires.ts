@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module jsCommon {
 
     var doc: HTMLDocument = document,

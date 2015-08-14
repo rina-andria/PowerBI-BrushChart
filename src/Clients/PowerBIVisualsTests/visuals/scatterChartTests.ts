@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import ScatterChart = powerbi.visuals.ScatterChart;
     import ArrayExtensions = jsCommon.ArrayExtensions;

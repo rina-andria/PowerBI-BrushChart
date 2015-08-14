@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import CompiledDataViewMapping = powerbi.data.CompiledDataViewMapping;
     import CompiledDataViewRoleForMapping = powerbi.data.CompiledDataViewRoleForMapping;
@@ -220,28 +222,28 @@ module powerbitests {
         }
     };
 
-    describe('Table', () => {
-        it('Table registered capabilities', () => {
+    describe('Table',() => {
+        it('Table registered capabilities',() => {
             expect(webPluginService.getPlugin('table').capabilities).toEqual(Table.capabilities);
         });
 
-        it('Capabilities should include dataViewMappings', () => {
+        it('Capabilities should include dataViewMappings',() => {
             expect(Table.capabilities.dataViewMappings).toBeDefined();
         });
 
-        it('Capabilities should include dataRoles', () => {
+        it('Capabilities should include dataRoles',() => {
             expect(Table.capabilities.dataRoles).toBeDefined();
         });
 
-        it('Capabilities should suppressDefaultTitle', () => {
+        it('Capabilities should suppressDefaultTitle',() => {
             expect(Table.capabilities.suppressDefaultTitle).toBe(true);
         });
 
-        it('FormatString property should match calculated', () => {
+        it('FormatString property should match calculated',() => {
             expect(powerbi.data.DataViewObjectDescriptors.findFormatString(Table.capabilities.objects)).toEqual(Table.formatStringProp);
         });
 
-        it('CustomizeQuery picks up enabled total', () => {
+        it('CustomizeQuery picks up enabled total',() => {
             var objects: TableDataViewObjects = {
                 general: {
                     totals: true
@@ -257,7 +259,7 @@ module powerbitests {
             expect(rows.for.in.subtotalType).toEqual(CompiledSubtotalType.Before);
         });
 
-        it('CustomizeQuery picks up disabled total', () => {
+        it('CustomizeQuery picks up disabled total',() => {
             var objects: TableDataViewObjects = {
                 general: {
                     totals: false
@@ -273,7 +275,7 @@ module powerbitests {
             expect(rows.for.in.subtotalType).toEqual(CompiledSubtotalType.None);
         });
 
-        it('CustomizeQuery handles missing settings', () => {
+        it('CustomizeQuery handles missing settings',() => {
             var dataViewMapping = createCompiledDataViewMapping();
 
             Table.customizeQuery({
@@ -285,7 +287,7 @@ module powerbitests {
             expect(rows.for.in.subtotalType).toEqual(CompiledSubtotalType.Before);
         });
 
-        it('CustomizeQuery handles missing subtotal settings', () => {
+        it('CustomizeQuery handles missing subtotal settings',() => {
             var objects: TableDataViewObjects = {
                 general: {
                     totals: undefined
@@ -318,38 +320,38 @@ module powerbitests {
         }
     });
 
-    describe('Table hierarchy navigator tests', () => {
+    describe('Table hierarchy navigator tests',() => {
         function createNavigator(dataView: DataView): TableHierarchyNavigator {
             return new TableHierarchyNavigator(dataView.table, valueFormatter.formatRaw);
         }
 
-        describe('getDepth', () => {
+        describe('getDepth',() => {
             var dataView = tableTwoGroupsThreeMeasures;
             var navigator = createNavigator(dataView);
 
-            it('returns 1 for row dimension', () => {
+            it('returns 1 for row dimension',() => {
                 expect(navigator.getDepth(dataView.table.rows)).toBe(1);
             });
-            it('returns 1 for column dimension', () => {
+            it('returns 1 for column dimension',() => {
                 expect(navigator.getDepth(dataView.table.columns)).toBe(1);
             });
-            it('always returns 1', () => {
+            it('always returns 1',() => {
                 expect(navigator.getDepth(null)).toBe(1);
             });
         });
-        describe('getLeafCount', () => {
+        describe('getLeafCount',() => {
             var dataView = tableThreeGroupsThreeMeasuresInterleaved;
             var navigator = createNavigator(dataView);
 
-            it('returns the row count for row dimension', () => {
+            it('returns the row count for row dimension',() => {
                 expect(navigator.getLeafCount(dataView.table.rows)).toBe(7);
             });
-            it('returns the column count for column dimension', () => {
+            it('returns the column count for column dimension',() => {
                 expect(navigator.getLeafCount(dataView.table.columns)).toBe(6);
             });
         });
-        describe('getLeafAt', () => {
-            it('returns the correct leaf from the row dimension', () => {
+        describe('getLeafAt',() => {
+            it('returns the correct leaf from the row dimension',() => {
                 var dataView = tableTwoGroupsThreeMeasures;
                 var navigator = createNavigator(dataView);
                 var rows = dataView.table.rows;
@@ -358,7 +360,7 @@ module powerbitests {
                 expect(navigator.getLeafAt(rows, 1)).toBe(rows[1]);
                 expect(navigator.getLeafAt(rows, 6)).toBe(rows[6]);
             });
-            it('returns the correct leaf from the column dimension', () => {
+            it('returns the correct leaf from the column dimension',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var navigator = createNavigator(dataView);
                 var columns = dataView.table.columns;
@@ -367,14 +369,14 @@ module powerbitests {
                 expect(navigator.getLeafAt(columns, 1)).toBe(columns[1]);
                 expect(navigator.getLeafAt(columns, 5)).toBe(columns[5]);
             });
-            it('returns undefined if index is out of bounds in the row dimension', () => {
+            it('returns undefined if index is out of bounds in the row dimension',() => {
                 var dataView = tableOneMeasure;
                 var navigator = createNavigator(dataView);
                 var rows = dataView.table.rows;
 
                 expect(navigator.getLeafAt(rows, 1)).not.toBeDefined();
             });
-            it('returns undefined if index is out of bounds in the column dimension', () => {
+            it('returns undefined if index is out of bounds in the column dimension',() => {
                 var dataView = tableOneMeasure;
                 var navigator = createNavigator(dataView);
                 var columns = dataView.table.columns;
@@ -382,26 +384,26 @@ module powerbitests {
                 expect(navigator.getLeafAt(columns, 1)).not.toBeDefined();
             });
         });
-        describe('getParent', () => {
+        describe('getParent',() => {
             var dataView = tableTwoGroupsThreeMeasures;
             var navigator = createNavigator(dataView);
 
-            it('returns null for column header', () => {
+            it('returns null for column header',() => {
                 var columns = dataView.table.columns;
 
                 expect(navigator.getParent(columns[0])).toBeNull();
             });
-            it('returns null for row', () => {
+            it('returns null for row',() => {
                 var rows = dataView.table.rows;
 
                 expect(navigator.getParent(rows[0])).toBeNull();
             });
-            it('returns null in any other cases', () => {
+            it('returns null in any other cases',() => {
                 expect(navigator.getParent(null)).toBeNull();
             });
         });
-        describe('getIndex', () => {
-            it('returns the correct index for columns', () => {
+        describe('getIndex',() => {
+            it('returns the correct index for columns',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var navigator = createNavigator(dataView);
                 var columns = dataView.table.columns;
@@ -419,7 +421,7 @@ module powerbitests {
                 expect(navigator.getIndex(column5)).toBe(4);
                 expect(navigator.getIndex(column6)).toBe(5);
             });
-            it('returns the correct index for rows', () => {
+            it('returns the correct index for rows',() => {
                 var dataView = tableTwoGroupsThreeMeasures;
                 var navigator = createNavigator(dataView);
                 var rows = dataView.table.rows;
@@ -429,7 +431,7 @@ module powerbitests {
                 expect(navigator.getIndex(row1)).toBe(0);
                 expect(navigator.getIndex(row2)).toBe(1);
             });
-            it('returns -1 if cannot find column in the collection', () => {
+            it('returns -1 if cannot find column in the collection',() => {
                 var dataView = tableTwoGroups;
                 var navigator = createNavigator(dataView);
 
@@ -444,8 +446,8 @@ module powerbitests {
                 expect(navigator.getIndex(null)).toBe(-1);
             });
         });
-        describe('isLeaf', () => {
-            it('returns true for columns', () => {
+        describe('isLeaf',() => {
+            it('returns true for columns',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var navigator = createNavigator(dataView);
                 var columns = dataView.table.columns;
@@ -463,7 +465,7 @@ module powerbitests {
                 expect(navigator.isLeaf(column5)).toBeTruthy();
                 expect(navigator.isLeaf(column6)).toBeTruthy();
             });
-            it('returns true for rows', () => {
+            it('returns true for rows',() => {
                 var dataView = tableTwoGroupsThreeMeasures;
                 var navigator = createNavigator(dataView);
                 var rows = dataView.table.rows;
@@ -484,15 +486,15 @@ module powerbitests {
                 expect(navigator.isLeaf(row7)).toBeTruthy();
             });
         });
-        describe('getChildren', () => {
-            it('returns null for column', () => {
+        describe('getChildren',() => {
+            it('returns null for column',() => {
                 var dataView = tableTwoGroupsThreeMeasures;
                 var navigator = createNavigator(dataView);
                 var column = dataView.table.columns[3];
 
                 expect(navigator.getChildren(column)).toBeNull();
             });
-            it('returns null for row', () => {
+            it('returns null for row',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var navigator = createNavigator(dataView);
                 var row = dataView.table.rows[4];
@@ -500,19 +502,19 @@ module powerbitests {
                 expect(navigator.getChildren(row)).toBeNull();
             });
         });
-        describe('getCount', () => {
+        describe('getCount',() => {
             var dataView = tableThreeGroupsThreeMeasuresInterleaved;
             var navigator = createNavigator(dataView);
 
-            it('returns the number of the columns for column dimension', () => {
+            it('returns the number of the columns for column dimension',() => {
                 expect(navigator.getCount(dataView.table.columns)).toBe(dataView.table.columns.length);
             });
-            it('returns the number of the rows for row dimension', () => {
+            it('returns the number of the rows for row dimension',() => {
                 expect(navigator.getCount(dataView.table.rows)).toBe(dataView.table.rows.length);
             });
         });
-        describe('getAt', () => {
-            it('returns the correct item from the row dimension', () => {
+        describe('getAt',() => {
+            it('returns the correct item from the row dimension',() => {
                 var dataView = tableTwoGroupsThreeMeasures;
                 var navigator = createNavigator(dataView);
                 var rows = dataView.table.rows;
@@ -521,7 +523,7 @@ module powerbitests {
                 expect(navigator.getAt(rows, 1)).toBe(rows[1]);
                 expect(navigator.getAt(rows, 6)).toBe(rows[6]);
             });
-            it('returns the correct item from the column dimension', () => {
+            it('returns the correct item from the column dimension',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var navigator = createNavigator(dataView);
                 var columns = dataView.table.columns;
@@ -530,14 +532,14 @@ module powerbitests {
                 expect(navigator.getAt(columns, 1)).toBe(columns[1]);
                 expect(navigator.getAt(columns, 5)).toBe(columns[5]);
             });
-            it('returns undefined if index is out of bounds in the row dimension', () => {
+            it('returns undefined if index is out of bounds in the row dimension',() => {
                 var dataView = tableOneMeasure;
                 var navigator = createNavigator(dataView);
                 var rows = dataView.table.rows;
 
                 expect(navigator.getAt(rows, 1)).not.toBeDefined();
             });
-            it('returns undefined if index is out of bounds in the column dimension', () => {
+            it('returns undefined if index is out of bounds in the column dimension',() => {
                 var dataView = tableOneMeasure;
                 var navigator = createNavigator(dataView);
                 var columns = dataView.table.columns;
@@ -545,23 +547,23 @@ module powerbitests {
                 expect(navigator.getAt(columns, 1)).not.toBeDefined();
             });
         });
-        describe('getLevel', () => {
+        describe('getLevel',() => {
             var dataView = tableThreeGroupsThreeMeasuresInterleaved;
             var navigator = createNavigator(dataView);
 
-            it('returns 0 for column', () => {
+            it('returns 0 for column',() => {
                 var columns = dataView.table.columns;
 
                 expect(navigator.getLevel(columns[1])).toBe(0);
             });
-            it('returns 0 for row', () => {
+            it('returns 0 for row',() => {
                 var rows = dataView.table.rows;
 
                 expect(navigator.getLevel(rows[5])).toBe(0);
             });
         });
-        describe('getIntersection', () => {
-            it('returns values in the intersection', () => {
+        describe('getIntersection',() => {
+            it('returns values in the intersection',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var visualTable = powerbi.visuals.Table.converter(dataView.table);
                 var rows = visualTable.visualRows;
@@ -581,7 +583,7 @@ module powerbitests {
                 validateIntersections(navigator, rows, columns, expectedValues);
             });
 
-            it('returns weburl values', () => {
+            it('returns weburl values',() => {
                 var dataView = tableWebUrl;
                 var visualTable = powerbi.visuals.Table.converter(dataView.table);
                 var rows = visualTable.visualRows;
@@ -619,8 +621,8 @@ module powerbitests {
                 expect(result).toEqual(expectedValues);
             }
         });
-        describe('getCorner', () => {
-            it('always returns null', () => {
+        describe('getCorner',() => {
+            it('always returns null',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var navigator = createNavigator(dataView);
 
@@ -630,8 +632,8 @@ module powerbitests {
                 expect(navigator.getCorner(10, 10)).toBeNull();
             });
         });
-        describe('headerItemEquals', () => {
-            it('returns true if the two items are the same', () => {
+        describe('headerItemEquals',() => {
+            it('returns true if the two items are the same',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var row = dataView.table.rows[0];
                 var column = dataView.table.columns[0];
@@ -640,7 +642,19 @@ module powerbitests {
                 expect(navigator.headerItemEquals(row, row)).toBeTruthy();
                 expect(navigator.headerItemEquals(column, column)).toBeTruthy();
             });
-            it('returns false if the two items are not same', () => {
+            it('returns true for equivalent columns',() => {
+                var dataView = tableThreeGroupsThreeMeasuresInterleaved;
+                var navigator = createNavigator(dataView);
+
+                expect(navigator.headerItemEquals({ displayName: 'a' }, { displayName: 'a' })).toBeTruthy();
+            });
+            it('returns true for rows with index',() => {
+                var dataView = tableThreeGroupsThreeMeasuresInterleaved;
+                var navigator = createNavigator(dataView);
+
+                expect(navigator.headerItemEquals({ index: 1, values: [] }, { index: 1, values: [] })).toBeTruthy();
+            });
+            it('returns false if the two items are not same',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var row = dataView.table.rows[0];
                 var column = dataView.table.columns[0];
@@ -649,16 +663,23 @@ module powerbitests {
                 expect(navigator.headerItemEquals(row, column)).toBeFalsy();
                 expect(navigator.headerItemEquals(column, row)).toBeFalsy();
             });
+            it('returns false detects rows with index',() => {
+                var dataView = tableThreeGroupsThreeMeasuresInterleaved;
+                var navigator = createNavigator(dataView);
+
+                expect(navigator.headerItemEquals({ index: 1 }, { index: 2 })).toBeFalsy();
+            });
+
         });
-        describe('bodyCellItemEquals', () => {
-            it('returns true if the two items are the same', () => {
+        describe('bodyCellItemEquals',() => {
+            it('returns true if the two items are the same',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var cell1 = dataView.table.rows[0][3];
                 var navigator = createNavigator(dataView);
 
                 expect(navigator.bodyCellItemEquals(cell1, cell1)).toBeTruthy();
             });
-            it('returns false if the two items are not same', () => {
+            it('returns false if the two items are not same',() => {
                 var dataView = tableThreeGroupsThreeMeasuresInterleaved;
                 var cell1 = dataView.table.rows[1][3];
                 var cell2 = dataView.table.rows[2][3];
@@ -669,7 +690,7 @@ module powerbitests {
         });
     });
 
-    describe('Table logic', () => {
+    describe('Table logic',() => {
         var v: powerbi.IVisual,
             element: JQuery;
 
@@ -692,7 +713,7 @@ module powerbitests {
             });
         });
 
-        it('loadMoreData calls control refresh', () => {
+        it('loadMoreData calls control refresh',() => {
             var nav = { update() { } };
             var control = { refresh() { }, rowDimension: {}, updateModels(resetScrollOffsets: boolean, rowModel?: any, columnModel?: any) { } };
             var navSpy = spyOn(nav, "update");
@@ -709,7 +730,7 @@ module powerbitests {
             expect(controlSpy).toHaveBeenCalled();
         });
 
-        it('needsMoreData waitingForData', () => {
+        it('needsMoreData waitingForData',() => {
             v.onDataChanged({
                 dataViews: [{
                     metadata: { columns: [groupSource1], segment: {} },
@@ -725,7 +746,7 @@ module powerbitests {
             expect(result).toBe(false);
         });
 
-        it('needsMoreData segmentComplete', () => {
+        it('needsMoreData segmentComplete',() => {
 
             v.onDataChanged({
                 dataViews: [{
@@ -741,7 +762,7 @@ module powerbitests {
             expect(result).toBe(false);
         });
 
-        it('needsMoreData belowThreshold', () => {
+        it('needsMoreData belowThreshold',() => {
 
             var table = dataViewTableTwoGroups;
 
@@ -759,7 +780,7 @@ module powerbitests {
             expect(result).toBe(false);
         });
 
-        it('needsMoreData aboveThreshold', () => {
+        it('needsMoreData aboveThreshold',() => {
 
             var table = dataViewTableTwoGroups;
 
@@ -777,7 +798,7 @@ module powerbitests {
             expect(result).toBe(true);
         });
 
-        it('bindRowHeader callback', () => {
+        it('bindRowHeader callback',() => {
 
             var callBackCalled = false;
             var binderOptions = {
@@ -794,7 +815,7 @@ module powerbitests {
             expect(callBackCalled).toBe(true);
         });
 
-        it('enumerateObjectInstances empty data view', () => {
+        it('enumerateObjectInstances empty data view',() => {
             v.onDataChanged({ dataViews: [] });
 
             // Note: this must not throw an exception
@@ -802,7 +823,7 @@ module powerbitests {
             expect(objects).toEqual([]);
         });
 
-        it('enumerateObjectInstances general totals on', () => {
+        it('enumerateObjectInstances general totals on',() => {
             v.onDataChanged({ dataViews: [tableOneMeasureOneGroupSubtotals] });
 
             var objects = v.enumerateObjectInstances({ objectName: 'general' });
@@ -815,7 +836,7 @@ module powerbitests {
             }]);
         });
 
-        it('enumerateObjectInstances general totals off', () => {
+        it('enumerateObjectInstances general totals off',() => {
             v.onDataChanged({ dataViews: [tableOneMeasureOneGroup] });
 
             var objects = v.enumerateObjectInstances({ objectName: 'general' });
@@ -828,7 +849,7 @@ module powerbitests {
             }]);
         });
 
-        it('enumerateObjectInstances general no objects', () => {
+        it('enumerateObjectInstances general no objects',() => {
             var dataView: DataView = {
                 metadata: {
                     columns: [measureSource1, groupSource1]
@@ -855,14 +876,14 @@ module powerbitests {
             }]);
         });
 
-        it('enumerateObjectInstances some other object', () => {
+        it('enumerateObjectInstances some other object',() => {
             v.onDataChanged({ dataViews: [tableOneMeasureOneGroup] });
 
             var objects = v.enumerateObjectInstances({ objectName: 'some other object' });
             expect(objects).toEqual([]);
         });
 
-        it('RefreshControl invisible parent', () => {
+        it('RefreshControl invisible parent',() => {
             var control = { refresh() { } };
             var controlSpy = spyOn(control, "refresh");
             v['shouldAllowHeaderResize'] = () => { return true; };
@@ -875,7 +896,7 @@ module powerbitests {
             expect(controlSpy).not.toHaveBeenCalled();
         });
 
-        it('RefreshControl invisible parent but dashboard layout', () => {
+        it('RefreshControl invisible parent but dashboard layout',() => {
             var control = { refresh() { } };
             var controlSpy = spyOn(control, "refresh");
             v['shouldAllowHeaderResize'] = () => { return true; };
@@ -889,7 +910,7 @@ module powerbitests {
             expect(controlSpy).toHaveBeenCalled();
         });
 
-        it('ShouldClearControl noSort', (done) => {
+        it('ShouldClearControl noSort',(done) => {
             v.onDataChanged({ dataViews: [tableOneGroup] });
             var refreshSpy = spyOn(v, "refreshControl").and.callFake(() => { });
 
@@ -900,7 +921,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('ShouldClearControl sort', (done) => {
+        it('ShouldClearControl sort',(done) => {
             v.onDataChanged({ dataViews: [tableOneGroup] });
             var refreshSpy = spyOn(v, "refreshControl").and.callFake(() => { });
             v['waitingForSort'] = true;
@@ -913,7 +934,7 @@ module powerbitests {
         });
     });
 
-    describe('Table DOM validation', () => {
+    describe('Table DOM validation',() => {
         var v: powerbi.IVisual,
             element: JQuery,
             NoMarginClass = 'bi-tablix-cellNoMarginStyle',
@@ -986,7 +1007,7 @@ module powerbitests {
             tablixHelper.validateClassNames(expectedValues, '.bi-tablix tr', NoMarginClass);
         }
 
-        it('1x2 table (one measure)', (done) => {
+        it('1x2 table (one measure)',(done) => {
 
             var dataView = tableOneMeasure;
             v.onDataChanged({ dataViews: [dataView] });
@@ -1012,7 +1033,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('1x2 table (one group null)', (done) => {
+        it('1x2 table (one group null)',(done) => {
 
             var dataView = tableOneGroupNulls;
             v.onDataChanged({ dataViews: [dataView] });
@@ -1029,7 +1050,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('3x5 table (2 groups 1 measure nulls)', (done) => {
+        it('3x5 table (2 groups 1 measure nulls)',(done) => {
 
             var dataView = tableTwoGroups1MeasureNulls;
             v.onDataChanged({ dataViews: [dataView] });
@@ -1049,7 +1070,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('1x3 table (group instances)', (done) => {
+        it('1x3 table (group instances)',(done) => {
 
             var dataView = tableOneGroup;
             v.onDataChanged({ dataViews: [dataView] });
@@ -1081,7 +1102,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('2x8 table (group instances)', (done) => {
+        it('2x8 table (group instances)',(done) => {
 
             var dataView = tableTwoGroups;
             v.onDataChanged({ dataViews: [dataView] });
@@ -1120,7 +1141,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('5x9 table (group instances and measure values) with totals', (done) => {
+        it('5x9 table (group instances and measure values) with totals',(done) => {
             powerbitests.mocks.setLocale();
             var dataView = tableTwoGroupsThreeMeasures;
             measureSource1.index = 2;
@@ -1189,7 +1210,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('2x5 table (group instances and measure values) with totals, total value comes first', (done) => {
+        it('2x5 table (group instances and measure values) with totals, total value comes first',(done) => {
 
             var dataView = tableOneMeasureOneGroupSubtotals;
             measureSource1.index = 0;
@@ -1229,7 +1250,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('2x5 table (group instances and measure values) totals on then off', (done) => {
+        it('2x5 table (group instances and measure values) totals on then off',(done) => {
 
             var dataView = tableOneMeasureOneGroupSubtotals;
             measureSource1.index = 0;
@@ -1277,7 +1298,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('1x3 table (group instances with WebUrl)', (done) => {
+        it('1x3 table (group instances with WebUrl)',(done) => {
             var dataView = tableWebUrl;
             v.onDataChanged({ dataViews: [dataView] });
 
@@ -1317,7 +1338,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('1x1 table loadMoreData', (done) => {
+        it('1x1 table loadMoreData',(done) => {
 
             var dataView: DataView = {
                 metadata: { columns: [groupSource1], segment: {} },
@@ -1375,7 +1396,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('2x5 table reorder loadMoreData', (done) => {
+        it('2x5 table reorder loadMoreData',(done) => {
 
             var dataView: DataView = {
                 metadata: { columns: [groupSource1, groupSource2], segment: {} },
@@ -1876,7 +1897,7 @@ module powerbitests {
         }
     });
 
-    describe("Table sort validation", () => {
+    describe("Table sort validation",() => {
         var element: JQuery;
 
         beforeEach((done) => {
@@ -1885,7 +1906,7 @@ module powerbitests {
             done();
         });
 
-        it('table with single measure', (done) => {
+        it('table with single measure',(done) => {
             // Clicking on the measure will result in a sort event
             var data: DataView = tableOneMeasure;
             var expectedColumnHeaders = [{ row: 0, col: 1, expectedText: "measure1" }];
@@ -1896,7 +1917,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, 'table', data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('table with single group', (done) => {
+        it('table with single group',(done) => {
             // Clicking on the group header multiple times will result in multiple sort events.
             // Clicking on non-header cells will not result in sort events.
             var data: DataView = tableOneGroup;
@@ -1908,7 +1929,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, 'table', data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('table with two groups', (done) => {
+        it('table with two groups',(done) => {
             // Clicking on different group headers multiple times results in a sort event for each click
             var data: DataView = tableTwoGroups;
             var expectedColumnHeaders = [{ row: 0, col: 1, expectedText: "group1" }, { row: 0, col: 2, expectedText: "group2" }];
@@ -1919,7 +1940,7 @@ module powerbitests {
             tablixHelper.runTablixSortTest(element, done, 'table', data, expectedColumnHeaders, clicks, expectedSorts);
         });
 
-        it('table with two groups and three measures', (done) => {
+        it('table with two groups and three measures',(done) => {
             // Clicking on different group headers multiple times results in a sort event for each click
             var data: DataView = tableTwoGroupsThreeMeasures;
             var expectedColumnHeaders = [{ row: 0, col: 1, expectedText: "group1" }, { row: 0, col: 2, expectedText: "group2" }, { row: 0, col: 3, expectedText: "measure1" }, { row: 0, col: 4, expectedText: "measure2" }, { row: 0, col: 5, expectedText: "measure3" }];

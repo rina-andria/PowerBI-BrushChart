@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi {
     export class NumericSequenceRange {
         private static DEFAULT_MAX: number = 10;

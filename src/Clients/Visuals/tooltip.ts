@@ -23,7 +23,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-///<reference path="controls/tablix/touchRegionAbstraction.ts"/>
+
+/// <reference path="_references.ts"/>
+
 module powerbi.visuals {
 
     import TouchUtils = powerbi.visuals.controls.TouchUtils;

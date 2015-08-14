@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export function createColorAllocatorFactory(): IColorAllocatorFactory {
         return new ColorAllocatorFactory();

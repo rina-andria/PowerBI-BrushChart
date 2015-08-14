@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import Card = powerbi.visuals.Card;
     import DataViewTransform = powerbi.data.DataViewTransform;
@@ -361,7 +363,7 @@ module powerbitests {
             v.onResizing(smallTileViewport);
 
             setTimeout(() => {
-                var transform = SVGUtil.parseTranslateTransform(v.graphicsContext.attr('transform'));
+                var transform = SVGUtil.parseTranslateTransform($('.mainText').first().attr('transform'));
                 expect(transform.x).toBe('125');
                 expect($('.mainText').first().attr('text-anchor')).toBe('middle');
                 done();
@@ -554,6 +556,36 @@ module powerbitests {
                     done();
                 }, DefaultWaitForRender);
 
+            }, DefaultWaitForRender);
+        });
+
+        it('card with longer label and value', (done) => {
+            var dataViewMetadata: powerbi.DataViewMetadata = {
+                columns: [{ displayName: 'this is the value that never ends, it just goes on and on my friends. Some axis started rendering it not knowing what it was, and now it keeps on rendering forever just because this the label that never ends', isMeasure: true, format: '#0' }],
+                groups: [],
+                measures: [0],
+            };
+
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadata,
+                    single: {
+                        value: '99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                // Note: the exact text will be different depending on the environment in which the test is run, so we can't do an exact match.
+                // Just check that the text is truncated with ellipses.
+                var labelText = $('.label').first().text();
+                var valueText = $('.value').first().text();
+                expect(labelText.length).toBeLessThan(60);
+                expect(valueText.length).toBeLessThan(30);
+                expect(valueText.substr(valueText.length - 3)).toBe('...');
+                expect(labelText.substr(labelText.length - 3)).toBe('...');
+
+                done();
             }, DefaultWaitForRender);
         });
 

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbi.visuals {
     export interface IPoint {
         x: number;
@@ -492,7 +494,11 @@ module powerbi.visuals.BI.Services.GeocodingManager {
                 }
                 else if (this.query.indexOf(",") === -1 && (entityType === BingEntities.AdminDivision1 || entityType === BingEntities.AdminDivision2)) {
                     queryAdded = true;
-                    url += "&adminDistrict=" + decodeURIComponent(this.query);
+                    try {
+                        url += "&adminDistrict=" + decodeURIComponent(this.query);
+                    } catch (e) {
+                        return null;
+                    }
                 }
                 else {
                     url += "&includeEntityTypes=" + entityType;
@@ -500,7 +506,11 @@ module powerbi.visuals.BI.Services.GeocodingManager {
             }
 
             if (!queryAdded) {
-                url += "&q=" + decodeURIComponent(this.query);
+                try {
+                    url += "&q=" + decodeURIComponent(this.query);
+                } catch (e) {
+                    return null;
+                }
             }
 
             var cultureName = navigator.userLanguage || navigator["language"];
@@ -611,7 +621,7 @@ module powerbi.visuals.BI.Services.GeocodingManager {
 
         var url = item.query.getUrl();
         if (!url) {
-            completeRequest(item, new Error("Unsupported query."));
+            completeRequest(item, new Error("Unsupported query. " + item.query.query));
         }
 
         BingAjaxCall(url, config).then(

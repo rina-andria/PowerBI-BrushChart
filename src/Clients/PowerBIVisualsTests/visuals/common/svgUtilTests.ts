@@ -24,38 +24,40 @@
  *  THE SOFTWARE.
  */
 
-module powerbitests {
-    import SVGUtil = powerbi.visuals.SVGUtil;
+/// <reference path="../../_references.ts"/>
 
-    describe("SvgUtil tests", () => {
-        it("validate the pie chart transform parsing logic for Chrome", () => {
-            var transform = "translate(110.21,46.5)";
-            var parsedTransform = SVGUtil.parseTranslateTransform(transform);
+// tslint rule disabled because of tslint (version >= v2.2.0-beta) thinks that 'SVGUtil' is unused var. 
+/* tslint:disable:no-unused-variable */
+import SVGUtil = powerbi.visuals.SVGUtil;
 
-            expect(parsedTransform.x).toBe("110.21");
-            expect(parsedTransform.y).toBe("46.5");
-        });
+describe("SvgUtil tests", () => {
+    it('validate the pie chart transform parsing logic for Chrome', () => {
+        var transform = 'translate(110.21,46.5)';
+        var parsedTransform = SVGUtil.parseTranslateTransform(transform);
 
-        it("validate the pie chart transform parsing logic for IE", () => {
-            var transform = "translate(110.6 34.56)";
-            var parsedTransform = SVGUtil.parseTranslateTransform(transform);
-
-            expect(parsedTransform.x).toBe("110.6");
-            expect(parsedTransform.y).toBe("34.56");
-        });
-
-        it("validate transform parsing logic with no y value", () => {
-            var transform = "translate(110.6)";
-            var parsedTransform = SVGUtil.parseTranslateTransform(transform);
-
-            expect(parsedTransform.x).toBe("110.6");
-            expect(parsedTransform.y).toBe("0");
-        });
-
-        it("validate convertToPixelString", () => {
-            var pixelString = SVGUtil.convertToPixelString(34);
-
-            expect(pixelString).toBe("34px");
-        });
+        expect(parsedTransform.x).toBe('110.21');
+        expect(parsedTransform.y).toBe('46.5');
     });
-}
+
+    it('validate the pie chart transform parsing logic for IE', () => {     
+        var transform = 'translate(110.6 34.56)';
+        var parsedTransform = SVGUtil.parseTranslateTransform(transform);
+
+        expect(parsedTransform.x).toBe('110.6');
+        expect(parsedTransform.y).toBe('34.56');
+    });
+
+    it('validate transform parsing logic with no y value',() => {
+        var transform = 'translate(110.6)';
+        var parsedTransform = SVGUtil.parseTranslateTransform(transform);
+
+        expect(parsedTransform.x).toBe('110.6');
+        expect(parsedTransform.y).toBe('0');
+    });
+
+    it('validate convertToPixelString', () => {
+        var pixelString = SVGUtil.convertToPixelString(34);
+
+        expect(pixelString).toBe('34px');
+    });
+});

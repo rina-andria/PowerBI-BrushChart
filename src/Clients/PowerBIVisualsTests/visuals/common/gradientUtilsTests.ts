@@ -24,33 +24,35 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
-    describe("GradientUtils",() => {
-        it('getFillRuleRole with fillRule',() => {
+    describe("GradientUtils", () => {
+        it("getFillRuleRole with fillRule", () => {
             var desc: powerbi.data.DataViewObjectDescriptors = {
                 test: {
-                    displayName: 'displayName',
+                    displayName: "displayName",
                     properties: {
                         fillRule: {
-                            displayName: 'fillRule',
+                            displayName: "fillRule",
                             type: { fillRule: {} },
                             rule: {
-                                inputRole: 'inputRoleValue',
-                            },
+                                inputRole: "inputRoleValue"
+                            }
                         }
                     }
                 }
             };
-            expect(powerbi.visuals.GradientUtils.getFillRuleRole(desc)).toBe('inputRoleValue');
+            expect(powerbi.visuals.GradientUtils.getFillRuleRole(desc)).toBe("inputRoleValue");
         });
 
-        it('getFillRuleRole without fillRule',() => {
+        it("getFillRuleRole without fillRule", () => {
             var desc: powerbi.data.DataViewObjectDescriptors = {
                 test: {
-                    displayName: 'displayName',
+                    displayName: "displayName",
                     properties: {
                         fill: {
-                            displayName: 'fill',
+                            displayName: "fill",
                             type: { fill: { solid: { color: true } } }
                         }
                     }

@@ -24,20 +24,32 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbi {
     import IStringResourceProvider = jsCommon.IStringResourceProvider;
 
     export interface ServiceError {
         statusCode: number;
+
+        /** This error code corresponds with a PowerBIServiceException that happened on the server */
+        errorCode?: string;
+
         // Message and stack trace should only be sent in non-production environments.
         message?: string;
         stackTrace?: string;
         errorDetails?: PowerBIErrorDetail[];
+        parameters?: ErrorParameter[];
     }
 
     export interface PowerBIErrorDetail {
         code: string;
         detail: PowerBIErrorDetailValue;
+    }
+
+    export interface ErrorParameter {
+        Key: string;
+        Value: string;
     }
 
     export interface PowerBIErrorDetailValue {
@@ -79,6 +91,7 @@ module powerbi {
             var errorDetails: ErrorDetails = PowerBIErrorDetailHelper.GetDetailsFromServerErrorStatusCode(resourceProvider, this.m_serviceError.statusCode);
 
             PowerBIErrorDetailHelper.addAdditionalInfo(errorDetails, this.m_serviceError.errorDetails, resourceProvider);
+            PowerBIErrorDetailHelper.addMessageAndStackTrace(errorDetails, this.m_serviceError.message || null, this.m_serviceError.stackTrace || null, resourceProvider);
 
             return errorDetails;
         }
@@ -97,6 +110,24 @@ module powerbi {
 
                     errorDetails.additionalErrorInfo.push(additionErrorInfoKeyValuePair);
                 }
+            }
+            return errorDetails;
+        }
+
+        public static addMessageAndStackTrace(errorDetails: ErrorDetails, message: string, stackTrace: string, localize: IStringResourceProvider): ErrorDetails {
+            if (message) {
+                var additionErrorInfoKeyValuePair = {
+                    errorInfoKey: localize.get("AdditionalErrorInfo_ErrorDetailsText"),
+                    errorInfoValue: message
+                };
+                errorDetails.additionalErrorInfo.push(additionErrorInfoKeyValuePair);
+            }
+            if (stackTrace) {
+                var additionErrorInfoKeyValuePair = {
+                    errorInfoKey: localize.get("AdditionalErrorInfo_StackTraceText"),
+                    errorInfoValue: stackTrace
+                };
+                errorDetails.additionalErrorInfo.push(additionErrorInfoKeyValuePair);
             }
             return errorDetails;
         }

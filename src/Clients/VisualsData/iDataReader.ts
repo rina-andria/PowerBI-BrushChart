@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbi.data {
     /** Represents a data reader. */
     export interface IDataReader {

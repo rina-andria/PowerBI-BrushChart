@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module jsCommon {
      /** Responsible for throttling input function. */
     export class ThrottleUtility {

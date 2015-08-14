@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
 
     export const enum PointLabelPosition {
@@ -54,6 +56,7 @@ module powerbi.visuals {
         labeltext?: string;
         //taken from column metadata
         labelFormatString?: string;
+        isLabelInside?: boolean;
     }
 
     export interface IColumnFormatterCache {
@@ -98,16 +101,31 @@ module powerbi.visuals {
             fontWeight: 'normal',
         };
         export var defaultLabelColor = "#777777";
-        export var defaultInsideLabelColor = "#fff"; //white
+        export var defaultInsideLabelColor = "#ffffff"; //white
         export var hundredPercentFormat = "0.00 %;-0.00 %;0.00 %";
 
         var defaultLabelPrecision: number = 2;        
+
+        var labelGraphicsContextClass: ClassAndSelector = {
+            class: 'labels',
+            selector: '.labels',
+        };
+
+        var linesGraphicsContextClass: ClassAndSelector = {
+            class: 'lines',
+            selector: '.lines',
+        };
 
         var labelsClass: ClassAndSelector = {
             class: 'data-labels',
             selector: '.data-labels',
         };
 
+        var lineClass: ClassAndSelector = {
+            class: 'line-label',
+            selector: '.line-label',
+        };
+        
         export function getDefaultLabelSettings(show: boolean = false, labelColor?: string): VisualDataLabelsSettings {
             return {
                 show: show,
@@ -120,7 +138,15 @@ module powerbi.visuals {
         }
 
         export function getDefaultTreemapLabelSettings(): VisualDataLabelsSettings {
-            return getDefaultLabelSettings(true, defaultInsideLabelColor);
+            return {
+                show: true,
+                position: PointLabelPosition.Above,
+                displayUnits: 0,
+                precision: defaultLabelPrecision,
+                labelColor: defaultInsideLabelColor,
+                showCategory: true,
+                formatterOptions: null,
+            };
         }
 
         export function getDefaultColumnLabelSettings(isLabelPositionInside: boolean): VisualDataLabelsSettings {
@@ -160,8 +186,10 @@ module powerbi.visuals {
             var dataLabelManager = new DataLabelManager();
             var filteredData = dataLabelManager.hideCollidedLabels(viewport, data, layout);
 
-            var labels = context.selectAll(labelsClass.selector).data(filteredData);
-            labels.enter().append('text').classed(labelsClass.class, true);
+            var labels = selectLabels(filteredData, context);
+
+            if (!labels)
+                return;
 
             labels
                 .attr({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY })
@@ -174,7 +202,8 @@ module powerbi.visuals {
 
             labels
                 .exit()
-                .remove();
+                .remove();            
+
             return labels;
         }
 
@@ -184,8 +213,10 @@ module powerbi.visuals {
 
             var filteredData = data.filter(layout.filter);
 
-            var labels = context.selectAll(labelsClass.selector).data(filteredData);
-            labels.enter().append('text').classed(labelsClass.class, true);
+            var labels = selectLabels(filteredData, context);
+
+            if (!labels)
+                return;
 
             labels
                 .attr(layout.labelLayout)
@@ -199,6 +230,7 @@ module powerbi.visuals {
             labels
                 .exit()
                 .remove();
+
             return labels;
         }
 
@@ -209,9 +241,11 @@ module powerbi.visuals {
             var dataLabelManager = new DataLabelManager();
             var filteredData = dataLabelManager.hideCollidedLabels(viewport, data, layout,/* addTransform */ true);
 
-            var labels = context.select('.labels').selectAll(labelsClass.selector).data(filteredData, (d: DonutArcDescriptor) => d.data.identity.getKey());
-            labels.enter().append('text').classed(labelsClass.class, true);
+            var labels = selectLabels(filteredData, context, true);
 
+            if (!labels)
+                return;
+            
             labels
                 .attr({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY, dy: '.35em'})
                 .text((d: LabelEnabledDataPoint) => d.labeltext)
@@ -221,7 +255,10 @@ module powerbi.visuals {
                 .exit()
                 .remove();
 
-            var lines = context.select('.lines').selectAll('polyline')
+            if (context.select(linesGraphicsContextClass.selector).empty())
+                context.append('g').classed(linesGraphicsContextClass.class, true);
+
+            var lines = context.select(linesGraphicsContextClass.selector).selectAll('polyline')
                 .data(filteredData, (d: DonutArcDescriptor) => d.data.identity.getKey());
             var innerLinePointMultiplier = 2.05;
 
@@ -229,7 +266,7 @@ module powerbi.visuals {
 
             lines.enter()
                 .append('polyline')
-                .classed('line-label', true);
+                .classed(lineClass.class, true);
 
             lines
                 .attr('points', function (d) {
@@ -249,17 +286,38 @@ module powerbi.visuals {
                 lines
                     .exit()
                     .remove();
+        }
 
+        function selectLabels(filteredData: LabelEnabledDataPoint[], context: D3.Selection, isDonut: boolean = false): D3.UpdateSelection {
+
+            // Check for a case where resizing leaves no labels - then we need to remove the labels 'g'
+            if (filteredData.length === 0) {
+                cleanDataLabels(context, true);
+                return null;
+            }
+
+            if (context.select(labelGraphicsContextClass.selector).empty())
+                context.append('g').classed(labelGraphicsContextClass.class, true);
+
+            var labels = isDonut
+                ? context.select(labelGraphicsContextClass.selector).selectAll(labelsClass.selector).data(filteredData, (d: DonutArcDescriptor) => d.data.identity.getKey())
+                : context.select(labelGraphicsContextClass.selector).selectAll(labelsClass.selector).data(filteredData);
+
+            labels.enter().append('text').classed(labelsClass.class, true);
+
+            return labels;
         }
 
         export function cleanDataLabels(context: D3.Selection, removeLines: boolean = false) {
             var empty = [];
             var labels = context.selectAll(labelsClass.selector).data(empty);
             labels.exit().remove();
+            context.selectAll(labelGraphicsContextClass.selector).remove();
             if (removeLines) {
-                var lines = context.selectAll('.line-label').data(empty);
+                var lines = context.selectAll(lineClass.selector).data(empty);
                 lines.exit().remove();
-        }
+                context.selectAll(linesGraphicsContextClass.selector).remove();
+            }
         }
 
         export function setHighlightedLabelsOpacity(context: D3.Selection, hasSelection: boolean, hasHighlights: boolean) {
@@ -284,32 +342,53 @@ module powerbi.visuals {
         }
 
         export function getLabelLayoutXYForWaterfall(xAxisProperties: IAxisProperties, categoryWidth: number, yAxisProperties: IAxisProperties, dataDomain: number[]): LabelPosition {
-            var yScale = yAxisProperties.scale;
-
             return {
                 x: (d: WaterfallChartDataPoint) => xAxisProperties.scale(d.categoryIndex) + (categoryWidth / 2),
-                y: (d: WaterfallChartDataPoint) => {
-                    var outsidePosition = WaterfallChart.getRectTop(yAxisProperties.scale, d.position, d.value) - dataLabelUtils.labelMargin;
-
-                    // Try to honor the position, but if the label doesn't fit where specified, then swap the position.
-                    if (outsidePosition > 0) {
-                        return outsidePosition;
-                    }
-
-                    // Get the start and end position of the column
-                    // If the start or end is outside of the visual because of clipping - adjust the position
-                    var scaleMinDomain = yScale(dataDomain[0]);
-                    var startPosition = yScale(d.position);
-                    startPosition = startPosition < 0 ? 0 : startPosition;
-                    startPosition = startPosition > scaleMinDomain ? scaleMinDomain : startPosition;
-                    var endPosition = yScale(d.position + d.value);
-                    endPosition = endPosition < 0 ? 0 : endPosition;
-                    endPosition = endPosition > scaleMinDomain ? scaleMinDomain : endPosition;
-                    var insidePosition = Math.abs(endPosition - startPosition) / 2;
-
-                    return insidePosition;
-                },
+                y: (d: WaterfallChartDataPoint) => getWaterfallLabelYPosition(yAxisProperties.scale, d, dataDomain)
             };
+        }
+
+        function getWaterfallLabelYPosition(scale: D3.Scale.GenericScale<any>, d: WaterfallChartDataPoint, dataDomain: number[]): number {
+
+            var yValue = scale(0) - scale(Math.abs(d.value));
+            var yPos = scale(d.position);
+            var scaleMinDomain = scale(dataDomain[0]);
+            var endPosition = scale(d.position + d.value);
+
+            if (d.value < 0) {
+                var properties: TextProperties = {
+                    text: d.labeltext,
+                    fontFamily: dataLabelUtils.LabelTextProperties.fontFamily,
+                    fontSize: dataLabelUtils.LabelTextProperties.fontSize,
+                    fontWeight: dataLabelUtils.LabelTextProperties.fontWeight,
+                };
+                var outsideBelowPosition = yPos + yValue + TextMeasurementService.measureSvgTextHeight(properties);
+                // Try to honor the position, but if the label doesn't fit where specified, then swap the position.
+                if (scaleMinDomain > outsideBelowPosition) {
+                    return outsideBelowPosition;
+                }
+            }
+            else {
+                var outsideAbovePosition = yPos - yValue - dataLabelUtils.labelMargin;
+                // Try to honor the position, but if the label doesn't fit where specified, then swap the position.
+                if (outsideAbovePosition > 0) {
+                    return outsideAbovePosition;
+                }
+            }
+            d.isLabelInside = true;
+            return getWaterfallInsideLabelYPosition(yPos, endPosition, scaleMinDomain);
+        }
+
+        function getWaterfallInsideLabelYPosition(startPosition: number, endPosition: number, scaleMinDomain: number): number {
+            // Get the start and end position of the column
+            // If the start or end is outside of the visual because of clipping - adjust the position
+            startPosition = startPosition < 0 ? 0 : startPosition;
+            startPosition = startPosition > scaleMinDomain ? scaleMinDomain : startPosition;
+
+            endPosition = endPosition < 0 ? 0 : endPosition;
+            endPosition = endPosition > scaleMinDomain ? scaleMinDomain : endPosition;
+
+            return (Math.abs(endPosition - startPosition) / 2) + Math.min(startPosition, endPosition);
         }
 
         export function doesDataLabelFitInShape(d: WaterfallChartDataPoint, yAxisProperties: IAxisProperties, layout: WaterfallLayout): boolean {
@@ -371,20 +450,14 @@ module powerbi.visuals {
             isHundredPercent: boolean,
             axisFormatter: IValueFormatter,
             axisOptions: ColumnAxisOptions,
+            interactivityService: IInteractivityService,
             visualWidth?: number): ILabelLayout {
 
             var formatOverride: string = (isHundredPercent) ? hundredPercentFormat : null;
             var formattersCache = createColumnFormatterCacheManager();
             var value2: number = getDisplayUnitValueFromAxisFormatter(axisFormatter, data.labelSettings);
             var labelSettings = data.labelSettings;
-
-            var hasSelection = false;
-            for (var i = 0, ilen = data.series.length; i < ilen; i++) {
-                var dataPoints = data.series[i].data;
-                if (dataHasSelection(dataPoints))
-                    hasSelection = true;
-            }
-
+            var hasSelection = interactivityService && WebInteractivityService ? interactivityService.hasSelection() : false;
             return {
                 labelText: (d: ColumnChartDataPoint) => {
                     var formatString = (formatOverride != null) ? formatOverride : d.labelFormatString;
@@ -392,17 +465,10 @@ module powerbi.visuals {
                     return getLabelFormattedText(formatter.format(d.value), maxLabelWidth);
                 },
                 labelLayout: labelLayoutXY,
-                filter: (d: ColumnChartDataPoint) => {
-                    return (d != null && d.value != null && d.value !== 0 && validateLabelsSize(d, axisOptions, visualWidth));
-                },
+                filter: (d: ColumnChartDataPoint) => dataLabelUtils.getColumnChartLabelFilter(d, hasSelection, data.hasHighlights, axisOptions, visualWidth) ,
                 style: {
                     'fill': (d: ColumnChartDataPoint) => d.labelFill,
                     'text-anchor': isColumn ? 'middle' : 'start',
-                    'fill-opacity': (d: ColumnChartDataPoint) => {
-                        //if bar's opacity is DimmedOpacity (less than 1) labels opacity swap to 0
-                        var labelOpacity = ColumnUtil.getFillOpacity(d.selected, d.highlight, hasSelection, data.hasHighlights) < 1 ? 0 : 1;
-                        return labelOpacity;
-                    }
                 },
             };
         }
@@ -467,6 +533,13 @@ module powerbi.visuals {
             //checking that labels aren't greater than shape
             if (inside && ((textWidth > shapeWidth) || textHeight > shapeHeight)) return false;
             return true;
+        }
+
+        export function getColumnChartLabelFilter(d: ColumnChartDataPoint, hasSelection: boolean, hasHighlights: boolean, axisOptions: ColumnAxisOptions, visualWidth?: number): any {
+                //labels of dimmed are hidden
+                var shapesOpacity = hasSelection ? ColumnUtil.getFillOpacity(d.selected, d.highlight, !d.highlight && hasSelection, !d.selected && hasHighlights) :
+                    ColumnUtil.getFillOpacity(d.selected, d.highlight, hasSelection, hasHighlights);
+                return (d != null && d.value != null && validateLabelsSize(d, axisOptions, visualWidth) && shapesOpacity === 1);
         }
 
         export function getScatterChartLabelLayout(xScale: D3.Scale.GenericScale<any>, yScale: D3.Scale.GenericScale<any>, labelSettings: PointDataLabelsSettings, viewport: IViewport, sizeRange: NumberRange): ILabelLayout {
@@ -666,18 +739,20 @@ module powerbi.visuals {
             return [instance];
         }
 
-        export function enumerateCategoryLabels(dataLabelsSettings: VisualDataLabelsSettings, withFill: boolean, isDonutChart: boolean = false): VisualObjectInstance[] {
+        export function enumerateCategoryLabels(dataLabelsSettings: VisualDataLabelsSettings, withFill: boolean, isDonutChart: boolean = false, isTreeMap: boolean = false): VisualObjectInstance[] {
             var labelSettings = (dataLabelsSettings)
                 ? dataLabelsSettings
                 : (isDonutChart)
                 ? getDefaultDonutLabelSettings()
+                : (isTreeMap)
+                ? getDefaultTreemapLabelSettings()
                 : getDefaultPointLabelSettings();
 
             var instance: VisualObjectInstance = {
                 objectName: 'categoryLabels',
                 selector: null,
                 properties: {
-                    show: isDonutChart
+                    show: isDonutChart || isTreeMap
                     ? labelSettings.showCategory
                     : labelSettings.show,
                 },
@@ -726,13 +801,10 @@ module powerbi.visuals {
         }
 
         function getOptionsForLabelFormatter(labelSetting: VisualDataLabelsSettings, formatString: string, value2?: number): ValueFormatterOptions {
-            //displayUnitSystem avoid scaling for year values (1000 to 3000), set value to bigger than Year.Max
-            var displayUnits = (labelSetting.displayUnits === 1000) ? 10000 : labelSetting.displayUnits;
-
             return {
                 format: formatString,
                 precision: labelSetting.precision,
-                value: displayUnits,
+                value: labelSetting.displayUnits,
                 value2: value2,
                 allowFormatBeautification: true,
             };

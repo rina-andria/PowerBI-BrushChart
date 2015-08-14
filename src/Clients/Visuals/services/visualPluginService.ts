@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface IVisualPluginService {
         getPlugin(type: string): IVisualPlugin;
@@ -40,6 +42,7 @@ module powerbi.visuals {
     export interface SmallViewPortProperties {
         cartesianSmallViewPortProperties: CartesianSmallViewPortProperties;
         gaugeSmallViewPortProperties: GaugeSmallViewPortProperties;
+        funnelSmallViewPortProperties: FunnelSmallViewPortProperties;
     }
 
     export module visualPluginFactory {
@@ -240,6 +243,7 @@ module powerbi.visuals {
             public static MinHeightAxesVisible = 80;
             public static MinHeightGaugeSideNumbersVisible = 80;
             public static GaugeMarginsOnSmallViewPort = 10;
+            public static MinHeightFunnelCategoryLabelsVisible = 80;
 
             public constructor(smallViewPortProperties?: SmallViewPortProperties) {
                 super();
@@ -256,7 +260,11 @@ module powerbi.visuals {
                         smallGaugeMarginsOnSmallViewPort: true,
                         MinHeightGaugeSideNumbersVisible: MobileVisualPluginService.MinHeightGaugeSideNumbersVisible,
                         GaugeMarginsOnSmallViewPort: MobileVisualPluginService.GaugeMarginsOnSmallViewPort,
-                    }
+                    },
+                    FunnelSmallViewPortProperties: {
+                        hideFunnelCategoryLabelsOnSmallViewPort: true,
+                        minHeightFunnelCategoryLabelsVisible: MobileVisualPluginService.MinHeightFunnelCategoryLabelsVisible,
+                    },
                 };
 
                 // Disable tooltips for mobile
@@ -268,6 +276,7 @@ module powerbi.visuals {
                 createPlugin(this.visualPlugins, powerbi.visuals.plugins.lineStackedColumnComboChart, () => new CartesianChart({ chartType: CartesianChartType.LineStackedColumnCombo, cartesianSmallViewPortProperties: this.smallViewPortProperties.CartesianSmallViewPortProperties }));
                 createPlugin(this.visualPlugins, powerbi.visuals.plugins.scatterChart, () => new CartesianChart({ chartType: CartesianChartType.Scatter, cartesianSmallViewPortProperties: this.smallViewPortProperties.CartesianSmallViewPortProperties }));
                 createPlugin(this.visualPlugins, powerbi.visuals.plugins.gauge, () => new Gauge({ chartType: Gauge, gaugeSmallViewPortProperties: this.smallViewPortProperties.GaugeSmallViewPortProperties }));
+                createPlugin(this.visualPlugins, powerbi.visuals.plugins.funnel,() => new FunnelChart({ animator: null, funnelSmallViewPortProperties: this.smallViewPortProperties.FunnelSmallViewPortProperties }));
             }
 
             public getPlugin(type: string): IVisualPlugin {

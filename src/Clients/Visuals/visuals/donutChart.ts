@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface DonutConstructorOptions {
         sliceWidthRatio?: number;
@@ -264,8 +266,6 @@ module powerbi.visuals {
             this.mainGraphicsContext.append("g")
                 .classed('slices', true);
             this.mainGraphicsContext.append("g")
-                .classed('labels', true);
-            this.mainGraphicsContext.append("g")
                 .classed('lines', true);
 
             this.pie = d3.layout.pie()
@@ -441,15 +441,16 @@ module powerbi.visuals {
 
         private calculateRadius(): number {
             var viewport = this.currentViewport;
-            if (this.isInteractive) {
-                return Math.min(viewport.height, viewport.width) / 2;
-            } else {
-                // use a sigmoid to blend the desired denominator from 2 to 3.
-                // if we are taller than we are wide, we need to use a larger denominator
+            if (!this.isInteractive && this.data && (this.data.dataLabelsSettings.show || this.data.dataLabelsSettings.showCategory)) {
+                // if we have category or data labels, use a sigmoid to blend the desired denominator from 2 to 3.
+                // if we are taller than we are wide, we need to use a larger denominator to leave horizontal room for the labels.
                 var hw = viewport.height / viewport.width;
                 var denom = 2 + (1 / (1 + Math.exp(-5 * (hw - 1))));
                 return Math.min(viewport.height, viewport.width) / denom;
             }
+
+            // no labels (isInteractive does not have labels since the interactive legend shows extra info)
+            return Math.min(viewport.height, viewport.width) / 2;
         }
 
         private initViewportDependantProperties(duration: number = 0) {
@@ -545,7 +546,7 @@ module powerbi.visuals {
                 if (suppressAnimations || result.failed) {
                     shapes = DonutChart.drawDefaultShapes(this.svg, data, layout, this.colors, this.radius);
                     highlightShapes = DonutChart.drawDefaultHighlightShapes(this.svg, data, layout, this.colors, this.radius);
-                    DonutChart.drawDefaultCategoryLabels(this.svg, data, layout, this.sliceWidthRatio, this.radius, this.currentViewport);
+                    DonutChart.drawDefaultCategoryLabels(this.mainGraphicsContext, data, layout, this.sliceWidthRatio, this.radius, this.currentViewport);
                 }
 
                 this.assignInteractions(shapes, highlightShapes, data);

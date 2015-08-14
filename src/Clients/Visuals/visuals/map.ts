@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     import MapServices = visuals.BI.Services.MapServices;
     import ArrayExtensions = jsCommon.ArrayExtensions;
@@ -539,7 +541,7 @@ module powerbi.visuals {
 
         public getDataPointCount(): number {
             // Filter out any data points without a location since those aren't actually being drawn
-            return _.filter(this.values, (value: MapDataPoint) => !!value.cachedLocation).length;
+            return _.filter(this.values, (value: MapDataPoint) => !!value.paths).length;
         }
 
         public converter(viewport: IViewport, dataView: DataView, interactivityService?: IInteractivityService): MapData {
@@ -553,15 +555,14 @@ module powerbi.visuals {
                 var categorical: DataViewCategorical = dataView ? dataView.categorical : null;
                 var canvasDataPoint: MapDataPoint = this.values[categoryIndex];
                 var categoryValue = canvasDataPoint.categoryValue;
-                var location = canvasDataPoint.cachedLocation;
+                var paths = canvasDataPoint.paths;
                 var sizeValuesForGroup = canvasDataPoint.seriesInfo.sizeValuesForGroup;
 
-                if (location) {
+                if (paths) {
                     var sizeValueForGroup: MapPieSlice = sizeValuesForGroup[0];
                     var value = sizeValueForGroup.value;
                     var index = sizeValueForGroup.index;
                     var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, index);
-                    var paths = canvasDataPoint.paths;
                     var identity = SelectionId.createWithId(canvasDataPoint.categoryIdentity);
                     var idKey = identity.getKey();
                     for (var pathIndex = 0, pathCount = paths.length; pathIndex < pathCount; pathIndex++) {

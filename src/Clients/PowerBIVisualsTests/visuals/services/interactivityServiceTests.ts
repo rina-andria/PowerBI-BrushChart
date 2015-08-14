@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import SelectableDataPoint = powerbi.visuals.SelectableDataPoint;
     import SelectionId = powerbi.visuals.SelectionId;

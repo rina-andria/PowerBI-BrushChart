@@ -45,6 +45,53 @@ body {
     background-color: #ffffff;
 }
 
+section#sample, section#configuration {
+    display: inline-block;
+    float: left;
+    overflow: hidden;
+}
+section#sample {
+    /* border-right: 2px solid black; */
+    width: 800px;
+}
+
+section#options {
+    min-width: 200px;
+    border-left: 1px solid #CCC;
+    height: 600px;
+    padding-left: 20px;
+}
+
+.topBar {
+    width: 100%;
+    display: inline-block;
+    /* background-color: black; */
+    /* color: #FFF; */
+    padding: 10px;
+}
+
+ul#options-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul#options-list li{
+    margin-top: 15px;
+}
+
+ul#options-list li span{
+
+}
+
+ul#options-list li input[name="animation_duration"]{
+    width: 50px;
+}
+
+#dataViewsSelect {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
 svg {
     width: 100%;
     height: 100%;
@@ -75,23 +122,16 @@ div.chart-content {
     opacity: 0.6;
 }
 
-#optionsContainer {
-    padding: 30px;
-}
 
-#optionsContainer span{
-    margin-right: 10px;
-}
-
-#itemContainer {
-    height: 400px;
-    width: 700px;
+#container {
+    height: 500px;
+    width: 1000px;
     position: relative;
     top: 60px;
     left: 0;
 }
 
-#itemContainer svg {
+#container svg {
     width: 100%;
     height: 100%;
     top: 0;
@@ -99,13 +139,6 @@ div.chart-content {
     /* fill: transparent; */
 }
 
-.topBar {
-    width: 100%;
-    display: inline-block;
-    background-color: black;
-    color: #FFF;
-    padding: 10px;
-}
 
 #userData {
     background-color: gray;

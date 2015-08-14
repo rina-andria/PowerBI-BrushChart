@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface CardStyle {
         card: {
@@ -77,6 +79,7 @@ module powerbi.visuals {
         private animationOptions: AnimationOptions;
         private displayUnitSystemType: DisplayUnitSystemType;
         private isScrollable: boolean;
+        private graphicsContext: D3.Selection;
         private labelContext: D3.Selection;
 
         public constructor(options?: CardConstructorOptions) {
@@ -228,6 +231,10 @@ module powerbi.visuals {
                         'text-anchor': this.getTextAnchor()
                     });
 
+                valueElement.call(AxisHelper.LabelLayoutStrategy.clip,
+                    this.currentViewport.width,
+                    TextMeasurementService.svgEllipsis);
+
                 valueElement.exit().remove();
 
                 var labelElement = this.labelContext
@@ -247,6 +254,10 @@ module powerbi.visuals {
                         'fill': labelStyles.color,
                         'text-anchor': this.getTextAnchor()
                     });
+
+                labelElement.call(AxisHelper.LabelLayoutStrategy.clip,
+                    this.currentViewport.width,
+                    TextMeasurementService.svgEllipsis);
 
                 labelElement.exit().remove();
             }

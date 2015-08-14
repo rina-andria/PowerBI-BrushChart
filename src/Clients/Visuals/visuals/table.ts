@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
 
     export interface DataViewVisualTable extends DataViewTable {
@@ -183,11 +185,19 @@ module powerbi.visuals {
             if (item1 === item2)
                 return true;
 
-            var column1 = <DataViewMetadataColumn>item1;
-            var column2 = <DataViewMetadataColumn>item2;
-            if (column1 && column2) {
+            // Typechecking does not work with interfaces nor at runtime. We need to explicitly check for 
+            // properties of DataViewMetadataColumn to determine if we can use the column equivalency check.
+            // We expect this method to handle either VisualTableRows or DataViewMetadataColumns so checking
+            // for displayName should be sufficient.
+            if (item1.displayName && item2.displayName)
+            {
+                var column1 = <powerbi.DataViewMetadataColumn>item1;
+                var column2 = <powerbi.DataViewMetadataColumn>item2;
                 return powerbi.DataViewAnalysis.areMetadataColumnsEquivalent(column1, column2);
             }
+
+            if (this.isRow(item1) && this.isRow(item2))
+                return item1.index === item2.index;
 
             return false;
         }
@@ -225,8 +235,8 @@ module powerbi.visuals {
     }
 
     export interface TableBinderOptions {
-        onBindRowHeader?(item: any): void;
-        onColumnHeaderClick?(queryName: string): void;
+        onBindRowHeader? (item: any): void;
+        onColumnHeaderClick? (queryName: string): void;
     }
 
     // Public for testability

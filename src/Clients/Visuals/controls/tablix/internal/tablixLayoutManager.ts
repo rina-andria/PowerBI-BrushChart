@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../../_references.ts"/>
+
 module powerbi.visuals.controls.internal {
 
     /** This class is used for layouts that don't or cannot
@@ -346,7 +348,8 @@ module powerbi.visuals.controls.internal {
         }
 
         public getRealizedItemsCount(): number {
-            return this._getRealizedItems().length;
+            var realizedItems = this._getRealizedItems();
+            return realizedItems.length;
         }
 
         public _moveElementsToBottom(moveFromIndex: number, count): void {
@@ -460,7 +463,11 @@ module powerbi.visuals.controls.internal {
         }
 
         private getItemContextualWidth(index: number): number {
-            return this._getRealizedItems()[index].getContextualWidth();
+            var realizedItems = this._getRealizedItems();
+            if (index >= realizedItems.length)
+                return null;
+
+            return realizedItems[index].getContextualWidth();
         }
 
         private getItemContextualWidthWithScrolling(index: number): number {
@@ -706,7 +713,11 @@ module powerbi.visuals.controls.internal {
             return 0;
         }
 
-        public _getRealizedItems(): ITablixGridItem[]{
+        public _getRealizedItems(): ITablixGridItem[] {
+            if (!this._grid.realizedColumns) {
+                this._grid.realizedColumns = [];
+            }
+
             return this._grid.realizedColumns;
         }
 
@@ -946,7 +957,11 @@ module powerbi.visuals.controls.internal {
             super.startScrollingSession();
         }
 
-        public _getRealizedItems(): ITablixGridItem[]{
+        public _getRealizedItems(): ITablixGridItem[] {
+            if (!this._grid.realizedRows) {
+                this._grid.realizedRows = [];
+            }
+
             return this._grid.realizedRows;
         }
 
@@ -959,7 +974,7 @@ module powerbi.visuals.controls.internal {
         }
 
         public _requiresMeasure(): boolean {
-            // if the control is not scrolling in either dimension and the column dimension is not resizing or row fdimension is scrolling and reaching the end while scrolling 
+            // if the control is not scrolling in either dimension and the column dimension is not resizing or row dimension is scrolling and reaching the end while scrolling 
             return (!this.isScrolling() && !this.otherLayoutManager.isScrolling() && !this.otherLayoutManager.isResizing())
                 || (this.isScrolling() && (this.dimension.getIntegerScrollOffset() + (this.getRealizedItemsCount() - this._gridOffset) >= this.dimension.getItemsCount()));
         }
@@ -1317,7 +1332,7 @@ module powerbi.visuals.controls.internal {
 
             var measureEnabled = this._columnLayoutManager.measureEnabled || this._rowLayoutManager.measureEnabled;
             if (measureEnabled)
-                this.measureSampleText(parentElement);            
+                this.measureSampleText(parentElement);
         }
 
         public onEndRenderingSession(): void {
@@ -1350,7 +1365,7 @@ module powerbi.visuals.controls.internal {
         public onStartRenderingIteration(clear: boolean): void {
             this._rowLayoutManager.onStartRenderingIteration(clear, this.getVisibleHeight());
             this._columnLayoutManager.onStartRenderingIteration(clear, this.getVisibleWidth());
-            this._grid.onStartRenderingIteration();  
+            this._grid.onStartRenderingIteration();
         }
 
         public onEndRenderingIteration(): boolean {

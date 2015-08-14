@@ -24,18 +24,21 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import Controls = powerbi.visuals.controls;
     import InternalControls = powerbi.visuals.controls.internal;
+    import TablixLayoutManager = powerbi.visuals.controls.internal.TablixLayoutManager;
 
-    describe('TablixGrid',() => {
+    describe("TablixGrid", () => {
 
-        it('onStartRenderingSession clear',() => {
+        it("onStartRenderingSession clear", () => {
             var control = createTablixControl();
             var grid = control.layoutManager.grid;
             var gridPresenter = grid._presenter;
-            gridPresenter['_owner'] = grid;
-            grid['_owner'] = control;
+            gridPresenter["_owner"] = grid;
+            grid["_owner"] = control;
 
             grid.onStartRenderingIteration();
 
@@ -47,113 +50,135 @@ module powerbitests {
 
             grid.onStartRenderingSession(true);
 
-            expect(grid['_rows']).toBe(null);
-            expect(grid['_columns']).toBe(null);
-            expect(grid['_footerRow']).toBe(null);
+            expect(grid["_rows"]).toBe(null);
+            expect(grid["_columns"]).toBe(null);
+            expect(grid["_footerRow"]).toBe(null);
         });
     });
 
-    describe('TablixLayoutManager',() => {
+    describe("TablixLayoutManager", () => {
 
-        it('onStartRenderingSession clear',() => {
-
-            var tableBinder = createMockBinder();
-            var layoutManager = InternalControls.CanvasTablixLayoutManager.createLayoutManager(tableBinder);
+        it("onStartRenderingSession clear", () => {
+            var layoutManager = InternalControls.CanvasTablixLayoutManager.createLayoutManager(createMockBinder());
             var grid = layoutManager.grid;
             var gridSpy = spyOn(grid, "onStartRenderingSession");
-            layoutManager.rowLayoutManager['onStartRenderingSession'] = () => { };
-            layoutManager.columnLayoutManager['onStartRenderingSession'] = () => { };
+            layoutManager.rowLayoutManager["onStartRenderingSession"] = () => { };
+            layoutManager.columnLayoutManager["onStartRenderingSession"] = () => { };
             layoutManager.onStartRenderingSession(null, null, true);
             expect(gridSpy).toHaveBeenCalledWith(true);
         });
+
+        it('RowLayoutManager getRealizedItemsCount noItems',() => {
+            var tableBinder = createMockBinder();
+            var layoutManager = InternalControls.CanvasTablixLayoutManager.createLayoutManager(tableBinder);
+            var rowLayoutManager = layoutManager.rowLayoutManager;
+            rowLayoutManager["_realizedRows"] = null;
+            var count = rowLayoutManager.getRealizedItemsCount();
+            expect(count).toBe(0);
+        });
+
+        it('ColumnLayoutManager getRealizedItemsCount noItems',() => {
+            var tableBinder = createMockBinder();
+            var layoutManager = InternalControls.CanvasTablixLayoutManager.createLayoutManager(tableBinder);
+            var columnLayoutManager = layoutManager.columnLayoutManager;
+            columnLayoutManager["_realizedColumns"] = null;
+            var count = columnLayoutManager.getRealizedItemsCount();
+            expect(count).toBe(0);
+        });
+
+        it('DimensionLayoutManager getRealizedItemsCount',() => {
+            var tableBinder = createMockBinder();
+            var layoutManager = InternalControls.CanvasTablixLayoutManager.createLayoutManager(tableBinder);
+            var rowLayoutManager = layoutManager.rowLayoutManager;
+            spyOn(rowLayoutManager, "_getRealizedItems").and.returnValue([1, 2, 3]);
+            var count = rowLayoutManager.getRealizedItemsCount();
+            expect(count).toBe(3);
+        });
     });
 
-    describe('TablixControl',() => {
+    describe("TablixControl", () => {
 
-        it('Render clear calls clearRows once',() => {
-            var control = createTablixControl();
-            var layoutManager = control.layoutManager;
+        var tablixControl: Controls.TablixControl;
+        var layoutManager: TablixLayoutManager;
+
+        beforeEach(() => {
+            tablixControl = createTablixControl();
+            layoutManager = tablixControl.layoutManager;
+        });
+
+        it("Render clear calls clearRows once", () => {
 
             // Force a few rendering iterations.
             var counter: number = 3;
-            layoutManager['onEndRenderingIteration'] = () => { return 0 === counter--; };
+            layoutManager["onEndRenderingIteration"] = () => { return 0 === counter--; };
 
             var spy = spyOn(layoutManager.grid, "clearRows");
-            control.refresh(true);
+            tablixControl.refresh(true);
 
             expect(spy.calls.all().length).toBe(1);
         });
 
-        it('Render clear false no clearRows call',() => {
-            var control = createTablixControl();
-            var layoutManager = control.layoutManager;
-
+        it("Render clear false no clearRows call", () => {
             var counter: number = 1;
-            layoutManager['onEndRenderingIteration'] = () => { return 0 === counter--; };
+            layoutManager["onEndRenderingIteration"] = () => { return 0 === counter--; };
 
             var spy = spyOn(layoutManager.grid, "clearRows");
-            control.refresh(false);
+            tablixControl.refresh(false);
             expect(spy).not.toHaveBeenCalled();
         });
 
-        it('DOMMouseScroll dispatches to row scrollbar',() => {
-            var tablixControl = createTablixControl();
+        it("DOMMouseScroll dispatches to row scrollbar", () => {
             var spy = spyOn(tablixControl.rowDimension.scrollbar, "onFireFoxMouseWheel");
             spy.and.stub();
-            tablixControl.rowDimension.scrollbar['_visible'] = true;
-            var evt = createMouseWheelEvent('DOMMouseScroll', -100);
-            tablixControl.container.dispatchEvent(evt);
+            tablixControl.rowDimension.scrollbar["_visible"] = true;
+            tablixControl.container.dispatchEvent(createMouseWheelEvent("DOMMouseScroll", -100));
 
             expect(spy).toHaveBeenCalled();
         });
 
-        it('mousewheel dispatches to row scrollbar',() => {
-            var tablixControl = createTablixControl();
+        it("mousewheel dispatches to row scrollbar", () => {
             var spy = spyOn(tablixControl.rowDimension.scrollbar, "onMouseWheel");
             spy.and.stub();
-            tablixControl.rowDimension.scrollbar['_visible'] = true;
-            var evt = createMouseWheelEvent('mousewheel', -100);
-            tablixControl.container.dispatchEvent(evt);
+            tablixControl.rowDimension.scrollbar["_visible"] = true;
+            tablixControl.container.dispatchEvent(createMouseWheelEvent("mousewheel", -100));
 
             expect(spy).toHaveBeenCalled();
         });
 
-        it('mousewheel dispatches to dimension scrollbar',() => {
-            var tablixControl = createTablixControl();
+        it("mousewheel dispatches to dimension scrollbar", () => {
             var spy = spyOn(tablixControl.columnDimension.scrollbar, "onMouseWheel");
             spy.and.stub();
-            tablixControl.rowDimension.scrollbar['_visible'] = false;
-            tablixControl.columnDimension.scrollbar['_visible'] = true;
-            var evt = createMouseWheelEvent('mousewheel', -100);
-            tablixControl.container.dispatchEvent(evt);
+            tablixControl.rowDimension.scrollbar["_visible"] = false;
+            tablixControl.columnDimension.scrollbar["_visible"] = true;
+            tablixControl.container.dispatchEvent(createMouseWheelEvent("mousewheel", -100));
 
             expect(spy).toHaveBeenCalled();
         });
     });
 
-    describe('Scrollbar',() => {
-        it('Uses mouse wheel range',() => {
-            var parent = document.createElement('div');
-            var scrollbar = new Controls.Scrollbar(parent);
+    describe("Scrollbar", () => {
 
-            var evt = createMouseWheelEvent('mousewheel', -10);
+        var scrollbar;
+
+        beforeEach(() => {
+            scrollbar = new Controls.Scrollbar(document.createElement("div"));
+        });
+
+        it("Uses mouse wheel range", () => {
             var scrollSpy = spyOn(scrollbar, "scrollBy");
             scrollSpy.and.stub();
-            scrollbar.onMouseWheel(evt);
+            scrollbar.onMouseWheel(createMouseWheelEvent("mousewheel", -10));
 
             expect(scrollSpy).toHaveBeenCalledWith(1);
         });
 
-        it('Detects end of scroll',() => {
-            var parent = document.createElement('div');
+        it("Detects end of scroll", () => {
             var callbackCalled = false;
             var callback = () => { callbackCalled = true; };
-            var scrollbar = new Controls.Scrollbar(parent);
-            scrollbar._onscroll.push((e) => callback());
+            scrollbar._onscroll.push(() => callback());
             scrollbar.viewMin = 2;
             scrollbar.viewSize = 8;
-            var evt = createMouseWheelEvent('mousewheel', -240);
-            scrollbar.onMouseWheel(evt);
+            scrollbar.onMouseWheel(createMouseWheelEvent("mousewheel", -240));
 
             expect(callbackCalled).toBeFalsy();
         });
@@ -166,14 +191,9 @@ module powerbitests {
         var tablixOptions: Controls.TablixOptions = {
             interactive: true,
             enableTouchSupport: false,
-            layoutKind: Controls.TablixLayoutKind.Canvas,
+            layoutKind: Controls.TablixLayoutKind.Canvas
         };
-
-        var tablixContainer = document.createElement('div');
-
-        var navigator = createMockNavigator();
-
-        return new Controls.TablixControl(navigator, layoutManager, tableBinder, tablixContainer, tablixOptions);
+        return new Controls.TablixControl(createMockNavigator(), layoutManager, tableBinder, document.createElement("div"), tablixOptions);
     }
 
     function createMockBinder(): Controls.ITablixBinder {

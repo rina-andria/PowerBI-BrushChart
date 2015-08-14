@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi {
     export var CategoryTypes = {
         Address: "Address",
@@ -48,6 +50,46 @@ module powerbi {
     export function createGeoTaggingAnalyzerService(getLocalized: (string) => string): IGeoTaggingAnalyzerService {
         return new GeoTaggingAnalyzerService(getLocalized);
     }
+
+    var EnglishBackup = {
+        GeotaggingString_Continent: "continent",
+        GeotaggingString_Continents: "continents",
+        GeotaggingString_Country: "country",
+        GeotaggingString_Countries: "countries",
+        GeotaggingString_State: "state",
+        GeotaggingString_States: "states",
+        GeotaggingString_City: "city",
+        GeotaggingString_Cities: "cities",
+        GeotaggingString_Town: "town",
+        GeotaggingString_Towns: "towns",
+        GeotaggingString_Province: "province",
+        GeotaggingString_Provinces: "provinces",
+        GeotaggingString_County: "county",
+        GeotaggingString_Counties: "counties",
+        GeotaggingString_Village: "village",
+        GeotaggingString_Villages: "villages",
+        GeotaggingString_Post: "post",
+        GeotaggingString_Zip: "zip",
+        GeotaggingString_Code: "code",
+        GeotaggingString_Place: "place",
+        GeotaggingString_Places: "places",
+        GeotaggingString_Address: "address",
+        GeotaggingString_Addresses: "addresses",
+        GeotaggingString_Street: "street",
+        GeotaggingString_Streets: "streets",
+        GeotaggingString_Longitude: "longitude",
+        GeotaggingString_Longitude_Short: "lon",
+        GeotaggingString_Latitude: "latitude",
+        GeotaggingString_Latitude_Short: "lat",
+        GeotaggingString_PostalCode: "postal code",
+        GeotaggingString_PostalCodes: "postal codes",
+        GeotaggingString_ZipCode: "zip code",
+        GeotaggingString_ZipCodes: "zip codes",
+        GeotaggingString_Territory: "territory",
+        GeotaggingString_Territories: "territories",
+        GeotaggingString_VRMBackCompat_CountryRegion: "CountryRegion",
+        GeotaggingString_VRMBackCompat_StateOrProvince: "StateOrProvince"
+    };
 
     export class GeoTaggingAnalyzerService implements IGeoTaggingAnalyzerService {
         private GeotaggingString_Continent;
@@ -289,6 +331,139 @@ module powerbi {
             if (this.isStateOrProvince(fieldName))
                 return CategoryTypes.StateOrProvince;
             if (this.isContinent(fieldName))
+                return CategoryTypes.Continent;
+            return this.getEnglishFieldType(fieldName);
+        }
+
+        private isEnglishAddress(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_Address,
+                EnglishBackup.GeotaggingString_Addresses,
+                EnglishBackup.GeotaggingString_Street,
+                EnglishBackup.GeotaggingString_Streets
+            ]);
+        }
+
+        private isEnglishPlace(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_Place,
+                EnglishBackup.GeotaggingString_Places
+            ]);
+        }
+
+        private isEnglishCity(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_City,
+                EnglishBackup.GeotaggingString_Cities,
+                EnglishBackup.GeotaggingString_Town,
+                EnglishBackup.GeotaggingString_Towns,
+                EnglishBackup.GeotaggingString_Village,
+                EnglishBackup.GeotaggingString_Villages
+            ]);
+        }
+
+        private isEnglishStateOrProvince(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_State,
+                EnglishBackup.GeotaggingString_States,
+                EnglishBackup.GeotaggingString_Province,
+                EnglishBackup.GeotaggingString_Provinces,
+                EnglishBackup.GeotaggingString_VRMBackCompat_StateOrProvince,
+            ]);
+        }
+
+        private isEnglishCountry(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_Country,
+                EnglishBackup.GeotaggingString_Countries,
+                EnglishBackup.GeotaggingString_VRMBackCompat_CountryRegion
+            ]);
+        }
+
+        private isEnglishCounty(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_County,
+                EnglishBackup.GeotaggingString_Counties
+            ]);
+        }
+
+        private isEnglishContinent(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_Continent,
+                EnglishBackup.GeotaggingString_Continents
+            ]);
+        }
+
+        private isEnglishPostalCode(fieldRefName: string): boolean {
+            var result =
+                (GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                    EnglishBackup.GeotaggingString_Post,
+                    EnglishBackup.GeotaggingString_Zip])
+                && GeoTaggingAnalyzerService.hasMatches(fieldRefName, [this.GeotaggingString_Code])) ||
+                GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                    EnglishBackup.GeotaggingString_PostalCode,
+                    EnglishBackup.GeotaggingString_PostalCodes,
+                    EnglishBackup.GeotaggingString_ZipCode,
+                    EnglishBackup.GeotaggingString_ZipCodes
+                ]);
+
+            //Check again for strings without whitespace
+            if (!result) {
+                var whiteSpaceRegexPattern = new RegExp('\s');
+                result = GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                    EnglishBackup.GeotaggingString_PostalCode.replace(whiteSpaceRegexPattern, ''),
+                    EnglishBackup.GeotaggingString_PostalCodes.replace(whiteSpaceRegexPattern, ''),
+                    EnglishBackup.GeotaggingString_ZipCode.replace(whiteSpaceRegexPattern, ''),
+                    EnglishBackup.GeotaggingString_ZipCodes.replace(whiteSpaceRegexPattern, '')
+                ]);
+            }
+
+            return result;
+        }
+
+        private isEnglishLongitude(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_Longitude,
+                EnglishBackup.GeotaggingString_Longitude_Short
+            ]);
+        }
+
+        private isEnglishLatitude(fieldRefName: string): boolean {
+            return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+                EnglishBackup.GeotaggingString_Latitude,
+                EnglishBackup.GeotaggingString_Latitude_Short
+            ]);
+        }
+
+        //private isEnglishTerritory(fieldRefName: string): boolean {
+        //    return GeoTaggingAnalyzerService.hasMatches(fieldRefName, [
+        //        EnglishBackup.GeotaggingString_Territory,
+        //        EnglishBackup.GeotaggingString_Territories
+        //    ]);
+        //}
+
+        private getEnglishFieldType(fieldName: string): string {
+            if (fieldName == null)
+                return undefined;
+            if (this.isEnglishLatitude(fieldName))
+                return CategoryTypes.Latitude;
+            if (this.isEnglishLongitude(fieldName))
+                return CategoryTypes.Longitude;
+            if (this.isEnglishPostalCode(fieldName))
+                return CategoryTypes.PostalCode;
+            if (this.isEnglishAddress(fieldName))
+                return CategoryTypes.Address;
+            if (this.isEnglishPlace(fieldName))
+                return CategoryTypes.Place;
+            if (this.isEnglishCity(fieldName))
+                return CategoryTypes.City;
+            if (this.isEnglishCountry(fieldName))
+                return CategoryTypes.CountryRegion;
+            if (this.isEnglishCounty(fieldName))
+                return CategoryTypes.County;
+            if (this.isEnglishStateOrProvince(fieldName))
+                return CategoryTypes.StateOrProvince;
+            if (this.isEnglishContinent(fieldName))
                 return CategoryTypes.Continent;
             return undefined;
         }

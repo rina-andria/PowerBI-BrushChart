@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module jsCommon {
     // NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
 

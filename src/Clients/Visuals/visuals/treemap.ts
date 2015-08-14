@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     import CssConstants = jsCommon.CssConstants;
     import StringExtensions = jsCommon.StringExtensions;
@@ -235,6 +237,8 @@ module powerbi.visuals {
                     labelSettings.show = (labelsObj.show !== undefined) ? labelsObj.show : labelSettings.show;
                     labelSettings.labelColor = (labelsObj.color !== undefined) ? labelsObj.color.solid.color : labelSettings.labelColor;
                 }
+
+                labelSettings.showCategory = DataViewObjects.getValue(dataView.metadata.objects, treemapProps.categoryLabels.show, labelSettings.showCategory);
             }
 
             if (dataView && dataView.categorical && dataView.categorical.values) {
@@ -617,6 +621,10 @@ module powerbi.visuals {
                     return this.enumerateLegend(data);
                 case 'labels':
                     return dataLabelUtils.enumerateDataLabels(this.data.dataLabelsSettings, false);
+                case 'categoryLabels':
+                    return (this.data)
+                        ? dataLabelUtils.enumerateCategoryLabels(this.data.dataLabelsSettings, false /*withFill*/, false /*isDonutChart*/, true /*isTreeMap*/)
+                        : dataLabelUtils.enumerateCategoryLabels(null, false /*withFill*/, false /*isDonutChart*/, true /*isTreeMap*/);
             }
         }
 
@@ -709,7 +717,7 @@ module powerbi.visuals {
             return false;
         }
 
-        private static canDisplayLabel(node: D3.Layout.GraphNode): boolean {
+        private static canDisplayLabel(node: D3.Layout.GraphNode, labelSettings: VisualDataLabelsSettings): boolean {
             // Only display labels for level 1 and 2
             if (node.depth < 1 || node.depth > 2)
                 return false;
@@ -717,8 +725,17 @@ module powerbi.visuals {
             if (StringExtensions.isNullOrEmpty(node.name))
                 return false;
 
-            var availableWidth = node.dx - Treemap.TextMargin * 2;
             var isMajorLabel = Treemap.isMajorLabel(node);
+            
+            // Check if data labels are on
+            if (isMajorLabel && !labelSettings.show)
+                return false;
+
+            // Check if category labels are on
+            if (!isMajorLabel && !labelSettings.showCategory)
+                return false;
+
+            var availableWidth = node.dx - Treemap.TextMargin * 2;
             var minTextWidth = isMajorLabel ? Treemap.MinTextWidthForMajorLabel : Treemap.MinTextWidthForMinorLabel;
 
             // Check if the room is enough for text with or without ellipse
@@ -810,7 +827,7 @@ module powerbi.visuals {
             // Highlight shapes are drawn only for nodes with non-null/undefed highlightMultipliers that have no children
             var highlightNodes = nodes.filter((value: TreemapNode) => value.highlightMultiplier != null && (!value.children || value.children.length === 0));
             // Labels are drawn only for nodes that can display labels
-            var labeledNodes = labelSettings.show ? nodes.filter((d) => Treemap.canDisplayLabel(d)) : [];
+            var labeledNodes = labelSettings.show || labelSettings.showCategory ? nodes.filter((d) => Treemap.canDisplayLabel(d, labelSettings)) : [];
 
             var shapes: D3.UpdateSelection;
             var highlightShapes: D3.UpdateSelection;

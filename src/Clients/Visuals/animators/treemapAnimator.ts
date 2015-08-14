@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface TreemapAnimationOptions extends IAnimationOptions {
         viewModel: TreemapData;
@@ -98,7 +100,7 @@ module powerbi.visuals {
                 .attr(Treemap.layout.highlightShapeLayout); // Animate to the highlighted positions
 
             highlightShapes.exit().remove();
-            var labeledNodes = options.viewModel.dataLabelsSettings.show? options.labeledNodes : [];
+            var labeledNodes = options.viewModel.dataLabelsSettings.show || options.viewModel.dataLabelsSettings.showCategory ? options.labeledNodes : [];
             var labels = this.animateDefaultLabels(options.labelGraphicsContext, labeledNodes);
 
             return {
@@ -120,7 +122,7 @@ module powerbi.visuals {
 
             var highlightShapes = this.animateDefaultHighlightShapes(options.shapeGraphicsContext, options.highlightNodes, hasSelection, hasHighlights);
 
-            var labeledNodes = options.viewModel.dataLabelsSettings.show ? options.labeledNodes : [];
+            var labeledNodes = options.viewModel.dataLabelsSettings.show || options.viewModel.dataLabelsSettings.showCategory ? options.labeledNodes : [];
             var labels = this.animateDefaultLabels(options.labelGraphicsContext, labeledNodes);
 
             return {
@@ -145,7 +147,11 @@ module powerbi.visuals {
                 .duration(this.animationDuration)
                 .style("fill", (d: TreemapNode) => Treemap.getFill(d, false))
                 .style("fill-opacity", (d: TreemapNode) => ColumnUtil.getFillOpacity(d.selected, false, d.selected, !d.selected))
-                .attr(Treemap.layout.shapeLayout);
+                .attr(Treemap.layout.shapeLayout)
+                .transition()
+                .duration(0)
+                .delay(this.animationDuration)
+                .style("fill-opacity", (d: TreemapNode) => ColumnUtil.getFillOpacity(d.selected, false, hasSelection, false));
 
             shapes.exit().remove();
 
@@ -161,16 +167,11 @@ module powerbi.visuals {
                 .transition()
                 .duration(this.animationDuration)
                 .attr(hasSelection ? Treemap.layout.zeroShapeLayout : Treemap.layout.shapeLayout) // Animate to the normal shape layout or zero shape layout depending on whether we have a selection or not
-                .each("end", (d: TreemapNode, i: number) => {
-                    if (i === 0) {
-                        shapes.style("fill-opacity", (d: TreemapNode) => ColumnUtil.getFillOpacity(d.selected, false, hasSelection, false));
-                        highlightShapes.remove(); // Then remove highlight shapes and set normal shapes to non-highlighted opacities.
-                    }
-                });
+                .remove();
 
             highlightShapes.exit().remove();
 
-            var labeledNodes = options.viewModel.dataLabelsSettings.show ? options.labeledNodes : [];
+            var labeledNodes = options.viewModel.dataLabelsSettings.show || options.viewModel.dataLabelsSettings.showCategory ? options.labeledNodes : [];
             var labels = this.animateDefaultLabels(options.labelGraphicsContext, labeledNodes);
 
             return {

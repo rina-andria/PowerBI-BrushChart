@@ -24,8 +24,12 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     import Selector = powerbi.data.Selector;
+    import SelectorsByColumn = powerbi.SelectorsByColumn;
+    import SelectorForColumn = powerbi.SelectorForColumn;
 
     /**
      * A combination of identifiers used to uniquely identify
@@ -33,6 +37,8 @@ module powerbi.visuals {
      */
     export class SelectionId {
         private selector: Selector;
+        // This is a new data structure to support drilling -- in the long term it should replace the 'selector' field
+        private selectorsByColumn: SelectorsByColumn;
         private key: string;
 
         public highlight: boolean;
@@ -90,6 +96,10 @@ module powerbi.visuals {
             return this.selector;
         }
 
+        public getSelectorsByColumn() {
+            return this.selectorsByColumn;
+        }
+
         public static createNull(highlight: boolean = false): SelectionId {
             return new SelectionId(null, highlight);
         }
@@ -110,7 +120,10 @@ module powerbi.visuals {
             var selector: Selector = {
                 metadata: measureId
             };
-            return new SelectionId(selector, highlight);
+
+            var selectionId = new SelectionId(selector, highlight);
+            selectionId.selectorsByColumn = { metadata: measureId };
+            return selectionId;
         }
 
         public static createWithIdAndMeasure(id: DataViewScopeIdentity, measureId: string, highlight: boolean = false): SelectionId {
@@ -122,7 +135,22 @@ module powerbi.visuals {
                 selector.metadata = measureId;
             if (!id && !measureId)
                 selector = null;
-            return new SelectionId(selector, highlight);
+
+            var selectionId = new SelectionId(selector, highlight);
+
+            return selectionId;
+        }
+
+        public static createWithIdAndMeasureAndCategory(id: DataViewScopeIdentity, measureId: string, queryName: string, highlight: boolean = false): SelectionId {
+            var selectionId = this.createWithIdAndMeasure(id, measureId, highlight);
+
+            selectionId.selectorsByColumn = {};
+            selectionId.selectorsByColumn.dataMap = [{ queryName: queryName, data: id }];
+
+            if (measureId)
+                selectionId.selectorsByColumn.metadata = measureId;
+
+            return selectionId;
         }
 
         public static createWithIds(id1: DataViewScopeIdentity, id2: DataViewScopeIdentity, highlight: boolean = false): SelectionId {
@@ -147,11 +175,46 @@ module powerbi.visuals {
             return new SelectionId(selector, highlight);
         }
 
+        public static createWithIdsAndMeasureAndCategory(map1: SelectorForColumn, map2: SelectorForColumn, measureId: string, highlight: boolean = false): SelectionId {
+            var id1 = <DataViewScopeIdentity>(map1 ? map1.data : null);
+            var id2 = <DataViewScopeIdentity>(map2 ? map2.data : null);
+
+            var selectionId = this.createWithIdsAndMeasure(id1, id2, measureId, highlight);
+
+            var selectorsByColumn: SelectorsByColumn = {};
+            var dataMap = SelectionId.selectorMapArray(map1, map2);
+            if (dataMap)
+                selectorsByColumn.dataMap = dataMap;
+
+            if (measureId)
+                selectorsByColumn.metadata = measureId;
+            if (!map1 && !map2 && !measureId)
+                selectorsByColumn = null;
+
+            selectionId.selectorsByColumn = selectorsByColumn;
+
+            return selectionId;
+        }
+
         public static createWithHighlight(original: SelectionId): SelectionId {
             debug.assertValue(original, 'original');
             debug.assert(!original.highlight, '!original.highlight');
 
             return new SelectionId(original.getSelector(), /*highlight*/ true);
+        }
+
+        private static selectorMapArray(map1: SelectorForColumn, map2: SelectorForColumn): SelectorForColumn[] {
+            if ((map1 && map1.data) || (map2 && map2.data)) {
+                var data = [];
+                if (map1 && map1.data)
+                    data.push(map1);
+                if (map2 && map2.data) {
+                    if (!map1 || map1.data !== map2.data)
+                        data.push(map2);
+                }
+
+                return data;
+            }
         }
 
         private static idArray(id1: DataViewScopeIdentity, id2: DataViewScopeIdentity): DataViewScopeIdentity[] {

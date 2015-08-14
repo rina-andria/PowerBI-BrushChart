@@ -24,23 +24,56 @@
  *  THE SOFTWARE.
  */
 
-// tslint rule disabled because of tslint (version >= v2.2.0-beta) thinks that 'GeocodingManager' is unused var.
-/* tslint:disable:no-unused-variable */
-import GeocodingManager = powerbi.visuals.BI.Services.GeocodingManager;
+/// <reference path="../_references.ts"/>
 
-describe("GeocodingManagerTests", () => {
-    it('GeocodingManager.isCategoryType', () => {
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Address)).toBeTruthy();
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.City)).toBeTruthy();
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Continent)).toBeTruthy();
-        expect(GeocodingManager.isCategoryType("Country")).toBeTruthy(); // Country is special
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.County)).toBeTruthy();
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Longitude)).toBeTruthy();
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Latitude)).toBeTruthy();
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Place)).toBeTruthy();
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.PostalCode)).toBeTruthy();
-        expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.StateOrProvince)).toBeTruthy();
+module powerbitests {
+    import GeocodingManager = powerbi.visuals.BI.Services.GeocodingManager;
 
-        expect(GeocodingManager.isCategoryType("")).toBeFalsy();
+    describe("GeocodingManagerTests", () => {
+        describe("GeocodingManager.isCategoryType", () => {
+            it("GeocodingManager.CategoryTypes.Address", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Address)).toBeTruthy();
+            });
+
+            it("GeocodingManager.CategoryTypes.City", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.City)).toBeTruthy();
+            });
+
+            it("GeocodingManager.CategoryTypes.Continent", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Continent)).toBeTruthy();
+            });
+
+            it("GeocodingManager.CategoryTypes Country", () => {
+                expect(GeocodingManager.isCategoryType("Country")).toBeTruthy(); // Country is special
+            });
+
+            it("GeocodingManager.CategoryTypes.County", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.County)).toBeTruthy();
+            });
+
+            it("GeocodingManager.CategoryTypes.Longitude", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Longitude)).toBeTruthy();
+            });
+
+            it("GeocodingManager.CategoryTypes.Latitude", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Latitude)).toBeTruthy();
+            });
+
+            it("GeocodingManager.CategoryTypes.Place", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.Place)).toBeTruthy();
+            });
+
+            it("GeocodingManager.CategoryTypes.PostalCode", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.PostalCode)).toBeTruthy();
+            });
+
+            it("GeocodingManager.CategoryTypes.StateOrProvince", () => {
+                expect(GeocodingManager.isCategoryType(GeocodingManager.CategoryTypes.StateOrProvince)).toBeTruthy();
+            });
+           
+            it("GeocodingManager.CategoryTypes empty", () => {
+                expect(GeocodingManager.isCategoryType("")).toBeFalsy();
+            });
+        });
     });
-}); 
+} 

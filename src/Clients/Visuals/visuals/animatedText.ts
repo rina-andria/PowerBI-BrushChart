@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export interface AnimatedTextConfigurationSettings {
         align?: string;
@@ -53,7 +55,6 @@ module powerbi.visuals {
 
         // Public for testability
         public svg: D3.Selection;
-        public graphicsContext: D3.Selection;
         public currentViewport: IViewport;
         public value: any;
         public hostServices: IVisualHostServices;
@@ -138,7 +139,6 @@ module powerbi.visuals {
                 startValue = 0;
 
             var svg = this.svg,
-                graphicsContext = this.graphicsContext,
                 viewport = this.currentViewport,
                 height = viewport.height,
                 width = viewport.width,
@@ -160,7 +160,7 @@ module powerbi.visuals {
 
             svg.attr('class', this.name);
 
-            var textElement = graphicsContext
+            var textElement = svg
                 .selectAll('text')
                 .data(endValueArr);
 
@@ -179,10 +179,6 @@ module powerbi.visuals {
                 translateY = this.getTranslateY(fontHeight + (height - fontHeight) / 2);
             }
 
-            graphicsContext
-                .attr('font-size', fontHeight)
-                .attr('transform', 'translate(' + translateX + ',' + translateY + ')');
-
             if (endValue == null) {
                 textElementUpdate.text(endText);
             }
@@ -191,7 +187,10 @@ module powerbi.visuals {
             }            
             else {
                 var interpolatedValue = startValue;
-                textElementUpdate.transition()
+                textElementUpdate
+                    .attr('font-size', fontHeight)
+                    .attr('transform', SVGUtil.translate(translateX, translateY))
+                    .transition()
                     .duration(duration)
                     .tween('text', function (d) {
                         var i = d3.interpolate(interpolatedValue, d);
@@ -216,7 +215,7 @@ module powerbi.visuals {
             return estimatedSize;
         }
 
-        public getTranslateX(width: number) {
+        public getTranslateX(width: number): number {
             if (this.visualConfiguration) {
                 switch (this.visualConfiguration.align) {
                     case 'left':
@@ -228,7 +227,7 @@ module powerbi.visuals {
             return width / 2;
         }
 
-        public getTranslateY(height: number) {
+        public getTranslateY(height: number): number {
             return height;
         }
 

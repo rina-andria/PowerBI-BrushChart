@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import RichTextbox = powerbi.visuals.RichTextbox;
     import IVisualHostServices = powerbi.IVisualHostServices;
@@ -256,6 +258,12 @@ module powerbitests {
                     expect(document.activeElement).toBe(editor.get(0));
                 });
 
+                it('editor should be full size', () => {
+                    var container = $element.find('.ql-container').parent();
+                    expect(container.outerWidth()).toBe(500);
+                    expect(container.outerHeight()).toBe(500);
+                });
+
                 it('change to view-mode should not show editor',() => {
                     switchToViewMode(powerbi.ViewMode.View);
 
@@ -336,6 +344,35 @@ module powerbitests {
                     expect($divs.eq(0).text()).toEqual('line 1');
                     expect($divs.eq(1).text()).toEqual('');
                     expect($divs.eq(2).text()).toEqual('line 2');
+                });
+
+                it('keyboard shortcuts are prevented from bubbling', () => {
+                    var $editor = getEditor($element);
+
+                    var keydown = false;
+                    $element.on('keydown', (e) => {
+                        keydown = true;
+                    });
+
+                    // verify that some keys do bubble.
+                    let event = $.Event('keydown');
+                    event.ctrlKey = true;
+                    event.which = 83;  // S
+
+                    $editor.trigger(event);
+                    expect(keydown).toBeTruthy();
+
+                    // verify that prevented keys do not bubble.
+                    keydown = false;
+                    for (let key of powerbi.visuals.RichText.QuillWrapper.preventDefaultKeys) {
+                        let event = $.Event('keydown');
+                        event.ctrlKey = true;
+                        event.which = key;
+
+                        $editor.trigger(event);
+
+                        expect(keydown).toBeFalsy();
+                    }
                 });
 
                 describe('on data changed',() => {
@@ -687,6 +724,10 @@ module powerbitests {
                 textbox.onViewModeChanged(viewMode);
             }
 
+            function getEditor($element: JQuery): JQuery {
+                return $element.find('.ql-editor');
+            }
+
             function verifyEditor($element: JQuery, present: boolean): void {
                 expect($element).toHaveClass('richtextbox');
 
@@ -701,11 +742,11 @@ module powerbitests {
                     var $editorContainer = $container.find('.ql-container');
                     expect($editorContainer.length).toBe(1);
 
-                    var $editor = $editorContainer.find('.ql-editor');
+                    var $editor = getEditor($editorContainer);
                     expect($editor.length).toBe(1);
                 }
                 else {
-                    expect($element.find('.ql-editor').length).toBe(0);
+                    expect(getEditor($element).length).toBe(0);
                 }
             }
         });

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbitests.tableDataViewHelper {
     import TableDataViewObjects = powerbi.visuals.TableDataViewObjects;
     import ValueType = powerbi.ValueType;

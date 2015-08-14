@@ -23,7 +23,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-///<reference path="sqExprRewriter.ts"/>
+
+/// <reference path="../_references.ts"/>
+
 module powerbi.data {
     import ArrayExtensions = jsCommon.ArrayExtensions;
     import ArrayNamedItems = jsCommon.ArrayNamedItems;
@@ -181,7 +183,7 @@ module powerbi.data {
                     continue;
 
                 selectItems.push(originalExpr);
-        }
+            }
 
             return SemanticQuery.createWithTrimmedFrom(this.fromValue.clone(), this.whereItems, this.orderByItems, selectItems);
         }
@@ -422,6 +424,12 @@ module powerbi.data {
             var where = rewriter.rewriteWhere(this.whereItems, from);
 
             return new SemanticFilter(from, where);
+        }
+
+        public validate(schema: FederatedConceptualSchema, errors?: SQExprValidationError[]): SQExprValidationError[] {
+            var validator = new SQExprValidationVisitor(schema, errors);
+            this.rewrite(validator);
+            return validator.errors;
         }
 
         /** Merges a list of SemanticFilters into one. */

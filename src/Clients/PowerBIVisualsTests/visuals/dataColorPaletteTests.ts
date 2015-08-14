@@ -24,32 +24,27 @@
  *  THE SOFTWARE.
  */
 
-module powerbitests {
-    var colors = [
-        { value: "#000000" },
-        { value: "#000001" },
-        { value: "#000002" },
-        { value: "#000003" }
-    ];
+/// <reference path="../_references.ts"/>
 
-    describe("DataColorPalette", () => {
+module powerbitests {
+    describe("DataColorPalette", function () {
         var dataColors = new powerbi.visuals.DataColorPalette();
-        
-        it("Check get color no duplicates until wrap-around", () => {
+
+        it('Check get color no duplicates until wrap-around', function () {
             // Note (param 0): Since conditional formatting is currently not supported, the datavalue param is ignored. For now the
-            //                 test will pass in various objects just to make sure we don"t crash. Once conditional formatting is
+            //                 test will pass in various objects just to make sure we don't crash. Once conditional formatting is
             //                 supported we should pass in objects that will excercise that the conditional formatting code.
             // Note (param 1): We need to support any object as the index key, since some charts will use number or string index keys
 
             var scale = dataColors.getNewColorScale();
-            var color0 = scale.getColor("test datavalue");
+            var color0 = scale.getColor('test datavalue');
             expect(color0).toExist();
 
-            var color1 = scale.getColor("series index N");
+            var color1 = scale.getColor('series index N');
             expect(color1).toExist();
             expect(color0.value).not.toBe(color1.value);
 
-            var color2 = scale.getColor({ seriesProperty: "X" });
+            var color2 = scale.getColor({ seriesProperty: 'X' });
             expect(color2).toExist();
             expect(color1.value).not.toBe(color2.value);
 
@@ -68,12 +63,12 @@ module powerbitests {
             }
 
             // Wrap around should occur now, verify we are back to the start
-            expect(scale.getColor("abc series")).toBe(color0);
+            expect(scale.getColor('abc series')).toBe(color0);
         });
 
         // The Sentiment/KPI color API is just temporary until conditional formatting is avaiable, but while the API is active it needs to be tested.
         // We can remove this test once the Sentiment API is superseded by conditional formatting.
-        it("Check get Sentiment color", () => {
+        it('Check get Sentiment color', function () {
             var sentimentColors = dataColors.getSentimentColors();
 
             // For now our visuals assume that there are 3 colors
@@ -85,32 +80,39 @@ module powerbitests {
             expect(sentimentColors[0].value).not.toBe(sentimentColors[2].value);
         });
 
-        it("Check parameter colors", () => {
-            var localDataColors = new powerbi.visuals.DataColorPalette([{ value: "#112233" }]);
+        it('Check parameter colors', function () {
+            var localDataColors = new powerbi.visuals.DataColorPalette([{ value: '#112233' }]);
             var firstColor = localDataColors.getNewColorScale().getColor(0);
-            expect(firstColor.value).toBe("#112233");
+            expect(firstColor.value).toBe('#112233');
         });
 
-        describe("getColorScaleByKey", () => {
-            var color1 = dataColors.getColorScaleByKey("scale1").getColor("a");
-            var color2 = dataColors.getColorScaleByKey("scale1").getColor("b");
-            var color3 = dataColors.getColorScaleByKey("scale2").getColor("a");
-            var color4 = dataColors.getColorScaleByKey("scale1").getColor("a");
+        describe('getColorScaleByKey',() => {
+            var color1 = dataColors.getColorScaleByKey('scale1').getColor('a');
+            var color2 = dataColors.getColorScaleByKey('scale1').getColor('b');
+            var color3 = dataColors.getColorScaleByKey('scale2').getColor('a');
+            var color4 = dataColors.getColorScaleByKey('scale1').getColor('a');
 
-            it("should return the same color for the same scale and key", () => {
+            it('should return the same color for the same scale and key',() => {
                 expect(color1.value).toEqual(color4.value);
             });
 
-            it("should return the same color for the first key in each scale", () => {
+            it('should return the same color for the first key in each scale',() => {
                 expect(color1.value).toEqual(color3.value);
             });
 
-            it("should return different colors for different values in the same scale", () => {
+            it('should return different colors for different values in the same scale',() => {
                 expect(color1.value).not.toEqual(color2.value);
             });
         });
 
-        it("getColorByIndex", () => {
+        it('getColorByIndex', () => {
+            var colors = [
+                { value: '#000000' },
+                { value: '#000001' },
+                { value: '#000002' },
+                { value: '#000003' },
+            ];
+
             var localDataColors = new powerbi.visuals.DataColorPalette(colors);
 
             for (var i = 0; i < colors.length; i++) {
@@ -119,14 +121,20 @@ module powerbitests {
         });
     });
 
-    describe("D3ColorScale", () => {
+    describe('D3ColorScale',() => {
         var scale: powerbi.visuals.D3ColorScale;
+        var colors = [
+            { value: '#000000' },
+            { value: '#000001' },
+            { value: '#000002' },
+            { value: '#000003' },
+        ];
 
         beforeEach(() => {
             scale = powerbi.visuals.D3ColorScale.createFromColors(colors);
         });
 
-        it("should cover all colors and wrap around", () => {
+        it('should cover all colors and wrap around',() => {
             for (var i = 0; i < colors.length; i++) {
                 expect(scale.getColor(i).value).toEqual(colors[i].value);
             }
@@ -134,9 +142,9 @@ module powerbitests {
             expect(scale.getColor(colors.length).value).toEqual(colors[0].value);
         });
 
-        it("Check get color same index key returns same color", () => {
+        it('Check get color same index key returns same color', function () {
             var indexKey0 = 4;
-            var indexKey1 = "pie slice 7";
+            var indexKey1 = 'pie slice 7';
 
             var color0_firstGet = scale.getColor(indexKey0);
             expect(color0_firstGet).toExist();
@@ -153,7 +161,7 @@ module powerbitests {
             expect(color1_firstGet.value).toBe(color1_secondGet.value);
         });
 
-        it("clearAndRotate should clear any allocated colors and return the next color", () => {
+        it('clearAndRotate should clear any allocated colors and return the next color',() => {
             var color1 = scale.getColor(0);
             var color2 = scale.getColor(1);
 
@@ -166,7 +174,7 @@ module powerbitests {
             expect(color3.value).toEqual(colors[2].value);
         });
 
-        it("clone should create a copy preserving allocated colors", () => {
+        it('clone should create a copy preserving allocated colors',() => {
             var color1 = scale.getColor(0);
             var color2 = scale.getColor(1);
 

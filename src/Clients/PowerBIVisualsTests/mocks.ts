@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 module powerbitests.mocks {
     import SQExprBuilder = powerbi.data.SQExprBuilder;
     import defaultVisualHostServices = powerbi.visuals.defaultVisualHostServices;

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import DataViewObjectDescriptors = powerbi.data.DataViewObjectDescriptors;
     import DataViewTransform = powerbi.data.DataViewTransform;
@@ -33,29 +35,30 @@ module powerbitests {
 
     powerbitests.mocks.setLocale();
 
-    describe("VisualFactory",() => {
+    describe("VisualFactory", () => {
 
         var dataViewMetadataTwoColumn: powerbi.DataViewMetadata = {
             columns: [
                 {
-                    displayName: 'col1',
-                    queryName: 'col1',
+                    displayName: "col1",
+                    queryName: "col1",
                     type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
                 },
                 {
-                    displayName: 'col2',
-                    queryName: 'col2',
+                    displayName: "col2",
+                    queryName: "col2",
                     isMeasure: true,
                     type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
                 }
             ],
         };
 
-        var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'col1' });
+        var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: "s", entity: "e", column: "col1" });
 
         function initVisual(v: powerbi.IVisual): void {
             var hostServices = powerbitests.mocks.createVisualHostServices();
-            var element = powerbitests.helpers.testDom('500', '500');
+            var element = powerbitests.helpers.testDom("500", "500");
+
             v.init({
                 element: element,
                 host: hostServices,
@@ -66,7 +69,7 @@ module powerbitests {
                 },
                 settings: undefined,
                 interactivity: undefined,
-                animation: undefined,
+                animation: undefined
             });
         }
 
@@ -77,9 +80,9 @@ module powerbitests {
                 categorical: {
                     categories: [{
                         source: dataViewMetadataTwoColumn.columns[0],
-                        values: ['abc', 'def'],
-                        identity: [mocks.dataViewScopeIdentity('abc'), mocks.dataViewScopeIdentity('def')],
-                        identityFields: [categoryColumnRef],
+                        values: ["abc", "def"],
+                        identity: [mocks.dataViewScopeIdentity("abc"), mocks.dataViewScopeIdentity("def")],
+                        identityFields: [categoryColumnRef]
                     }],
                     values: DataViewTransform.createValueColumns([
                         {
@@ -99,7 +102,7 @@ module powerbitests {
             // no categorical
             changeData(v, objectDescs, [{
                 metadata: dataViewMetadataTwoColumn,
-                categorical: undefined,
+                categorical: undefined
             }]);
 
             // no metadata
@@ -107,7 +110,7 @@ module powerbitests {
                 metadata: undefined,
                 categorical: {
                     categories: [],
-                    values: undefined,
+                    values: undefined
                 }
             }]);
 
@@ -117,11 +120,11 @@ module powerbitests {
                 categorical: {
                     categories: [{
                         source: dataViewMetadataTwoColumn.columns[0],
-                        values: ['abc', 'def'],
-                        identity: [mocks.dataViewScopeIdentity('abc'), mocks.dataViewScopeIdentity('def')],
-                        identityFields: [categoryColumnRef],
+                        values: ["abc", "def"],
+                        identity: [mocks.dataViewScopeIdentity("abc"), mocks.dataViewScopeIdentity("def")],
+                        identityFields: [categoryColumnRef]
                     }],
-                    values: undefined,
+                    values: undefined
                 }
             }]);
 
@@ -148,9 +151,9 @@ module powerbitests {
                 categorical: {
                     categories: [{
                         source: dataViewMetadataTwoColumn.columns[0],
-                        values: ['abc', 'def'],
-                        identity: [mocks.dataViewScopeIdentity('abc'), mocks.dataViewScopeIdentity('def')],
-                        identityFields: [categoryColumnRef],
+                        values: ["abc", "def"],
+                        identity: [mocks.dataViewScopeIdentity("abc"), mocks.dataViewScopeIdentity("def")],
+                        identityFields: [categoryColumnRef]
                     }],
                     values: DataViewTransform.createValueColumns([
                         {
@@ -180,35 +183,35 @@ module powerbitests {
             }]);
         }
 
-        function changeData(v: IVisual, objectDescs: DataViewObjectDescriptors, dataViews: powerbi.DataView[]): void {
-            v.onDataChanged({ dataViews: dataViews });
+        function changeData(visual: IVisual, objectDescs: DataViewObjectDescriptors, dataViews: powerbi.DataView[]): void {
+            visual.onDataChanged({ dataViews: dataViews });
 
-            if (v.enumerateObjectInstances && objectDescs) {
+            if (visual.enumerateObjectInstances && objectDescs) {
                 for (var objectName in objectDescs)
-                    v.enumerateObjectInstances({ objectName: objectName });
+                    visual.enumerateObjectInstances({ objectName: objectName });
             }
         }
 
-        it('VisualFactory.getVisuals - categorical - various dataViews',() => {
-
+        it("VisualFactory.getVisuals - categorical - various dataViews", () => {
             var allVisuals = powerbi.visuals.visualPluginFactory.create().getVisuals();
+
             for (var i = 0; i < allVisuals.length; i++) {
                 var exception = null,
-                    vizPlugin: powerbi.IVisualPlugin = allVisuals[i];
+                    visualPlugin: powerbi.IVisualPlugin = allVisuals[i];
 
-                if (vizPlugin.name !== 'categoricalFilter' && 
-                    vizPlugin.capabilities &&
-                    vizPlugin.capabilities.dataViewMappings &&
-                    vizPlugin.capabilities.dataViewMappings.length > 0 &&
-                    vizPlugin.capabilities.dataViewMappings[0].categorical) {
-                    var v: powerbi.IVisual = vizPlugin.create();
+                if (visualPlugin.name !== "categoricalFilter" && 
+                    visualPlugin.capabilities &&
+                    visualPlugin.capabilities.dataViewMappings &&
+                    visualPlugin.capabilities.dataViewMappings.length > 0 &&
+                    visualPlugin.capabilities.dataViewMappings[0].categorical) {
+                    var visual: powerbi.IVisual = visualPlugin.create();
 
                     try {
-                        initVisual(v);
-                        setData(v, vizPlugin.capabilities.objects);
+                        initVisual(visual);
+                        setData(visual, visualPlugin.capabilities.objects);
                     } catch (e) {
                         exception = e;
-                        debug.assertFail(vizPlugin.name + ' : ' + e.message);
+                        debug.assertFail(visualPlugin.name + " : " + e.message);
                     } finally {
                         expect(exception).toBeNull();
                     }

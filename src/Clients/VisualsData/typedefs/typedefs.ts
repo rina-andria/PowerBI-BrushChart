@@ -24,6 +24,6 @@
  *  THE SOFTWARE.
  */
 
-///<reference path="../../typedefs/jQuery/jQuery.d.ts"/>
-///<reference path="../../typedefs/globalize/globalize.d.ts"/>
-///<reference path="../../typedefs/lodash/lodash.d.ts"/>
+///<reference path="../../Typedefs/jquery/jquery.d.ts"/>
+///<reference path="../../Typedefs/globalize/globalize.d.ts"/>
+///<reference path="../../Typedefs/lodash/lodash.d.ts"/>

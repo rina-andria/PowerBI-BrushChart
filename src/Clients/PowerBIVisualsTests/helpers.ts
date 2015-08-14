@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="_references.ts"/>
+
 /* tslint:disable */
 var powerBIAccessToken = "fooBarBaz";
 var powerBIAccessTokenExpiry = "2115-01-01 00:00:00Z";
@@ -110,6 +112,17 @@ module powerbitests.helpers {
             e.dispatchEvent(evt);
         }); 
     };
+
+    export function runWithImmediateAnimationFrames(func: () => void): void {
+        var requestAnimationFrame = window.requestAnimationFrame;
+        try {
+            window.requestAnimationFrame = (f) => setTimeout(f, 0);
+            func();
+        }
+        finally {
+            window.requestAnimationFrame = requestAnimationFrame;
+        }
+    }
 
     export function deepCopy(object: any): any {
         return JSON.parse(JSON.stringify(object));

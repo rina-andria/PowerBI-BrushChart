@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbitests {
     import AxisType = powerbi.axisType;
     import ColorUtility = powerbitests.utils.ColorUtility;
@@ -67,6 +69,13 @@ module powerbitests {
                     queryName: 'col4',
                     isMeasure: true,
                     type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
+                },
+                {
+                    // for secondary grouping (legend/series)
+                    displayName: 'col5',
+                    queryName: 'col5',
+                    isMeasure: false,
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
                 },
             ]
         };
@@ -700,6 +709,39 @@ module powerbitests {
                 ];
 
             expect(actualData).toEqual(expectedData);
+        });
+
+        it('Check convert categorical dynamic series with undefined grouped',() => {
+            dataViewMetadata.objects = undefined;
+            var dataView: powerbi.DataView = {
+                metadata: dataViewMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadata.columns[0],
+                        values: ['John Domo', 'Delta Force', 'Jean Tablau']
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewMetadata.columns[1],
+                            values: [100, 200, 700],
+                        }, {
+                            source: dataViewMetadata.columns[2],
+                            values: [700, 100, 200],
+                        }, {
+                            source: dataViewMetadata.columns[3],
+                            values: [200, 700, 100],
+                        }],
+                        undefined,
+                        dataViewMetadata.columns[4]),
+                },
+            };
+
+            // set grouped() to return an empty array
+            dataView.categorical.values.grouped = () => [];
+
+            var actualData = LineChart.converter(dataView, blankCategoryValue, colors, false);
+
+            expect(actualData.series.length).toBe(3);
         });
 
         it('Check convert non-category multi-measure + fill colors', () => {
@@ -1420,6 +1462,9 @@ module powerbitests {
                     expect($('.lineChart .axisGraphicsContext .x.axis .tick').length).toBeGreaterThan(0);
                     expect($('.lineChart .axisGraphicsContext .y.axis .tick').length).toBeGreaterThan(0);
                     expect($('.lineChart .axisGraphicsContext .y.axis .tick').find('text').first().text()).toBe('480K');
+                    if (interactiveChart) {
+                        expect(LineChart.getInteractiveLegendDomElement(element)).toBeDefined();
+                    }
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2442,9 +2487,9 @@ module powerbitests {
                     }]
                 });
                 setTimeout(() => {
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBeGreaterThan(0);
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBeGreaterThan(0);
                     // First and last labels are hidden due to collision detection
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().text()).toBe('495K');
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('495K');
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2469,9 +2514,9 @@ module powerbitests {
                     }]
                 });
                 setTimeout(() => {
-                    var fill = $('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().css('fill');
+                    var fill = $('.lineChart .axisGraphicsContext .labels .data-labels').first().css('fill');
                     expect(ColorUtility.convertFromRGBorHexToHex(fill)).toBe(labelColor);
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().css('fill-opacity')).toBe(opacity);
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().css('fill-opacity')).toBe(opacity);
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2500,7 +2545,7 @@ module powerbitests {
                     }]
                 });
                 setTimeout(() => {
-                    var fill = $('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().css('fill');
+                    var fill = $('.lineChart .axisGraphicsContext .labels .data-labels').first().css('fill');
                     expect(ColorUtility.convertFromRGBorHexToHex(fill)).toBe(ColorUtility.convertFromRGBorHexToHex(color.solid.color));
                     done();
                 }, DefaultWaitForRender);
@@ -2524,7 +2569,7 @@ module powerbitests {
                     }]
                 });
                 setTimeout(() => {
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBe(0);
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2548,7 +2593,7 @@ module powerbitests {
                 });
 
                 setTimeout(() => {
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().text()).toBe('500K');
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('500K');
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2572,7 +2617,7 @@ module powerbitests {
                 });
 
                 setTimeout(() => {
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().text()).toBe('500.1K');
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('500.1K');
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2632,14 +2677,14 @@ module powerbitests {
                 });
 
                 setTimeout(() => {
-                    var fill0 = $('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().css('fill');
+                    var fill0 = $('.lineChart .axisGraphicsContext .labels .data-labels').first().css('fill');
                     expect(ColorUtility.convertFromRGBorHexToHex(fill0)).toBe(labelColor);
 
-                    var fill1 = $('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').last().css('fill');
+                    var fill1 = $('.lineChart .axisGraphicsContext .labels .data-labels').last().css('fill');
                     expect(ColorUtility.convertFromRGBorHexToHex(fill1)).toBe(labelColor);
 
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().text()).toBe('110.00');
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').last().text()).toBe('$250');
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('110.00');
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').last().text()).toBe('$250');
 
                     done();
                 }, DefaultWaitForRender);
@@ -2719,10 +2764,10 @@ module powerbitests {
                 });
 
                 setTimeout(() => {
-                    var fill0 = $('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().css('fill');
+                    var fill0 = $('.lineChart .axisGraphicsContext .labels .data-labels').first().css('fill');
                     expect(ColorUtility.convertFromRGBorHexToHex(fill0)).toBe(labelColor);
 
-                    var fill1 = $('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').last().css('fill');
+                    var fill1 = $('.lineChart .axisGraphicsContext .labels .data-labels').last().css('fill');
                     expect(ColorUtility.convertFromRGBorHexToHex(fill1)).toBe(labelColor);
 
                     done();
@@ -2749,7 +2794,7 @@ module powerbitests {
                 });
                 setTimeout(() => {
                     // One label is hidden due to collision detection
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBe(1);
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(1);
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2772,9 +2817,9 @@ module powerbitests {
                 });
 
                 setTimeout(() => {
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBe(3);
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(3);
                     // First and last labels are hidden due to collision detection
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().text()).toBe('495K');
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('495K');
 
                     v.onDataChanged({
                         dataViews: [{
@@ -2794,8 +2839,8 @@ module powerbitests {
 
                     setTimeout(() => {
                         // One label is hidden due to collision detection
-                        expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBe(3);
-                        expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').first().text()).toBe('400');
+                        expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(3);
+                        expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('400');
                         done();
                     }, DefaultWaitForRender);
                 }, DefaultWaitForRender);
@@ -2826,7 +2871,7 @@ module powerbitests {
                 });
                 setTimeout(() => {
                     // One label is hidden due to collision detection
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBe(1);
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(1);
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2849,7 +2894,7 @@ module powerbitests {
                     }]
                 });
                 setTimeout(() => {
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').length).toBe(0);
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2872,7 +2917,7 @@ module powerbitests {
                     }]
                 });
                 setTimeout(() => {
-                    expect($('.lineChart .axisGraphicsContext .dataLabelsSVG .data-labels').text()).toBe('4');
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').text()).toBe('4');
                     done();
                 }, DefaultWaitForRender);
             });
@@ -3246,7 +3291,7 @@ module powerbitests {
                 expect($('rect.extent').length).toBe(1);
                 var transform = SVGUtil.parseTranslateTransform($('.lineChart .axisGraphicsContext .x.axis .tick').last().attr('transform'));
                 expect(transform.x).toBeLessThan(element.width());
-                expect($('.brush').first().attr('transform').split(',')[0].split('(')[1]).toBe('19');
+                expect($('.brush').first().attr('transform').split(',')[0].split('(')[1]).toBe('22.5');
                 expect($('.brush').first().attr('transform').split(',')[1].split(')')[0]).toBe('75');
                 expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0)).toBeGreaterThan(1);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
@@ -3525,7 +3570,7 @@ module powerbitests {
                 expect($('rect.extent').length).toBe(1);
                 var transform = SVGUtil.parseTranslateTransform($('.lineChart .axisGraphicsContext .x.axis .tick').last().attr('transform'));
                 expect(transform.x).toBeLessThan(element.width());
-                expect($('.brush').first().attr('transform').split(',')[0].split('(')[1]).toBe('19');
+                expect($('.brush').first().attr('transform').split(',')[0].split('(')[1]).toBe('22.5');
                 expect($('.brush').first().attr('transform').split(',')[1].split(')')[0]).toBe('75');
                 expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0)).toBeGreaterThan(1);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');

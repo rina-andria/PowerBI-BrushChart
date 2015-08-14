@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     import ArrayExtensions = jsCommon.ArrayExtensions;
 
@@ -500,14 +502,15 @@ module powerbi.visuals {
         }
 
         export function createDomain(data: CartesianSeries[], axisType: ValueType, isScalar: boolean, forcedScalarDomain: any[]): number[]{
-            var userMin, userMax;
-            if (forcedScalarDomain && forcedScalarDomain.length === 2
-                && forcedScalarDomain[0] != null && forcedScalarDomain[1] != null) {
-                userMin = forcedScalarDomain[0];
-                userMax = forcedScalarDomain[1];
-            }
-            if (isScalar && !isOrdinal(axisType))
+            if (isScalar && !isOrdinal(axisType)) {
+                var userMin, userMax;
+                if (forcedScalarDomain && forcedScalarDomain.length === 2) {
+                    userMin = forcedScalarDomain[0];
+                    userMax = forcedScalarDomain[1];
+                }
                 return createScalarDomain(data, userMin, userMax, axisType);
+            }
+
             return createOrdinalDomain(data);
         }
 
@@ -557,7 +560,7 @@ module powerbi.visuals {
             var bestTickCount = scaleResult.bestTickCount;
             var scaleDomain = scale.domain();
 
-            // fix categoryThickness if scalar and the domain was adjusted
+            // fix categoryThickness if scalar and the domain was adjusted when making the scale "nice"
             if (categoryThickness && isScalar && dataDomain && dataDomain.length === 2) {
                 var oldSpan = dataDomain[1] - dataDomain[0];
                 var newSpan = scaleDomain[1] - scaleDomain[0];
@@ -600,16 +603,18 @@ module powerbi.visuals {
             if (metaDataColumn)
                 formattedTickValues = formatAxisTickValues(axis, tickValues, formatter, dataType, isScalar, getValueFn);
 
+            var xLabelMaxWidth;
             // Use category layout of labels if specified, otherwise use scalar layout of labels
             if (!isScalar && categoryThickness) {
-                xLabelMaxWidth = categoryThickness;
+                xLabelMaxWidth = Math.max(1, categoryThickness - CartesianChart.TickLabelPadding * 2);
             }
             else {
                 // When there are 0 or 1 ticks, then xLabelMaxWidth = pixelSpan       
                 // When there is > 1 ticks then we need to +1 so that their widths don't overlap
                 // Example: 2 ticks are drawn at 33.33% and 66.66%, their width needs to be 33.33% so they don't overlap.
                 var labelAreaCount = tickValues.length > 1 ? tickValues.length + 1 : tickValues.length;
-                var xLabelMaxWidth = labelAreaCount > 1 ? pixelSpan / labelAreaCount : pixelSpan;
+                xLabelMaxWidth = labelAreaCount > 1 ? pixelSpan / labelAreaCount : pixelSpan;
+                xLabelMaxWidth = Math.max(1, xLabelMaxWidth - CartesianChart.TickLabelPadding * 2);
             }
 
             return {
@@ -789,6 +794,8 @@ module powerbi.visuals {
             var isCustomFormat = formatString && !powerbi.NumberFormat.isStandardFormat(formatString);
             if (isCustomFormat) {
                 var precision = powerbi.NumberFormat.getCustomFormatMetadata(formatString, isCustomFormat).precision;
+                if (formatString.indexOf('%') > -1)
+                    precision += 2; //percent values are multiplied by 100 during formatting
                 return Math.pow(10, -precision);
             }
             else if (columnType.integer)
@@ -806,31 +813,7 @@ module powerbi.visuals {
             var defaultMinX = <number>d3.min(data,(kv) => { return d3.min(kv.data, d => { return d.categoryValue; }); });
             var defaultMaxX = <number>d3.max(data,(kv) => { return d3.max(kv.data, d => { return d.categoryValue; }); });
 
-            var minX, maxX;
-
-            if (typeof userMin === 'number') {
-                minX = userMin;
-            }
-            else {
-                minX = defaultMinX;
-            }
-
-            if (typeof userMax === 'number') {
-                maxX = userMax;
-            }
-            else {
-                maxX = defaultMaxX;
-            }
-
-            //edge case
-            if (minX > maxX) {
-                //take the default, only adjust when it makes sense
-                minX = defaultMinX;
-                maxX = defaultMaxX;
-            }
-                 
-           
-            return [minX, maxX];
+            return combineDomain([userMin, userMax], [defaultMinX, defaultMaxX]);
         }
 
         /**
@@ -1085,8 +1068,8 @@ module powerbi.visuals {
         }
 
         //combine the forced domain with the actual domain if one of the values was set
-        export function combineDomain(forcedDomain: any[], domain: any[]): any[]{
-            var combinedDomain: any[] = domain ? [domain[0],domain[1]] : [];
+        export function combineDomain(forcedDomain: any[], domain: any[]): any[] {
+            var combinedDomain: any[] = domain ? [domain[0], domain[1]] : [];
             if (forcedDomain && forcedDomain.length === 2) {
                 if (forcedDomain[0] != null) {
                     combinedDomain[0] = forcedDomain[0];
@@ -1096,7 +1079,7 @@ module powerbi.visuals {
                 }
                 if (combinedDomain[0] > combinedDomain[1]) {
                     combinedDomain = domain;//this is invalid, so take the original domain
-                }                
+                }
             }
             return combinedDomain;
         }

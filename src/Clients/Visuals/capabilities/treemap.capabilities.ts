@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export var treemapCapabilities: VisualCapabilities = {
         dataRoles: [
@@ -120,6 +122,14 @@ module powerbi.visuals {
                     },*/
                 }
             },
+            categoryLabels: {
+                displayName: data.createDisplayNameGetter('Visual_CategoryLabels'),
+                properties: {
+                    show: {
+                        type: { bool: true }
+                    },
+                },
+            },
         },
         dataViewMappings: [{
             conditions: [
@@ -154,7 +164,7 @@ module powerbi.visuals {
         general: {
             formatString: <DataViewObjectPropertyIdentifier>{ objectName: 'general', propertyName: 'formatString' },
         },
-        dataPoint: {            
+        dataPoint: {
             fill: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'fill' },
         },
         legend: {
@@ -162,6 +172,9 @@ module powerbi.visuals {
             position: <DataViewObjectPropertyIdentifier>{ objectName: 'legend', propertyName: 'position' },
             showTitle: <DataViewObjectPropertyIdentifier>{ objectName: 'legend', propertyName: 'showTitle' },
             titleText: <DataViewObjectPropertyIdentifier>{ objectName: 'legend', propertyName: 'titleText' },
+        },
+        categoryLabels: {
+            show: <DataViewObjectPropertyIdentifier>{ objectName: 'categoryLabels', propertyName: 'show' },
         },
     };
 }

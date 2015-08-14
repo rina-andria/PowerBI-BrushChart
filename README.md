@@ -81,7 +81,9 @@ To run sample app:
 
 3. Ensure under task explorer, the bindings for the 'build' gulp task is set to Before Build.
 
-4. Run.
+4. Set PowerBI-visuals\src\Clients\PowerBIVisualsPlayground\index.html as the startup page.
+
+5. Run.
 
 ### Copyrights
 

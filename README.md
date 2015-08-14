@@ -77,9 +77,11 @@ To run sample app:
 
 1. Open `src\PowerBIClients.VS2015.sln` in Visual Studio then open src\Clients\PowerBIVisualsPlayground\, right click on index.html file and select 'Set As Start Page'.
 
-1. Right click on the project root folder then select 'Property Pages'. In the window opened select 'Build' and then in 'Before running startup page' select 'No Build'.
+2. Right click on the project root folder then select 'Property Pages'. In the window opened select 'Build' and then in 'Before running startup page' select 'No Build'.
 
-1. Run.
+3. Ensure under task explorer, the bindings for the default gulp task is set to before build.
+
+4. Run.
 
 ### Copyrights
 

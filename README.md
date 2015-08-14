@@ -79,7 +79,7 @@ To run sample app:
 
 2. Right click on the project root folder then select 'Property Pages'. In the window opened select 'Build' and then in 'Before running startup page' select 'No Build'.
 
-3. Ensure under task explorer, the bindings for the default gulp task is set to before build.
+3. Ensure under task explorer, the bindings for the 'build' gulp task is set to Before Build.
 
 4. Run.
 

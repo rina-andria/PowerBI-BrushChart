@@ -29,7 +29,7 @@ module powerbi.visuals {
         public onDataChanged(options: VisualDataChangedOptions) {/* This API will be depricated */ }
 
         public update(options: VisualUpdateOptions) {
-            window.console.log('options');
+            window.console.log('update');
             window.console.log(options);
         }
     }

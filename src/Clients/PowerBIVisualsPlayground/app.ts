@@ -109,7 +109,7 @@ module powerbi.visuals {
 
             // Step 2: Instantiate Power BI visual
             var host = this.container;
-            var viewport: IViewport = { height: host.height(), width: host.width() - 100 };
+            var viewport: IViewport = { height: host.height() - 100, width: host.width() - 100 };
             this.visualElement = plugin.create();
             this.visualElement.init({
                 element: element,
@@ -120,8 +120,8 @@ module powerbi.visuals {
                 interactivity: { isInteractiveLegend: false, selection: false },
                 animation: { transitionImmediate: true }
             });
-            
-            this.hostControls.setVisual(this.visualElement);
+
+            this.hostControls.setVisual(this.visualElement, viewport);
         };
 
         private static populateVisualTypeSelect(): void {

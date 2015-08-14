@@ -43,6 +43,8 @@ module powerbi.visuals {
         private suppressAnimationsElement: JQuery;
         private animationDurationElement: JQuery;
 
+        private viewport: IViewport;
+
         constructor(parent: JQuery) {
             parent.find('#randomize').on('click', () => this.randomize());
 
@@ -54,9 +56,10 @@ module powerbi.visuals {
             this.animationDurationElement = parent.find('input[name=animation_duration]').first();
             this.animationDurationElement.on('change', () => this.onChangeDuration());
         }
-        
-        public setVisual(visualElement: IVisual): void {
+
+        public setVisual(visualElement: IVisual, viewport: IViewport): void {
             this.visualElement = visualElement;
+            this.viewport = viewport;
         }
 
         private randomize(): void {
@@ -75,10 +78,20 @@ module powerbi.visuals {
         }
                 
         private onChange(): void {
-            this.visualElement.onDataChanged({
-                dataViews: this.sampleDataViews.getDataViews(),
-                suppressAnimations: this.suppressAnimations
-            });
+            if (this.visualElement.update) {
+                this.visualElement.update({
+                    dataViews: this.sampleDataViews.getDataViews(),
+                    suppressAnimations: this.suppressAnimations,
+                    viewport: this.viewport
+                });
+            } else {
+                this.visualElement.onDataChanged({
+                    dataViews: this.sampleDataViews.getDataViews(),
+                    suppressAnimations: this.suppressAnimations
+                });
+
+                this.visualElement.onResizing(this.viewport);
+            }
         }
 
         public onPluginChange(pluginName: string): void {

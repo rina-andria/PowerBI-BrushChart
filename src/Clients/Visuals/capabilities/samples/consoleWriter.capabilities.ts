@@ -24,37 +24,35 @@
 *  THE SOFTWARE.
 */
 
-/// <reference path="../_references.ts"/>
+/// <reference path="../../_references.ts"/>
 
-module powerbi.visuals {
-    export function getConsoleWriterCapabilities(): VisualCapabilities {
-        return {
-            dataRoles: [
-                {
-                    name: 'Category',
-                    kind: VisualDataRoleKind.Grouping,
-                },
-                {
-                    name: 'Y',
-                    kind: VisualDataRoleKind.Measure,
-                },
-            ],
-            dataViewMappings: [{
-                categorical: {
-                    categories: {
-                        for: { in: 'Category' },
-                    },
-                },
-            }],
-            dataPoint: {
-                displayName: data.createDisplayNameGetter('Visual_DataPoint'),
-                properties: {
-                    fill: {
-                        displayName: data.createDisplayNameGetter('Visual_Fill'),
-                        type: { fill: { solid: { color: true } } }
-                    },
-                }
+module powerbi.visuals.samples {
+    export var getConsoleWriterCapabilities: VisualCapabilities = {
+        dataRoles: [
+            {
+                name: 'Category',
+                kind: VisualDataRoleKind.Grouping,
             },
-        };
-    }
+            {
+                name: 'Y',
+                kind: VisualDataRoleKind.Measure,
+            },
+        ],
+        dataViewMappings: [{
+            categorical: {
+                categories: {
+                    for: { in: 'Category' },
+                },
+            },
+        }],
+        dataPoint: {
+            displayName: data.createDisplayNameGetter('Visual_DataPoint'),
+            properties: {
+                fill: {
+                    displayName: data.createDisplayNameGetter('Visual_Fill'),
+                    type: { fill: { solid: { color: true } } }
+                },
+            }
+        },
+    };
 }

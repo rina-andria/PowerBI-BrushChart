@@ -1,6 +1,6 @@
-﻿/// <reference path="../_references.ts"/>
+﻿/// <reference path="../../_references.ts"/>
 
-module powerbi.visuals {
+module powerbi.visuals.samples {
 
     export class ConsoleWriter implements IVisual {
 
@@ -23,10 +23,6 @@ module powerbi.visuals {
             window.console.log('init');
             window.console.log(options);
         }
-
-        public onResizing(viewport: IViewport) { /* This API will be depricated */ }
-
-        public onDataChanged(options: VisualDataChangedOptions) {/* This API will be depricated */ }
 
         public update(options: VisualUpdateOptions) {
             window.console.log('update');

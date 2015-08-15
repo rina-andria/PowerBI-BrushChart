@@ -24,6 +24,8 @@ module powerbi.visuals.samples {
             window.console.log(options);
         }
 
+        public onResizing(viewport: IViewport) { /* This API will be depricated */ }
+
         public update(options: VisualUpdateOptions) {
             window.console.log('update');
             window.console.log(options);

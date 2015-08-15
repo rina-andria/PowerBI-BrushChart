@@ -27,7 +27,7 @@
 /// <reference path="../../_references.ts"/>
 
 module powerbi.visuals.samples {
-    export var getConsoleWriterCapabilities: VisualCapabilities = {
+    export var consoleWriterCapabilities: VisualCapabilities = {
         dataRoles: [
             {
                 name: 'Category',

@@ -272,7 +272,7 @@ module powerbi.visuals.plugins {
 
     export var consoleWriter: IVisualPlugin = {
         name: 'consoleWriter',
-        capabilities: getConsoleWriterCapabilities(),
-        create: () => new ConsoleWriter()
+        capabilities: samples.consoleWriterCapabilities,
+        create: () => new samples.ConsoleWriter()
     };
 }

@@ -115,6 +115,9 @@
 /// <reference path="visuals/gauge.ts"/>
 /// <reference path="visuals/imageVisual.ts"/>
 
+/// <reference path="capabilities/samples/consoleWriter.capabilities.ts"/>
+/// <reference path="visuals/samples/consoleWriter.ts"/>
+
 /// <reference path="iVisual.ts"/>
 /// <reference path="iVisualStyle.ts"/>
 

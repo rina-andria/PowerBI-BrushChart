@@ -269,4 +269,10 @@ module powerbi.visuals.plugins {
         capabilities: CheerMeter.capabilities,
         create: () => new CheerMeter()
     };
+
+    export var consoleWriter: IVisualPlugin = {
+        name: 'consoleWriter',
+        capabilities: samples.consoleWriterCapabilities,
+        create: () => new samples.ConsoleWriter()
+    };
 }

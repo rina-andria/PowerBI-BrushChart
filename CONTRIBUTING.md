@@ -64,10 +64,10 @@ Pull Requests need to adhere to the checklist below. The Power BI team may ask y
 
 ##### Description of the changes
 
-  Every pull request should contain detailed description of the change and should contain:
-    *	Purpose of the change
-    *	Description of functionality that was changed
-    *	Bugs/issues details, if pull request fixes it
+Every pull request should include detailed description of the change and should contain:
+*	Purpose of the change
+*	Description of functionality that was changed
+*	Bugs/issues details, if pull request fixes it
  
 <br/>
 Wow you made it to the bottom! We’re looking forward to seeing what amazing contributions you provide and to helping you get them checked into the repo.

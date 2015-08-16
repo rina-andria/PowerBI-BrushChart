@@ -239,7 +239,6 @@ gulp.task('dependencies', function() {
 
 gulp.task("build", function (callback) {
 	runSequence(
-		"dependencies",
 		"tslint",
 		"build_projects",
 		callback);
@@ -277,8 +276,9 @@ gulp.task("run_tests", function () {
 });
 
 gulp.task("test", function (callback) {
-	runSequence(
+    runSequence(
 		"build",
+		"dependencies",
 		"copy_dependencies_visuals_tests", 
 		"run_tests", 
 		callback);

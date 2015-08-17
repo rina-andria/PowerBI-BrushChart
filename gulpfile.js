@@ -43,6 +43,7 @@ var git = require('gulp-git');
 var run = require('gulp-run');
 var tslint = require('gulp-tslint');
 var download = require("gulp-download");
+var fs = require("fs");
 
 var jsUglifyOptions = {
     compress: {
@@ -232,14 +233,21 @@ gulp.task("build_projects", function (callback) {
 });
 
 /** Download dependencies */
-gulp.task('dependencies', function() {
-	download('https://raw.github.com/velesin/jasmine-jquery/master/lib/jasmine-jquery.js')
-    		.pipe(gulp.dest("src/Clients/Externals/ThirdPartyIP/JasmineJQuery"));
+gulp.task('dependencies', function () {
+    fs.exists('src/Clients/Externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js', function (exists) {
+        if (!exists) {
+            console.log('Jasmine test dependency missing. Downloading dependency.');
+            download('https://raw.github.com/velesin/jasmine-jquery/master/lib/jasmine-jquery.js')
+                .pipe(gulp.dest("src/Clients/Externals/ThirdPartyIP/JasmineJQuery"));
+        }
+        else {
+            console.log('Jasmine test dependency exists.');
+        }
+    });
 });
 
 gulp.task("build", function (callback) {
 	runSequence(
-		"dependencies",
 		"tslint",
 		"build_projects",
 		callback);
@@ -277,8 +285,9 @@ gulp.task("run_tests", function () {
 });
 
 gulp.task("test", function (callback) {
-	runSequence(
+    runSequence(
 		"build",
+		"dependencies",
 		"copy_dependencies_visuals_tests", 
 		"run_tests", 
 		callback);

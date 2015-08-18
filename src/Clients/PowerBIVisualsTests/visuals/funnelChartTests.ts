@@ -2166,6 +2166,7 @@ module powerbitests {
     });
 
     export module FunnelChartHelpers {
+        var PercentBarValueFormatRegex: RegExp = /^[0-9\,]+(\.[0-9]{1})?%$/gi;
 
         function validatePercentValues(dataView: powerbi.DataView): void {
             var values = dataView.categorical.values[0].values;
@@ -2176,7 +2177,7 @@ module powerbitests {
             var bottomPercent = $(FunnelChart.Selectors.percentBar.text.selector)[1].textContent;
 
             [topPercent, bottomPercent].map((percent: string) => {
-                var validFormat = !!percent.match(this.PercentBarValueFormatRegex);
+                var validFormat = !!percent.match(PercentBarValueFormatRegex);
                 expect(validFormat).toBeTruthy();
 
                 var bottomPercentValue = hasHighlights

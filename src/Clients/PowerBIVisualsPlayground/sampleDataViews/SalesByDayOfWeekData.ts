@@ -27,7 +27,6 @@
 /// <reference path="../_references.ts"/>
 
 module powerbi.visuals.sampleDataViews {
-
     import DataViewTransform = powerbi.data.DataViewTransform;
     
     export class SalesByDayOfWeekData extends SampleDataViews implements ISampleDataViewsMethods {

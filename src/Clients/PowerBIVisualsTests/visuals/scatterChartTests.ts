@@ -132,7 +132,7 @@ module powerbitests {
         var v: powerbi.IVisual, element: JQuery;
         var dataViewMetadataFourColumn: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'col1', roles: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                { displayName: 'col1', queryName: 'testQuery', roles: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
                 { displayName: 'col2', isMeasure: true, roles: { "X": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                 { displayName: 'col3', isMeasure: true, roles: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                 { displayName: 'col4', isMeasure: true, roles: { "Size": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }
@@ -141,7 +141,7 @@ module powerbitests {
 
         var dataViewMetadata: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'col1', type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                { displayName: 'col1', queryName: 'testQuery', type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
                 { displayName: 'col2', isMeasure: true, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }],
         };
 
@@ -286,7 +286,7 @@ module powerbitests {
         it('scatter chart two measure dom validation', (done) => {
             var metadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'col1' },
+                    { displayName: 'col1', queryName: 'testQuery' },
                     { displayName: 'col2', isMeasure: true },
                     { displayName: 'col3', isMeasure: true, objects: { general: { formatString: '0%' } } }
                 ]
@@ -333,7 +333,7 @@ module powerbitests {
         it('scatter chart series dom validation', (done) => {
             var metadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'col1', roles: { 'Series': true } },
+                    { displayName: 'col1', queryName: 'testQuery', roles: { 'Series': true } },
                     { displayName: 'col2', isMeasure: true },
                     { displayName: 'col3', isMeasure: true, objects: { general: { formatString: '0%' } } },
                     { displayName: 'col4', isMeasure: true },
@@ -382,7 +382,7 @@ module powerbitests {
         it('scatter chart measure and size dom validation', (done) => {
             var metadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'col1' },
+                    { displayName: 'col1', queryName: 'testQuery' },
                     { displayName: 'col2', isMeasure: true },
                     { displayName: 'col3', isMeasure: true },
                     { displayName: 'col4', isMeasure: true }
@@ -3077,7 +3077,7 @@ module powerbitests {
         var hostServices: powerbi.IVisualHostServices;
         var dataViewMetadataFourColumn: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'col1', roles: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                { displayName: 'col1', queryName: 'testQuery', roles: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
                 { displayName: 'col2', isMeasure: true, roles: { "X": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                 { displayName: 'col3', isMeasure: true, roles: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                 { displayName: 'col4', isMeasure: true, roles: { "Size": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }
@@ -3159,7 +3159,10 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[3]]
                             }
-                        ]
+                        ],
+                        data2: [{
+                            dataMap: { 'testQuery': categoryIdentities[3] }
+                        }]
                     });
 
                 done();
@@ -3224,6 +3227,11 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[3]]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[3] }
+                            }
                         ]
                     });
                 trigger3(mockEvent);
@@ -3238,7 +3246,13 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[1]]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[1] }
+                            }
                         ]
+
                     });
                 trigger3(mockEvent);
                 expect(dots[0].style.fillOpacity).toBe(defaultOpacity);
@@ -3316,6 +3330,11 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[3]]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[3] }
+                            }
                         ]
                     });
                 trigger3(mockEvent);
@@ -3330,6 +3349,11 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[3]]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[3] }
+                            }
                         ]
 
                     });
@@ -3338,6 +3362,11 @@ module powerbitests {
                         data: [
                             {
                                 data: [categoryIdentities[1]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[1] }
                             }
                         ]
 
@@ -3354,6 +3383,11 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[3]], 
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[3] }
+                            }
                         ]
                     });
                 expect(hostServices.onSelect).toHaveBeenCalledWith(
@@ -3362,6 +3396,11 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[1]]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[1] }
+                            }
                         ]
                     });
                 expect(hostServices.onSelect).toHaveBeenCalledWith(
@@ -3369,6 +3408,11 @@ module powerbitests {
                         data: [
                             {
                                 data: [categoryIdentities[0]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[0] }
                             }
                         ]
                     });
@@ -3383,6 +3427,11 @@ module powerbitests {
                         data: [                            
                             {
                                 data: [categoryIdentities[0]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[0] }
                             }
                         ]
                     });
@@ -3455,6 +3504,11 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[3]]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[3] }
+                            }
                         ]
                     });
                 trigger3(multiEvent);
@@ -3469,6 +3523,11 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[3]]
                             },
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[3] }
+                            }
                         ]
                     });
                 expect(hostServices.onSelect).toHaveBeenCalledWith(
@@ -3476,6 +3535,11 @@ module powerbitests {
                         data: [
                             {
                                 data: [categoryIdentities[1]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[1] }
                             }
                         ]
                     });
@@ -3498,12 +3562,24 @@ module powerbitests {
                                 data: [categoryIdentities[3]]
                             }
                         ]
+                        ,
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[3] }
+                            }
+                        ]
                     });
                 expect(hostServices.onSelect).toHaveBeenCalledWith(
                     {
                         data: [
                             {
                                 data: [categoryIdentities[0]]
+                            }
+                        ]
+                        ,
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[0] }
                             }
                         ]
                     });
@@ -3518,6 +3594,11 @@ module powerbitests {
                         data: [
                             {
                                 data: [categoryIdentities[1]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': categoryIdentities[1] }
                             }
                         ]
                     });
@@ -3586,6 +3667,11 @@ module powerbitests {
                                 [
                                     identities[3]
                                 ]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': identities[3] }
                             }
                         ]
                     });
@@ -3662,6 +3748,11 @@ module powerbitests {
                                     identities[3]
                                 ]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'testQuery': identities[3] }
+                            }
                         ]
                     });
 
@@ -3686,7 +3777,7 @@ module powerbitests {
         var element: JQuery;
         var dataViewMetadataFourColumn: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'col1', roles: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                { displayName: 'col1', queryName: 'testQuery', roles: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
                 { displayName: 'col2', isMeasure: true, roles: { "X": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Integer) },
                 { displayName: 'col3', isMeasure: true, roles: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Integer) },
                 { displayName: 'col4', isMeasure: true, roles: { "Size": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Integer) }
@@ -3934,7 +4025,7 @@ module powerbitests {
         var v: powerbi.IVisual, element: JQuery;
         var dataViewMetadataFourColumn: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'col1', roles: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                { displayName: 'col1', queryName: 'testQuery', roles: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
                 { displayName: 'col2', isMeasure: true, roles: { "X": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                 { displayName: 'col3', isMeasure: true, roles: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                 { displayName: 'col4', isMeasure: true, roles: { "Size": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }

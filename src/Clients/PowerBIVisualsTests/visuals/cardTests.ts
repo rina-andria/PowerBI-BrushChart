@@ -28,35 +28,36 @@
 
 module powerbitests {
     import Card = powerbi.visuals.Card;
+    import cardCapabilities = powerbi.visuals.cardCapabilities;
     import DataViewTransform = powerbi.data.DataViewTransform;
     import ValueType = powerbi.ValueType;
     import SVGUtil = powerbi.visuals.SVGUtil;
    
     describe("Card", () => {
         it('Card_registered_capabilities', () => {
-            expect(powerbi.visuals.visualPluginFactory.create().getPlugin('card').capabilities).toBe(Card.capabilities);
+            expect(powerbi.visuals.visualPluginFactory.create().getPlugin('card').capabilities).toBe(cardCapabilities);
         });
 
         it('Capabilities should include dataViewMappings', () => {
-            expect(Card.capabilities.dataViewMappings).toBeDefined();
-            expect(Card.capabilities.dataViewMappings.length).toBe(1);
+            expect(cardCapabilities.dataViewMappings).toBeDefined();
+            expect(cardCapabilities.dataViewMappings.length).toBe(1);
         });
 
         it('Capabilities should have condition',() => {
-            expect(Card.capabilities.dataViewMappings[0].conditions[0][Card.capabilities.dataRoles[0].name].max).toBe(1);
+            expect(cardCapabilities.dataViewMappings[0].conditions[0][cardCapabilities.dataRoles[0].name].max).toBe(1);
         });
 
         it('Capabilities should include dataRoles', () => {
-            expect(Card.capabilities.dataRoles).toBeDefined();
-            expect(Card.capabilities.dataRoles.length).toBe(1);
+            expect(cardCapabilities.dataRoles).toBeDefined();
+            expect(cardCapabilities.dataRoles.length).toBe(1);
         });
 
         it('Capabilities should suppressDefaultTitle',() => {
-            expect(Card.capabilities.suppressDefaultTitle).toBe(true);
+            expect(cardCapabilities.suppressDefaultTitle).toBe(true);
         });
 
         it('FormatString property should match calculated',() => {
-            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(Card.capabilities.objects)).toEqual(Card.formatStringProp);
+            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(cardCapabilities.objects)).toEqual(Card.formatStringProp);
         });
 
         it('cardChart preferred capabilities requires at most 1 row', () => {
@@ -128,6 +129,7 @@ module powerbitests {
                     height: element.height(),
                     width: element.width()
                 },
+                animation: { transitionImmediate: true}
             });
         }
 
@@ -341,6 +343,9 @@ module powerbitests {
 
             setTimeout(() => {
                 expect($('.mainText').first().text()).toBe('6/20/2015');
+                var transform = SVGUtil.parseTranslateTransform($('.mainText').first().attr('transform'));
+                expect(transform.x).toBe('150');
+                expect(transform.y).toBe('130');
                 done();
             }, DefaultWaitForRender);
         });

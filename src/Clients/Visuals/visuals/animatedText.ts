@@ -39,15 +39,6 @@ module powerbi.visuals {
             objectName: 'general',
             propertyName: 'formatString',
         };
-        protected static objectDescs: data.DataViewObjectDescriptors = {
-            general: {
-                properties: {
-                    formatString: {
-                        type: { formatting: { formatString: true } },
-                    },
-                },
-            }
-        };
 
         protected animator: IAnimator;
 
@@ -145,7 +136,7 @@ module powerbi.visuals {
                 endValueArr = [endValue],
                 seedFontHeight = this.getSeedFontHeight(width, height),
                 translateX = this.getTranslateX(width),
-                translateY = this.getTranslateY(fontHeight),
+                translateY = this.getTranslateY(seedFontHeight),
                 metaDataColumn = this.metaDataColumn,
                 formatter = valueFormatter.create({
                     format: this.getFormatString(metaDataColumn),
@@ -169,15 +160,16 @@ module powerbi.visuals {
                 .append('text')
                 .attr('class', this.mainText.class);
 
+            var fontHeight = this.getAdjustedFontHeight(width, endText, seedFontHeight);
+            translateY = this.getTranslateY(fontHeight + (height - fontHeight) / 2);  
+
             var textElementUpdate = textElement
                 .text(startText)
-                .attr('text-anchor', this.getTextAnchor());
-
-            var node = textElementUpdate.node();
-            if (node) {
-                var fontHeight = this.getAdjustedFontHeight(width, endText, seedFontHeight);
-                translateY = this.getTranslateY(fontHeight + (height - fontHeight) / 2);
-            }
+                .attr({
+                    'text-anchor': this.getTextAnchor(),
+                    'font-size': fontHeight,
+                    'transform': SVGUtil.translate(translateX, translateY)
+                });
 
             if (endValue == null) {
                 textElementUpdate.text(endText);
@@ -188,8 +180,6 @@ module powerbi.visuals {
             else {
                 var interpolatedValue = startValue;
                 textElementUpdate
-                    .attr('font-size', fontHeight)
-                    .attr('transform', SVGUtil.translate(translateX, translateY))
                     .transition()
                     .duration(duration)
                     .tween('text', function (d) {

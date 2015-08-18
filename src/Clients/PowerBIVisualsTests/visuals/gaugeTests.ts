@@ -29,6 +29,7 @@
 module powerbitests {
     import DataViewTransform = powerbi.data.DataViewTransform;
     import GaugeVisual = powerbi.visuals.Gauge;
+    import gaugeVisualCapabilities = powerbi.visuals.gaugeCapabilities;
     import SVGUtil = powerbi.visuals.SVGUtil;
 
     var sideNumbersVisibleMinHeight: number = powerbi.visuals.visualPluginFactory.MobileVisualPluginService.MinHeightGaugeSideNumbersVisible;
@@ -305,23 +306,23 @@ module powerbitests {
         });
 
         it("Capabilities should include dataViewMappings", () => {
-            expect(GaugeVisual.capabilities.dataViewMappings).toBeDefined();
+            expect(gaugeVisualCapabilities.dataViewMappings).toBeDefined();
         });
 
         it("Capabilities should include dataRoles", () => {
-            expect(GaugeVisual.capabilities.dataRoles).toBeDefined();
+            expect(gaugeVisualCapabilities.dataRoles).toBeDefined();
         });
 
         it("Capabilities should not suppressDefaultTitle", () => {
-            expect(GaugeVisual.capabilities.suppressDefaultTitle).toBeUndefined();
+            expect(gaugeVisualCapabilities.suppressDefaultTitle).toBeUndefined();
         });
 
         it("Capabilities should include dataRoles", () => {
-            expect(GaugeVisual.capabilities.dataRoles).toBeDefined();
+            expect(gaugeVisualCapabilities.dataRoles).toBeDefined();
         });
 
         it("FormatString property should match calculated", () => {
-            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(GaugeVisual.capabilities.objects)).toEqual(GaugeVisual.formatStringProp);
+            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(gaugeVisualCapabilities.objects)).toEqual(GaugeVisual.formatStringProp);
         });
     });
 
@@ -481,11 +482,11 @@ module powerbitests {
         });
 
         it("Gauge registered capabilities", () => {
-            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("gauge").capabilities).toBe(GaugeVisual.capabilities);
+            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("gauge").capabilities).toBe(gaugeVisualCapabilities);
         });
 
         it("FormatString property should match calculated", () => {
-            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(GaugeVisual.capabilities.objects)).toEqual(GaugeVisual.formatStringProp);
+            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(gaugeVisualCapabilities.objects)).toEqual(GaugeVisual.formatStringProp);
         });
 
         it("Gauge_greaterThanMax", () => {

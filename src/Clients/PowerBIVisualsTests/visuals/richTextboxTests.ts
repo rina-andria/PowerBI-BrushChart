@@ -28,6 +28,7 @@
 
 module powerbitests {
     import RichTextbox = powerbi.visuals.RichTextbox;
+    import richTextboxCapabilities = powerbi.visuals.richTextboxCapabilities;
     import IVisualHostServices = powerbi.IVisualHostServices;
     import ParagraphContext = powerbi.visuals.ParagraphContext;
 
@@ -40,14 +41,14 @@ module powerbitests {
 
         describe('capabilities',() => {
             it('should suppress title',() => {
-                expect(RichTextbox.capabilities.suppressDefaultTitle).toBeTruthy();
+                expect(richTextboxCapabilities.suppressDefaultTitle).toBeTruthy();
             });
 
             it('should register capabilities',() => {
                 var pluginFactory = powerbi.visuals.visualPluginFactory.create();
                 var plugin = pluginFactory.getPlugin('textbox');
                 expect(plugin).toBeDefined();
-                expect(plugin.capabilities).toBe(RichTextbox.capabilities);
+                expect(plugin.capabilities).toBe(richTextboxCapabilities);
             });
         });
 

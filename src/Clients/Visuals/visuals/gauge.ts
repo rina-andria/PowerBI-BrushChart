@@ -52,13 +52,6 @@ module powerbi.visuals {
         tooltipItems: TooltipSeriesDataItem[];
     }
 
-    var RoleNames = {
-        y: 'Y',
-        minValue: 'MinValue',
-        maxValue: 'MaxValue',
-        targetValue: 'TargetValue'
-    };
-
     interface GaugeStyle {
         transition: {
             ease: string
@@ -223,52 +216,6 @@ module powerbi.visuals {
                 this.animator = options.animator;
             }
         }
-
-        public static capabilities: VisualCapabilities = {
-            dataRoles: [
-                {
-                    name: RoleNames.y,
-                    kind: VisualDataRoleKind.Measure,
-                    displayName: data.createDisplayNameGetter('Role_DisplayName_Value'),
-                }, {
-                    name: RoleNames.minValue,
-                    kind: VisualDataRoleKind.Measure,
-                    displayName: data.createDisplayNameGetter('Role_DisplayName_MinValue'),
-                }, {
-                    name: RoleNames.maxValue,
-                    kind: VisualDataRoleKind.Measure,
-                    displayName: data.createDisplayNameGetter('Role_DisplayName_MaxValue'),
-                }, {
-                    name: RoleNames.targetValue,
-                    kind: VisualDataRoleKind.Measure,
-                    displayName: data.createDisplayNameGetter('Role_DisplayName_TargetValue'),
-                }
-            ],
-            objects: {
-                general: {
-                    properties: {
-                        formatString: {
-                            type: { formatting: { formatString: true } },
-                        },
-                    },
-                }
-            },
-            dataViewMappings: [{
-                conditions: [
-                    { 'Y': { max: 1 }, 'MinValue': { max: 1 }, 'MaxValue': { max: 1 }, 'TargetValue': { max: 1 } },
-                ],
-                categorical: {
-                    values: {
-                        select: [
-                            { bind: { to: 'Y' } },
-                            { bind: { to: 'MinValue' } },
-                            { bind: { to: 'MaxValue' } },
-                            { bind: { to: 'TargetValue' } },
-                        ]
-                    },
-                },
-            }],
-        };
 
         public init(options: VisualInitOptions) {
             this.element = options.element;
@@ -438,15 +385,15 @@ module powerbi.visuals {
                     var col = metadataColumns[i],
                         value = values[i].values[0] || 0;
                     if (col && col.roles) {
-                        if (col.roles[RoleNames.y]) {
+                        if (col.roles[gaugeRoleNames.y]) {
                             settings.total = value;
                             if (value)
                                 settings.tooltipItems.push({ value: value, metadata: values[i] });
-                        } else if (col.roles[RoleNames.minValue]) {
+                        } else if (col.roles[gaugeRoleNames.minValue]) {
                             settings.min = value;
-                        } else if (col.roles[RoleNames.maxValue]) {
+                        } else if (col.roles[gaugeRoleNames.maxValue]) {
                             settings.max = value;
-                        } else if (col.roles[RoleNames.targetValue]) {
+                        } else if (col.roles[gaugeRoleNames.targetValue]) {
                             settings.target = value;
                             if (value)
                                 settings.tooltipItems.push({ value: value, metadata: values[i] });

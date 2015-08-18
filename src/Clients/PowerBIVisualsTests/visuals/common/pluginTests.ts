@@ -184,7 +184,11 @@ module powerbitests {
         }
 
         function changeData(visual: IVisual, objectDescs: DataViewObjectDescriptors, dataViews: powerbi.DataView[]): void {
-            visual.onDataChanged({ dataViews: dataViews });
+            if (visual.onDataChanged) {
+                visual.onDataChanged({ dataViews: dataViews });
+            } else if (visual.update) {
+                visual.update({ dataViews: dataViews, viewport: { height: 100, width: 100 } });
+            }
 
             if (visual.enumerateObjectInstances && objectDescs) {
                 for (var objectName in objectDescs)

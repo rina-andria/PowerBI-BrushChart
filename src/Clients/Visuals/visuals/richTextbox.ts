@@ -64,19 +64,6 @@ module powerbi.visuals {
         private readOnly: boolean;
         private paragraphs: ParagraphContext[];
 
-        public static capabilities: VisualCapabilities = {
-            objects: {
-                general: {
-                    properties: {
-                        paragraphs: {
-                            type: { /* ParagraphContext */ }
-                        }
-                    }
-                }
-            },
-            suppressDefaultTitle: true,
-        };
-
         public init(options: VisualInitOptions) {
             this.element = options.element;
             this.host = options.host;

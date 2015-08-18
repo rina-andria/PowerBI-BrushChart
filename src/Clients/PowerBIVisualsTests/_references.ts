@@ -28,8 +28,9 @@
 /// <reference path="typedefs/typedefs.obj.ts"/>
 
 /// <reference path="common.ts"/>
-/// <reference path="helpers.ts"/>
+/// <reference path="helpers/helpers.ts"/>
 /// <reference path="mocks.ts"/>
-/// <reference path="tableDataViewHelper.ts"/>
-/// <reference path="tablixHelper.ts"/>
+/// <reference path="helpers/tableDataViewHelper.ts"/>
+/// <reference path="helpers/tablixHelper.ts"/>
+/// <reference path="helpers/performanceTestsHelpers.ts"/>
 /// <reference path="utils/colorUtility.ts"/>

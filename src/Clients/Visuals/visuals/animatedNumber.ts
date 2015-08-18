@@ -34,13 +34,6 @@ module powerbi.visuals {
         // TODO: Remove this once all visuals have implemented update.
         private dataViews: DataView[];
 
-        public static capabilities: VisualCapabilities = {
-            objects: AnimatedText.objectDescs,
-            dataViewMappings: [{
-                single: { role: "Values" }
-            }],
-        };
-
         public constructor(svg?: D3.Selection, animator?: IAnimator) {
             super('animatedNumber');
 

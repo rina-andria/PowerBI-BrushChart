@@ -307,8 +307,8 @@ module powerbi.visuals {
             };
         }
 
-        public static getInteractiveLegendDomElement(element: JQuery): HTMLElement {
-            return element.children(".interactive-legend").get(0);
+        public static getInteractiveLineChartDomElement(element: JQuery): HTMLElement {
+            return element.children("svg").get(0);
         }
 
         private static getColor(
@@ -407,15 +407,15 @@ module powerbi.visuals {
             };
 
             if (this.isInteractiveChart) {
-                var legend: EventTarget = LineChart.getInteractiveLegendDomElement(this.element);
+                var lineChartSvg: EventTarget = LineChart.getInteractiveLineChartDomElement(this.element);
                 // assign drag and onClick events
                 var drag = d3.behavior.drag()
                     .origin(Object)
                     .on("drag", dragMove);
                 svg.call(drag);
-                d3.select(legend).call(drag);
+                d3.select(lineChartSvg).call(drag);
                 svg.on('click', dragMove);
-                d3.select(legend).on('click', dragMove);
+                d3.select(lineChartSvg).on('click', dragMove);
             }
         }
 

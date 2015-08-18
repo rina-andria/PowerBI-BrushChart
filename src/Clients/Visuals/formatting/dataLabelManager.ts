@@ -574,6 +574,14 @@ module powerbi {
                 this._rowCount = this._colCount = 0;
             }
 
+            var baseProperties: TextProperties = {
+                fontFamily: powerbi.visuals.dataLabelUtils.LabelTextProperties.fontFamily,
+                fontSize: powerbi.visuals.dataLabelUtils.LabelTextProperties.fontSize,
+                fontWeight: powerbi.visuals.dataLabelUtils.LabelTextProperties.fontWeight,
+            };
+
+            var textHeight = TextMeasurementService.estimateSvgTextHeight(baseProperties);
+
             //sets the _cell size to be twice of the Max with and Max height of the elements 
             this._cellSize = { width: 0, height: 0 };
             for (var i = 0, len = elements.length; i < len; i++) {
@@ -582,16 +590,12 @@ module powerbi {
                 // Fill label field
                 child.labeltext = layout.labelText(child);
 
-                var properties: TextProperties = {
-                    fontFamily: powerbi.visuals.dataLabelUtils.LabelTextProperties.fontFamily,
-                    fontSize: powerbi.visuals.dataLabelUtils.LabelTextProperties.fontSize,
-                    fontWeight: powerbi.visuals.dataLabelUtils.LabelTextProperties.fontWeight,
-                    text: child.labeltext,
-                };
+                var properties: TextProperties = Prototype.inherit(baseProperties);
+                properties.text = child.labeltext;
 
                 child.size = {
                     width: TextMeasurementService.measureSvgTextWidth(properties),
-                    height: TextMeasurementService.measureSvgTextHeight(properties),
+                    height: textHeight,
                 };
 
                 var w = child.size.width * 2;

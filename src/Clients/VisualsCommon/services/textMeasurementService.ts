@@ -77,31 +77,6 @@ module powerbi {
             canvasCtx = (<CanvasElement>$('<canvas/>').get(0)).getContext("2d");
         }
 
-        // TODO: this is not ideal - we need to pass TextProperties such as fond and size by code, while those parameters are set from css.
-
-        /**
-         * This method measures the width of the text with the given text properties
-         * @param {ITextMeasurementProperties} textProperties - The text properties to use for text measurement
-         */
-        export function measureTextWidth(textProperties: TextProperties): number {
-            ensureDOM();
-
-            spanElement.removeAttr('style').empty().css('visibility', 'hidden');
-            spanElement.text(textProperties.text).css({
-                    fontFamily: textProperties.fontFamily,
-                    fontSize: textProperties.fontSize,
-                    fontWeight: textProperties.fontWeight,
-                    fontStyle: textProperties.fontStyle,
-                    whiteSpace: textProperties.whiteSpace || 'nowrap'
-                });
-
-            // The use of 'getComputedStyle' is required to get exact values of sizes, without rounding off to nearest integer
-            //  The rounding off can cause a slight difference in the width, which can have undesirable effects including flickering.
-            var measuredWidth = parseInt(getComputedStyle(spanElement[0]).width, 10);
-
-            return measuredWidth;
-        }
-
         /**
          * This method measures the width of the text with the given SVG text properties
          * @param {ITextMeasurementProperties} textProperties - The text properties to use for text measurement
@@ -135,6 +110,30 @@ module powerbi {
             // We're expecting the browser to give a synchronous measurement here
             // We're using SVGTextElement because it works across all browsers 
             return svgTextElement.node<SVGTextElement>().getBBox().height;
+        }
+
+        /**
+         * This method estimates the height of the text with the given SVG text properties.
+         * @param {TextProperties} textProperties - The text properties to use for text measurement
+         */
+        export function estimateSvgTextHeight(textProperties: TextProperties): number {
+            let propertiesKey = textProperties.fontFamily + textProperties.fontSize;
+            let height: number = ephemeralStorageService.getData(propertiesKey);
+            if (height)
+                return height;
+
+            // To estimate we check the height of a particular character, once it is cached, subsequent
+            // calls should always get the height from the cache (regardless of the text).
+            let estimatedTextProperties: TextProperties = {
+                fontFamily: textProperties.fontFamily,
+                fontSize: textProperties.fontSize,
+                text: "M",
+            };
+
+            height = measureSvgTextHeight(estimatedTextProperties);
+            ephemeralStorageService.setData(propertiesKey, height);
+
+            return height;
         }
 
         /**

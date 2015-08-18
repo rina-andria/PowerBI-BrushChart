@@ -409,40 +409,6 @@ module powerbi.visuals {
         private lastAllowHeaderResize: boolean;
         private waitingForSort: boolean;
 
-        public static capabilities: VisualCapabilities = {
-            dataRoles: [{
-                name: 'Values',
-                kind: VisualDataRoleKind.GroupingOrMeasure
-            }],
-            objects: {
-                general: {
-                    displayName: data.createDisplayNameGetter('Visual_General'),
-                    properties: {
-                        formatString: {
-                            type: { formatting: { formatString: true } },
-                        },
-                        totals: {
-                            type: { bool: true },
-                            displayName: data.createDisplayNameGetter('Visual_Totals')
-                        }
-                    },
-                }
-            },
-            dataViewMappings: [{
-                table: {
-                    rows: {
-                        for: { in: 'Values' },
-                        dataReductionAlgorithm: { window: { count: 100 } }
-                    },
-                    rowCount: { preferred: { min: 1 } }
-                },
-            }],
-            sorting: {
-                custom: {},
-            },
-            suppressDefaultTitle: true,
-        };
-
         public static customizeQuery(options: CustomizeQueryOptions): void {
             var dataViewMapping = options.dataViewMappings[0];
             if (!dataViewMapping || !dataViewMapping.table || !dataViewMapping.metadata)

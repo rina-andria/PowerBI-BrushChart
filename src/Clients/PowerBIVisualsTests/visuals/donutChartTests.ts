@@ -2704,7 +2704,7 @@ module powerbitests {
             });
 
             var dataViewMetadataTwoColumnLabels = powerbi.Prototype.inherit(dataViewMetadataTwoColumn);
-            dataViewMetadataTwoColumnLabels.objects = { categoryLabels: { show: true }, labels: { show: false } };
+            dataViewMetadataTwoColumnLabels.objects = { categoryLabels: { show: true }, labels: { show: false }, legend: { show: true, position: 'Top' } };
             var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'p' });
 
             v.onDataChanged({
@@ -2740,6 +2740,17 @@ module powerbitests {
                 expect($('.donutLegend').length).toBe(1);
                 expect($('.legend-item').length).toBe(3);
                 expect($('.donutChart .slice').length).toBe(3);
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('legend - test that there is only one interactive legend', (done) => {
+            v.onResizing({ height: 600, width: 600 });
+
+            setTimeout(() => {
+                // interactive-legend is the type of interactive legend for all visuals except donut, for this visual we have special legend called donutLegend
+                expect($('.interactive-legend')).not.toBeInDOM();
+                expect($('.donutLegend')).toBeInDOM();
                 done();
             }, DefaultWaitForRender);
         });

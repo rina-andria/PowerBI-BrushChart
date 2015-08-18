@@ -37,6 +37,7 @@ module powerbi {
         code: string;
         debugInfo?: string;
         ignorable?: boolean;
+        requestId?: string;
     }
 
     export interface IClientWarning extends ILocalizableError {
@@ -55,6 +56,42 @@ module powerbi {
             var details: ErrorDetails = {
                 message: resourceProvider.get('ClientError_UnknownClientErrorValue'),
                 additionalErrorInfo: [{ errorInfoKey: resourceProvider.get('ClientError_UnknownClientErrorKey'), errorInfoValue: resourceProvider.get('ClientError_UnknownClientErrorValue'), }],
+            };
+
+            return details;
+        }
+    }
+
+    export class HttpClientError implements IClientError {
+        private httpRequestId: string;
+        private httpStatusCode: number;
+        
+        constructor(httpStatusCode: number, requestId: string) {
+            debug.assertValue(httpStatusCode, 'httpStatusCode');
+            debug.assertValue(requestId, 'requestId');
+            this.httpStatusCode = httpStatusCode;
+            this.httpRequestId = requestId;
+        }
+
+        public get code(): string {
+            return 'HttpClientError';
+        }
+
+        public get ignorable(): boolean {
+            return false;
+        }
+
+        public get requestId(): string {
+            return this.httpRequestId;
+        }
+
+        public getDetails(resourceProvider: IStringResourceProvider): ErrorDetails {
+            // Use a general error message for a HTTP request failure, since we currently do not know of any specifc error cases at this point in time.
+            var details: ErrorDetails = {
+                message: null,
+                additionalErrorInfo: [
+                    { errorInfoKey: resourceProvider.get('DsrError_Key'), errorInfoValue: resourceProvider.get('DsrError_UnknownErrorValue')},
+                    { errorInfoKey: resourceProvider.get('ClientError_HttpResponseStatusCodeKey'), errorInfoValue: this.httpStatusCode.toString() }],
             };
 
             return details;

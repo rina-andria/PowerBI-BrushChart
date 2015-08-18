@@ -24,7 +24,7 @@
  *  THE SOFTWARE.
  */
 
-/// <reference path="_references.ts"/>
+/// <reference path="../_references.ts"/>
 
 module powerbitests.tablixHelper {
     import CssConstants = jsCommon.CssConstants;

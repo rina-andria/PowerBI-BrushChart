@@ -28,28 +28,29 @@
 
 module powerbitests {
     import MultiRowCard = powerbi.visuals.MultiRowCard;
+    import multiRowCardCapabilities = powerbi.visuals.multiRowCardCapabilities;
     import ValueType = powerbi.ValueType;
     import PrimitiveType = powerbi.PrimitiveType;
 
     describe("MultiRowCard", () => {
         it("MultiRowCard_registered_capabilities", () => {
-            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("multiRowCard").capabilities).toBe(MultiRowCard.capabilities);
+            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("multiRowCard").capabilities).toBe(multiRowCardCapabilities);
         });
 
         it("Capabilities should include dataViewMappings", () => {
-            expect(MultiRowCard.capabilities.dataViewMappings).toBeDefined();
+            expect(multiRowCardCapabilities.dataViewMappings).toBeDefined();
         });
 
         it("Capabilities should include dataRoles", () => {
-            expect(MultiRowCard.capabilities.dataRoles).toBeDefined();
+            expect(multiRowCardCapabilities.dataRoles).toBeDefined();
         });
 
         it("Capabilities should suppressDefaultTitle", () => {
-            expect(MultiRowCard.capabilities.suppressDefaultTitle).toBe(true);
+            expect(multiRowCardCapabilities.suppressDefaultTitle).toBe(true);
         });
 
         it("FormatString property should match calculated", () => {
-            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(MultiRowCard.capabilities.objects)).toEqual(MultiRowCard.formatStringProp);
+            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(multiRowCardCapabilities.objects)).toEqual(MultiRowCard.formatStringProp);
         });
     });
 

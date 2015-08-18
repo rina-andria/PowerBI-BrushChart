@@ -144,11 +144,15 @@ module powerbi.visuals {
         public static createWithIdAndMeasureAndCategory(id: DataViewScopeIdentity, measureId: string, queryName: string, highlight: boolean = false): SelectionId {
             var selectionId = this.createWithIdAndMeasure(id, measureId, highlight);
 
-            selectionId.selectorsByColumn = {};
-            selectionId.selectorsByColumn.dataMap = [{ queryName: queryName, data: id }];
-
-            if (measureId)
-                selectionId.selectorsByColumn.metadata = measureId;
+            if (selectionId.selector) {
+                selectionId.selectorsByColumn = {};
+                if (id && queryName) {
+                    selectionId.selectorsByColumn.dataMap = {};
+                    selectionId.selectorsByColumn.dataMap[queryName] = id;
+                }
+                if (measureId)
+                    selectionId.selectorsByColumn.metadata = measureId;
+            }
 
             return selectionId;
         }
@@ -175,20 +179,24 @@ module powerbi.visuals {
             return new SelectionId(selector, highlight);
         }
 
-        public static createWithIdsAndMeasureAndCategory(map1: SelectorForColumn, map2: SelectorForColumn, measureId: string, highlight: boolean = false): SelectionId {
-            var id1 = <DataViewScopeIdentity>(map1 ? map1.data : null);
-            var id2 = <DataViewScopeIdentity>(map2 ? map2.data : null);
+        public static createWithSelectorForColumnAndMeasure(dataMap: SelectorForColumn, measureId: string, highlight: boolean = false): SelectionId {
 
-            var selectionId = this.createWithIdsAndMeasure(id1, id2, measureId, highlight);
+            var selectionId: visuals.SelectionId;
+            var keys = Object.keys(dataMap);
+            if (keys.length === 2) {
+                selectionId = this.createWithIdsAndMeasure(<DataViewScopeIdentity>dataMap[keys[0]], <DataViewScopeIdentity>dataMap[keys[1]], measureId, highlight);
+            } else if (keys.length === 1) {
+                selectionId = this.createWithIdsAndMeasure(<DataViewScopeIdentity>dataMap[keys[0]], null, measureId, highlight);
+            } else {
+                selectionId = this.createWithIdsAndMeasure(null, null, measureId, highlight);
+            }
 
             var selectorsByColumn: SelectorsByColumn = {};
-            var dataMap = SelectionId.selectorMapArray(map1, map2);
-            if (dataMap)
+            if (!_.isEmpty(dataMap))
                 selectorsByColumn.dataMap = dataMap;
-
             if (measureId)
                 selectorsByColumn.metadata = measureId;
-            if (!map1 && !map2 && !measureId)
+            if (!dataMap && !measureId)
                 selectorsByColumn = null;
 
             selectionId.selectorsByColumn = selectorsByColumn;
@@ -201,20 +209,6 @@ module powerbi.visuals {
             debug.assert(!original.highlight, '!original.highlight');
 
             return new SelectionId(original.getSelector(), /*highlight*/ true);
-        }
-
-        private static selectorMapArray(map1: SelectorForColumn, map2: SelectorForColumn): SelectorForColumn[] {
-            if ((map1 && map1.data) || (map2 && map2.data)) {
-                var data = [];
-                if (map1 && map1.data)
-                    data.push(map1);
-                if (map2 && map2.data) {
-                    if (!map1 || map1.data !== map2.data)
-                        data.push(map2);
-                }
-
-                return data;
-            }
         }
 
         private static idArray(id1: DataViewScopeIdentity, id2: DataViewScopeIdentity): DataViewScopeIdentity[] {

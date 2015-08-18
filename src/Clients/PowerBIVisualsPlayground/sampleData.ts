@@ -63,7 +63,6 @@ module powerbi.visuals.sampleData {
          */
         public static getDataViewsBySampleName(sampleName: string) {
             return this.data.filter((item) => (item.getName() === sampleName))[0];
-        }
- 
+        } 
     }     
 }

@@ -24,8 +24,6 @@
  *  THE SOFTWARE.
  */
 
-/// <reference path="../_references.ts"/>
-
 module powerbi.visuals {
     export function getColumnChartCapabilities(transposeAxes: boolean = false): VisualCapabilities {
         return {

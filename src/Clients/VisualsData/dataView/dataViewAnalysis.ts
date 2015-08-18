@@ -335,9 +335,10 @@ module powerbi {
             var conditionRoles = Object.keys(condition);
             for (var i = 0, len = conditionRoles.length; i < len; i++) {
                 var roleName: string = conditionRoles[i],
+                    isDrillable = projections[roleName] && projections[roleName].activeProjectionQueryRef != null,
                     range = condition[roleName];
 
-                var roleCount = getPropertyCount(roleName, projections);
+                var roleCount = getPropertyCount(roleName, projections, isDrillable);
                 if (!conforms(roleCount, range))
                     return false;
             }
@@ -345,13 +346,16 @@ module powerbi {
             return true;
         }
 
-        export function getPropertyCount(roleName: string, projections: QueryProjectionByProperty): number {
+        export function getPropertyCount(roleName: string, projections: QueryProjectionByProperty, useActiveIfAvailable?: boolean): number {
             debug.assertValue(roleName, 'roleName');
             debug.assertValue(projections, 'projections');
 
             var projectionsForRole = projections[roleName];
-            if (projectionsForRole)
+            if (projectionsForRole) {
+                if (useActiveIfAvailable)
+                    return 1;
                 return projectionsForRole.all().length;
+            }
 
             return 0;
         }

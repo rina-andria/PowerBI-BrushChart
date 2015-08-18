@@ -266,13 +266,24 @@ module powerbitests {
                 }, DefaultWaitForRender);
             }, DefaultWaitForRender);
         });
+
     });
 
     describe("Slicer Interactivity", () => {
         var v: powerbi.IVisual, element: JQuery, slicers: JQuery, slicerCheckboxInput: JQuery;
         var hostServices: powerbi.IVisualHostServices;
-
+        var clearSelectionSpy: jasmine.Spy;
         beforeEach(() => {
+
+            var originalFunc = powerbi.visuals.createInteractivityService;
+            powerbi.visuals.createInteractivityService = (host) => {
+                var result = originalFunc(host);
+                clearSelectionSpy = spyOn(result, 'clearSelection');
+                clearSelectionSpy.and.callThrough();
+                powerbi.visuals.createInteractivityService = originalFunc;
+                return result;
+            };
+
             element = powerbitests.helpers.testDom("200", "300");
             v = <Slicer> powerbi.visuals.visualPluginFactory.create().getPlugin("slicer").create();
             hostServices = mocks.createVisualHostServices();
@@ -294,6 +305,13 @@ module powerbitests {
 
             slicerCheckboxInput = $("label.slicerCheckbox").find("input");
             spyOn(hostServices, "onSelect").and.callThrough();
+        });
+
+        it("slicer clear selection on Data Changed", (done) => {
+            setTimeout(() => {
+                expect(clearSelectionSpy).toHaveBeenCalled();
+                done();
+            }, DefaultWaitForRender);
         });
 
         it("slicer item select", (done) => {

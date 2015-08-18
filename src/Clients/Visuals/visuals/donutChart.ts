@@ -562,18 +562,20 @@ module powerbi.visuals {
         }
 
         private renderLegend(): void {
-            var legendObjectProperties = this.data.legendObjectProperties;
-            if (legendObjectProperties) {
-                var legendData = this.data.legendData;
-                LegendData.update(legendData, legendObjectProperties);
-                var position = <string>legendObjectProperties[legendProps.position];
-                if (position)
-                    this.legend.changeOrientation(LegendPosition[position]);
+            if (!this.isInteractive) {
+                var legendObjectProperties = this.data.legendObjectProperties;
+                if (legendObjectProperties) {
+                    var legendData = this.data.legendData;
+                    LegendData.update(legendData, legendObjectProperties);
+                    var position = <string>legendObjectProperties[legendProps.position];
+                    if (position)
+                        this.legend.changeOrientation(LegendPosition[position]);
 
-                this.legend.drawLegend(legendData, this.parentViewport);
-            } else {
-                this.legend.changeOrientation(LegendPosition.Top);
-                this.legend.drawLegend({ dataPoints: [] }, this.parentViewport);
+                    this.legend.drawLegend(legendData, this.parentViewport);
+                } else {
+                    this.legend.changeOrientation(LegendPosition.Top);
+                    this.legend.drawLegend({ dataPoints: [] }, this.parentViewport);
+                }
             }
         }
 

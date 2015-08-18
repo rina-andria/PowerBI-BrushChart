@@ -95,6 +95,7 @@
 
 /// <reference path="visuals/animatedText.ts"/>
 /// <reference path="visuals/animatedNumber.ts"/>
+/// <reference path="capabilities/animatedNumber.capabilities.ts"/>
 
 /// <reference path="cartesian/cartesianChart.ts"/>
 
@@ -108,12 +109,15 @@
 
 /// <reference path="capabilities/donutChart.capabilities.ts"/>
 /// <reference path="cartesian/dataDotChart.ts"/>
+/// <reference path="capabilities/dataDotChart.capabilities.ts"/>
 
 /// <reference path="capabilities/filledMap.capabilities.ts"/>
 /// <reference path="capabilities/funnelChart.capabilities.ts"/>
 /// <reference path="visuals/funnelChart.ts"/>
 /// <reference path="visuals/gauge.ts"/>
+/// <reference path="capabilities/gauge.capabilities.ts"/>
 /// <reference path="visuals/imageVisual.ts"/>
+/// <reference path="capabilities/imageVisual.capabilities.ts"/>
 
 /// <reference path="capabilities/samples/consoleWriter.capabilities.ts"/>
 /// <reference path="visuals/samples/consoleWriter.ts"/>
@@ -130,8 +134,11 @@
 /// <reference path="capabilities/map.capabilities.ts"/>
 /// <reference path="visuals/map.ts"/>
 /// <reference path="visuals/multiRowCard.ts"/>
+/// <reference path="capabilities/multiRowCard.capabilities.ts"/>
 /// <reference path="visuals/richTextbox.ts"/>
+/// <reference path="capabilities/richTextbox.capabilities.ts"/>
 /// <reference path="visuals/sampleVisual.ts"/>
+/// <reference path="capabilities/sampleVisual.capabilities.ts"/>
 
 /// <reference path="capabilities/scatterChart.capabilities.ts"/>
 /// <reference path="cartesian/scatterChart.ts"/>
@@ -139,20 +146,33 @@
 /// <reference path="capabilities/slicer.capabilities.ts"/>
 /// <reference path="visuals/slicer.ts"/>
 /// <reference path="visuals/table.ts"/>
+/// <reference path="capabilities/table.capabilities.ts"/>
+
 /// <reference path="visuals/matrix.ts"/>
+/// <reference path="capabilities/matrix.capabilities.ts"/>
 
 /// <reference path="capabilities/treemap.capabilities.ts"/>
 /// <reference path="visuals/treemap.ts"/>
 /// <reference path="visuals/card.ts"/>
+/// <reference path="capabilities/card.capabilities.ts"/>
 
 /// <reference path="warnings/visualWarnings.ts"/>
 
 /// <reference path="capabilities/waterfallChart.capabilities.ts"/>
 /// <reference path="cartesian/waterfallChart.ts"/>
 
-/// <reference path="plugins.ts"/>
 /// <reference path="tooltip.ts"/>
 
 /// <reference path="styles/visualStyles.ts"/>
 
 /// <reference path="visuals/donutChart.ts"/>
+
+/// <reference path="capabilities/sunburstChart.capabilities.ts"/>
+
+/// <reference path="capabilities/bingNews.capabilities.ts"/>
+
+/// <reference path="capabilities/partitionMap.capabilities.ts"/>
+
+/// <reference path="capabilities/webChart.capabilities.ts"/>
+
+/// <reference path="plugins.ts"/>

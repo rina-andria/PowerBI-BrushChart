@@ -28,15 +28,15 @@
 /// <reference path="typedefs/typedefs.obj.ts"/>
 
 /// <reference path="sampleDataViews/sampleDataViews.ts"/>
-/// <reference path="sampleDataViews/fileStorageData.ts"/>
-/// <reference path="sampleDataViews/imageData.ts"/>
-/// <reference path="sampleDataViews/richtextData.ts"/>
-/// <reference path="sampleDataViews/salesByCountryData.ts"/>
-/// <reference path="sampleDataViews/salesByDayOfWeekData.ts"/>
-/// <reference path="sampleDataViews/simpleGaugeData.ts"/>
-/// <reference path="sampleDataViews/simpleMatrixData.ts"/>
-/// <reference path="sampleDataViews/simpleTableData.ts"/>
-/// <reference path="sampleDataViews/teamScoreData.ts"/>
+/// <reference path="sampleDataViews/FileStorageData.ts"/>
+/// <reference path="sampleDataViews/ImageData.ts"/>
+/// <reference path="sampleDataViews/RichtextData.ts"/>
+/// <reference path="sampleDataViews/SalesByCountryData.ts"/>
+/// <reference path="sampleDataViews/SalesByDayOfWeekData.ts"/>
+/// <reference path="sampleDataViews/SimpleGaugeData.ts"/>
+/// <reference path="sampleDataViews/SimpleMatrixData.ts"/>
+/// <reference path="sampleDataViews/SimpleTableData.ts"/>
+/// <reference path="sampleDataViews/TeamScoreData.ts"/>
 
 /// <reference path="sampleData.ts"/>
 /// <reference path="hostControls.ts"/>

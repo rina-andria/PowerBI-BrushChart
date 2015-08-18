@@ -207,35 +207,6 @@ module powerbi.visuals {
             }
         };
 
-        public static capabilities: VisualCapabilities = {
-            dataRoles: [
-                {
-                    name: 'Values',
-                    kind: VisualDataRoleKind.GroupingOrMeasure,
-                    displayName: data.createDisplayNameGetter('Role_DisplayName_Fields'),
-                }
-            ],
-            objects: {
-                general: {
-                    properties: {
-                        formatString: {
-                            type: { formatting: { formatString: true } },
-                        },
-                    },
-                }
-            },
-            dataViewMappings: [{
-                table: {
-                    rows: {
-                        for: { in: 'Values' },
-                        dataReductionAlgorithm: { window: {} }
-                    },
-                    rowCount: { preferred: { min: 1 } }
-                },
-            }],
-            suppressDefaultTitle: true,
-        };
-
         public init(options: VisualInitOptions) {
             debug.assertValue(options, 'options');
             this.options = options;

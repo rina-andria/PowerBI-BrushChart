@@ -120,7 +120,7 @@ module powerbi.visuals {
                 interactivity: { isInteractiveLegend: false, selection: false },
                 animation: { transitionImmediate: true }
             });
-
+            
             this.hostControls.setVisual(this.visualElement, viewport);
         };
 

@@ -61,35 +61,6 @@ module powerbi.visuals {
     }
 
     export class CheerMeter implements IVisual {
-        public static capabilities: VisualCapabilities = {
-            dataRoles: [
-                {
-                    name: 'Category',
-                    kind: VisualDataRoleKind.Grouping,
-                },
-                {
-                    name: 'Y',
-                    kind: VisualDataRoleKind.Measure,
-                },
-            ],
-            dataViewMappings: [{
-                categorical: {
-                    categories: {
-                        for: { in: 'Category' },
-                    },
-                },
-            }],
-            dataPoint: {
-                displayName: data.createDisplayNameGetter('Visual_DataPoint'),
-                properties: {
-                    fill: {
-                        displayName: data.createDisplayNameGetter('Visual_Fill'),
-                        type: { fill: { solid: { color: true } } }
-                    },
-                }
-            },
-        };
-
         private static DefaultFontFamily = 'cursive';
         private static DefaultFontColor = 'rgb(165, 172, 175)';
         private static DefaultBackgroundColor = '#243C18';

@@ -191,6 +191,9 @@ module powerbi.visuals {
             var dataViews = options.dataViews;
             debug.assertValue(dataViews, 'dataViews');
 
+            if (this.interactivityService)
+                this.interactivityService.clearSelection();
+
             var existingDataView = this.dataView;
             if (dataViews && dataViews.length > 0) {
                 this.dataView = dataViews[0];

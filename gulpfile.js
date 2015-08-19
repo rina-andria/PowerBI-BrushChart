@@ -202,7 +202,7 @@ gulp.task("combine_external_js", function () {
 	return gulp.src([
 		"src/Clients/Externals/ThirdPartyIP/D3/*.min.js",
 		"src/Clients/Externals/ThirdPartyIP/GlobalizeJS/globalize.min.js", 
-		"src/Clients/Externals/ThirdPartyIP/GlobalizeJS/globalize.cultures.min.js", 
+		"src/Clients/Externals/ThirdPartyIP/GlobalizeJS/globalize.culture.en-US.js", 
 		"src/Clients/Externals/ThirdPartyIP/JQuery/**/*.min.js",
 		"src/Clients/Externals/ThirdPartyIP/LoDash/*.min.js"
 	])

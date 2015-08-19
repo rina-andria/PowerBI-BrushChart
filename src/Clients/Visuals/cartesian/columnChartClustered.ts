@@ -215,7 +215,9 @@ module powerbi.visuals {
             return ColumnUtil.getClosestColumnIndex(x, this.getColumnsCenters());
         }
 
-        /** Get the chart's columns centers (x value) */
+        /**
+         * Get the chart's columns centers (x value).
+         */
         private getColumnsCenters(): number[] {
             if (!this.columnsCenters) { // lazy creation
                 var categoryWidth: number = this.categoryLayout.categoryThickness * (1 - CartesianChart.InnerPaddingRatio);
@@ -295,7 +297,7 @@ module powerbi.visuals {
                     height: (d: ColumnChartDataPoint) => 0,
                 },
             };
-    }
+        }
 
         private getLabelLayoutXY(axisOptions: ColumnAxisOptions, labelSettings: VisualDataLabelsSettings): any {
             var columnWidth = axisOptions.columnWidth;
@@ -519,7 +521,9 @@ module powerbi.visuals {
             return ColumnUtil.getClosestColumnIndex(y, this.getBarsCenters());
         }
 
-        /** Get the chart's columns centers (y value) */
+        /** 
+         * Get the chart's columns centers (y value).
+         */
         private getBarsCenters(): number[] {
             if (!this.barsCenters) { // lazy creation
                 var barWidth: number = this.categoryLayout.categoryThickness * (1 - CartesianChart.InnerPaddingRatio);

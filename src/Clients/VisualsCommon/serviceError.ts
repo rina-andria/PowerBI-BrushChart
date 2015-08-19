@@ -32,10 +32,14 @@ module powerbi {
     export interface ServiceError {
         statusCode: number;
 
-        /** This error code corresponds with a PowerBIServiceException that happened on the server */
+        /**
+         * This error code corresponds with a PowerBIServiceException that happened on the server.
+         */
         errorCode?: string;
-
-        // Message and stack trace should only be sent in non-production environments.
+        
+        /**
+         * Message and stack trace should only be sent in non-production environments.
+         */
         message?: string;
         stackTrace?: string;
         errorDetails?: PowerBIErrorDetail[];

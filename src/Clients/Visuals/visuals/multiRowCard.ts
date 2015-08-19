@@ -105,7 +105,9 @@ module powerbi.visuals {
         private maxCardsDisplayed: number;
         private cardItemContainerHeight: number;
         private isCardWrapped: boolean = false;
-        /** This includes card height with margin that will be passed to list view. */
+        /**
+         * This includes card height with margin that will be passed to list view.
+         */
         private cardHeightTotal: number;
         private settings: MultiRowCardStyle;
         private dataModel: CardData[];
@@ -115,8 +117,10 @@ module powerbi.visuals {
         private cardHasTitle: boolean;
         private isSingleRowCard: boolean;
         private isSingleValueCard: boolean;
-
-        // Public for testability
+        
+        /**
+         * Note: Public for testability.
+         */
         public static formatStringProp: DataViewObjectPropertyIdentifier = {
             objectName: 'general',
             propertyName: 'formatString',
@@ -152,8 +156,10 @@ module powerbi.visuals {
         private static SmallTileWidth = 250;
         private static MediumTileWidth = 490;
         private static LargeTileWidth = 750;
-
-        /** Cards have specific styling so defined inline styles and also to support theming and improve performance */
+        
+        /**
+         * Cards have specific styling so defined inline styles and also to support theming and improve performance.
+         */
         private static DefaultStyle: MultiRowCardStyle = {
             card: {
                 bottomBorderWidth: 1,
@@ -470,12 +476,13 @@ module powerbi.visuals {
 
             this.listView = ListViewFactory.createHTMLListView(listViewOptions);
         }
-
+        
         /**
-        * This contains the card column wrapping logic
-        * Determines how many columns can be shown per each row inside a Card
-        * To place the fields evenly along the card, the width of each card item is calculated based on the available viewport width
-        */
+         * This contains the card column wrapping logic.
+         * Determines how many columns can be shown per each row inside a Card.
+         * To place the fields evenly along the card,
+         * the width of each card item is calculated based on the available viewport width.
+         */
         private setCardDimensions(): void {
             var dataView = this.dataView;
             debug.assertValue(dataView, 'dataView');

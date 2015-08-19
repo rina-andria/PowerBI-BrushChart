@@ -34,7 +34,9 @@ module jsCommon {
         public text: string;
         public timeStamp: Date;
 
-        /** DO NOT USE for backward compability only */
+        /** 
+         * Note: DO NOT USE for backward compability only.
+         */
         public _activityId: string;
 
         private static traceTypeStrings: string[] = [

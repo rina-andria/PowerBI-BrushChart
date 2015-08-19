@@ -27,11 +27,13 @@
 /// <reference path="../_references.ts"/>
 
 module powerbi.visuals {
-    /** Formats the value using provided format expression and culture
-    * @param value - value to be formatted and converted to string.
-    * @param format - format to be applied if the number shouldn't be abbreviated.
-    * If the number should be abbreviated this string is checked for special characters like $ or % if any
-    */
+    
+    /**
+     * Formats the value using provided format expression and culture
+     * @param value - value to be formatted and converted to string.
+     * @param format - format to be applied if the number shouldn't be abbreviated.
+     * If the number should be abbreviated this string is checked for special characters like $ or % if any
+     */
     export interface ICustomValueFormatter {
         (value: any, format?: string): string;
     }
@@ -390,12 +392,12 @@ module powerbi.visuals {
             return result;
         } 
 
-        // The returned string will look like 'A, B, ..., and C' 
+        /** The returned string will look like 'A, B, ..., and C'  */
         export function formatListAnd(strings: string[]): string {
             return formatListCompound(strings, locale.restatementCompoundAnd);
         }
 
-        // The returned string will look like 'A, B, ..., or C' 
+        /** The returned string will look like 'A, B, ..., or C' */
         export function formatListOr(strings: string[]): string {
             return formatListCompound(strings, locale.restatementCompoundOr);
         }

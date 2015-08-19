@@ -29,13 +29,17 @@
 module powerbi.visuals {
     import ArrayExtensions = jsCommon.ArrayExtensions;
     import SemanticFilter = powerbi.data.SemanticFilter;
-
-    /** Factory method to create an IInteractivityService instance. */
+    
+    /**
+     * Factory method to create an IInteractivityService instance.
+     */
     export function createInteractivityService(hostServices: IVisualHostServices): IInteractivityService {
         return new WebInteractivityService(hostServices);
     }
-
-    /** Creates a clear an svg rect to catch clear clicks  */
+    
+    /**
+     * Creates a clear an svg rect to catch clear clicks.
+     */
     export function appendClearCatcher(selection: D3.Selection): D3.Selection {
         return selection.append("rect").classed("clearCatcher", true).attr({ width: "100%", height: "100%" });
     }
@@ -51,8 +55,10 @@ module powerbi.visuals {
     export interface IInteractiveVisual {
         accept(visitor: InteractivityVisitor, options: any): void;
     }
-
-    /** Responsible for managing interactivity between the hosting visual and its peers */
+    
+    /**
+     * Responsible for managing interactivity between the hosting visual and its peers.
+     */
     export interface IInteractivityService extends InteractivityVisitor {
         /** Clears the selection */
         clearSelection(): void;
@@ -90,16 +96,20 @@ module powerbi.visuals {
 
             this.hostService = hostServices;
         }
-
-        /** Sets the selected state of all selectable data points to false and invokes the behavior's select command. */
+        
+        /**
+         * Sets the selected state of all selectable data points to false and invokes the behavior's select command.
+         */
         public clearSelection(): void {
             this.clearSelectionInternal();
             this.sendSelectionToVisual();
             this.sendSelectionToLegend();
             this.sendSelectionToSecondVisual();
         }
-
-        /** Checks whether there is at least one item selected */
+        
+        /**
+         * Checks whether there is at least one item selected.
+         */
         public hasSelection(): boolean {
             return this.selectedIds.length > 0;
         }
@@ -107,8 +117,10 @@ module powerbi.visuals {
         private legendHasSelection(): boolean {
             return dataHasSelection(this.selectableLegendDataPoints);
         }
-
-        /** Marks a data point as selected and syncs selection with the host. */
+        
+        /**
+         * Marks a data point as selected and syncs selection with the host.
+         */
         public select(d: SelectableDataPoint, multiselect?: boolean) {
             if (multiselect === undefined)
                 multiselect = d3.event.ctrlKey;
@@ -165,7 +177,7 @@ module powerbi.visuals {
                 && DataViewObjects.getValue<boolean>(categories.objects[idx], propertyId);
         }
 
-        /** Public for UnitTesting */
+        /** Note: Public for UnitTesting */
         public createPropertiesToHost(filterPropertyIdentifier: DataViewObjectPropertyIdentifier): VisualObjectInstance[] {
             var properties: { [name: string]: SemanticFilter } = {};
 
@@ -841,8 +853,10 @@ module powerbi.visuals {
             };
         }
     };
-
-    /** A service for the mobile client to enable & route interactions */
+    
+    /**
+     * A service for the mobile client to enable & route interactions.
+     */
     export class MobileInteractivityService implements IInteractivityService {
         private behavior;
 
@@ -945,7 +959,10 @@ module powerbi.visuals {
         public visitLegend(options: LegendBehaviorOptions): void {
             // No mobile interactions declared.
         }
-        /** Checks whether there is at least one item selected */
+        
+        /**
+         * Checks whether there is at least one item selected.
+         */
         public hasSelection(): boolean {
             // No mobile interactions declared.
             return false;

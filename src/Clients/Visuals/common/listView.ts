@@ -62,7 +62,7 @@ module powerbi.visuals {
 
     /**
      * A UI Virtualized List, that uses the D3 Enter, Update & Exit pattern to update rows.
-     * It can create lists containing either HTML or SVG elements
+     * It can create lists containing either HTML or SVG elements.
      */
     class ListView implements IListView {
         private _dataIdFunction: (d: any) => {};
@@ -76,9 +76,11 @@ module powerbi.visuals {
         private delta: number;
         private mode: ListViewMode;
         private visibleRows: number;
-
-        /* The value indicates the percentage of data already shown
-           in the list view that triggers a loadMoreData call. */
+        
+        /**
+         * The value indicates the percentage of data already shown
+         * in the list view that triggers a loadMoreData call.
+         */
         private static loadMoreDataThreshold = 0.8;
 
         public constructor(options: ListViewOptions, mode: ListViewMode) {

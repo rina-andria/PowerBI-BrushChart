@@ -75,7 +75,9 @@ module powerbi.visuals {
         lineShadow = 8
     }
 
-    /** Renders a data series as a line visual. */
+    /** 
+     * Renders a data series as a line visual.
+     */
     export class LineChart implements ICartesianVisual, IInteractiveVisual {
         private static ClassName = 'lineChart';
         private static MainGraphicsContextClassName = 'mainGraphicsContext';
@@ -990,8 +992,10 @@ module powerbi.visuals {
                 this.interactivityService.apply(this, options);
             }
         }
-
-        // Static for tests
+        
+        /**
+         * Note: Static for tests.
+         */
         public static getTooltipInfoByPointX(lineChart: LineChart, pointData: any, pointX: number): TooltipDataItem[] {
 
             var index: number = 0;
@@ -1106,11 +1110,11 @@ module powerbi.visuals {
         private getXValue(d: LineChartDataPoint): any {
             return this.data.isScalar ? d.categoryValue : d.categoryIndex;
         }
-
+        
         /**
-          * This checks to see if a data point is isolated, which means
-          * the previous and next data point are both null.
-          */
+         * This checks to see if a data point is isolated, which means
+         * the previous and next data point are both null.
+         */
         private shouldDrawCircle(d: LineChartSeries, i: number): boolean {
             var dataLength = d.data.length;
             var isLastPoint = i === (dataLength - 1);
@@ -1129,8 +1133,10 @@ module powerbi.visuals {
                 return true;
             return false;
         }
-
-        // this function updates the hover line and the legend with the selected colums (given by columnIndex).
+        
+        /**
+         * Updates the hover line and the legend with the selected colums (given by columnIndex).
+         */
         public selectColumn(columnIndex: number, force: boolean = false) {
             if (!force && this.lastInteractiveSelectedColumnIndex === columnIndex) return; // same column, nothing to do here
 
@@ -1191,8 +1197,10 @@ module powerbi.visuals {
             }
             return x;
         }
-
-        // this function finds the index of the category of the given x coordinate given
+        
+        /**
+         * Finds the index of the category of the given x coordinate given.
+         */
         private findIndex(x: number): number {
             x -= (this.margin.left + powerbi.visuals.LineChart.HorizontalShift);
 

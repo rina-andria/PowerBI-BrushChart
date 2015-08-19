@@ -1740,6 +1740,114 @@ module powerbitests {
                     }].map(buildDataPoint);
                 expect(actualData.dataPoints.map((value) => value.data)).toEqual(expectSlices);
             });
+
+            it('with culling', () => {
+                var dataView: powerbi.DataView = {
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadata.columns[0],
+                            values: ['a', 'b', 'c'],
+                            identity: categoryIdentities,
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadata.columns[1],
+                            values: [100, 0, 300]
+                        }])
+                    },
+                    metadata: dataViewMetadata,
+                };
+
+                var viewPort = { height: 10, width: 10 };
+                var actualData = DonutChart.converter(dataView, donutColors, viewPort, false);
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithId(categoryId));
+                var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
+                var sliceColors = [
+                    donutColors.getColorScaleByKey(categoryColumnId).getColor('a').value,
+                    donutColors.getColorScaleByKey(categoryColumnId).getColor('b').value,
+                    donutColors.getColorScaleByKey(categoryColumnId).getColor('c').value,
+                ];
+                var expectSlices: DonutDataPoint[] = [
+                    {
+                        identity: selectionIds[0],
+                        measure: 100,
+                        value: 0.25,
+                        index: 0,
+                        label: 'a',
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "100" }],
+                        color: sliceColors[0],
+                    }, {
+                        identity: selectionIds[2],
+                        measure: 300,
+                        value: 0.75,
+                        index: 2,
+                        label: 'c',
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "300" }],
+                        color: sliceColors[2],
+                    }].map(buildDataPoint);
+                expect(actualData.dataPoints.map((value) => value.data)).toEqual(expectSlices);
+                // Legend
+                expect(actualData.legendData.title).toBe('col1');
+                expect(actualData.legendData.dataPoints[0].label).toBe('a');
+            });
+
+            it('without culling', () => {
+                var dataView: powerbi.DataView = {
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadata.columns[0],
+                            values: ['a', 'b', 'c'],
+                            identity: categoryIdentities,
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadata.columns[1],
+                            values: [100, 0, 300]
+                        }])
+                    },
+                    metadata: dataViewMetadata,
+                };
+
+                var viewPort = { height: 10, width: 10 };
+                var actualData = DonutChart.converter(dataView, donutColors, viewPort, true);
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithId(categoryId));
+                var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
+                var sliceColors = [
+                    donutColors.getColorScaleByKey(categoryColumnId).getColor('a').value,
+                    donutColors.getColorScaleByKey(categoryColumnId).getColor('b').value,
+                    donutColors.getColorScaleByKey(categoryColumnId).getColor('c').value,
+                ];
+                var expectSlices: DonutDataPoint[] = [
+                    {
+                        identity: selectionIds[0],
+                        measure: 100,
+                        value: 0.25,
+                        index: 0,
+                        label: 'a',
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "100" }],
+                        color: sliceColors[0],
+                    }, {
+                        identity: selectionIds[1],
+                        measure: 0,
+                        value: 0.0,
+                        index: 1,
+                        label: 'b',
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "0" }],
+                        color: sliceColors[1],
+                    }, {
+                        identity: selectionIds[2],
+                        measure: 300,
+                        value: 0.75,
+                        index: 2,
+                        label: 'c',
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "300" }],
+                        color: sliceColors[2],
+                    }].map(buildDataPoint);
+                expect(actualData.dataPoints.map((value) => value.data)).toEqual(expectSlices);
+                // Legend
+                expect(actualData.legendData.title).toBe('col1');
+                expect(actualData.legendData.dataPoints[0].label).toBe('a');
+            });
         });
 
         it('non-categorical multi-measure tooltip values test', () => {
@@ -1840,7 +1948,7 @@ module powerbitests {
 
             element = powerbitests.helpers.testDom('500', '500');
             if (interactiveChart)
-                v = powerbi.visuals.visualPluginFactory.create().getPlugin('pieChart').create();
+                v = powerbi.visuals.visualPluginFactory.createMobile().getPlugin('pieChart').create();
             else
                 v = powerbi.visuals.visualPluginFactory.createMinerva({}).getPlugin('pieChart').create();
             v.init({
@@ -2184,9 +2292,15 @@ module powerbitests {
 
             setTimeout(() => {
                 expect($('.donutChart')).toBeInDOM();
-                expect($('.donutChart .slice').length).toBe(2);
-                if (!interactiveChart)
+                if (interactiveChart) {
+                    // Culling is disabled on interactive charts
+                    expect($('.donutChart .slice').length).toBe(3);
+                }
+                else {
+                    expect($('.donutChart .slice').length).toBe(2);
                     expect(hostServices.setWarnings).toHaveBeenCalledWith([new powerbi.visuals.GeometryCulledWarning()]);
+                }
+
                 done();
             }, DefaultWaitForRender);
         });

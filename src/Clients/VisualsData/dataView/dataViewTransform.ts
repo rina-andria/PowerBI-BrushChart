@@ -238,11 +238,12 @@ module powerbi.data {
             return columns;
         }
 
-        /** Get the column format. Order of precendence is:
-        * 1. Select format
-        * 2. Column format
-        * 3. Default PowerView policy for column type
-        */
+        /**
+         * Get the column format. Order of precendence is:
+         *  1. Select format
+         *  2. Column format
+         *  3. Default PowerView policy for column type
+         */
         function getFormatForColumn(select: DataViewSelectTransform, column: DataViewMetadataColumn): string {
             // TODO: we already copied the select.Format to column.format, we probably don't need this check
             if (select.format)
@@ -265,7 +266,11 @@ module powerbi.data {
             return undefined;
         }
 
-        // Exported for testability
+        /**
+         * 
+         * 
+         * Note: Exported for testability
+         */ 
         export function upgradeSettingsToObjects(settings: VisualElementSettings, objectDefns?: DataViewObjectDefinitions): DataViewObjectDefinitions {
             if (!settings)
                 return;
@@ -453,7 +458,7 @@ module powerbi.data {
             return table;
         }
 
-        // Creates a mapping of new position to original position.
+        /** Creates a mapping of new position to original position. */
         function createTableColumnPositionMapping(
             projectionOrdering: DataViewProjectionOrdering,
             columnRewrites: ValueRewrite<DataViewMetadataColumn>[]): NumberToNumberMapping {
@@ -586,7 +591,7 @@ module powerbi.data {
             }
         }
 
-        // Creates a mapping of new position to original position.
+        /** Creates a mapping of new position to original position. */
         function createMatrixValuesPositionMapping(
             matrixMapping: DataViewMatrixMapping,
             projectionOrdering: DataViewProjectionOrdering,

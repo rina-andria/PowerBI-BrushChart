@@ -34,10 +34,10 @@ module powerbi.visuals {
         private colors: IColorInfo[];
 
         /**
-        * Colors used for sentiment visuals, e.g. KPI, Gauge. Since this is only a temporary implementation which will
-        * eventually be superseded by conditional formatting, we don't declare them as part of the theme and instead
-        * use a hardcoded color scheme here until conditional formatting is ready.
-        */
+         * Colors used for sentiment visuals, e.g. KPI, Gauge. Since this is only a temporary implementation which will
+         * eventually be superseded by conditional formatting, we don't declare them as part of the theme and instead
+         * use a hardcoded color scheme here until conditional formatting is ready.
+         */
         private sentimentColors: IColorInfo[] = [
             { value: '#C0433A' }, // Red
             { value: '#E8D62E' }, // Yellow
@@ -126,11 +126,11 @@ module powerbi.visuals {
     }
 
     // TODO: When theming support is added, this should be changed into a fully fledged service. For now though we will
-    // declare the Theme code as a private implementation detail inside the DataColorPalette so that the code stays hidden
-    // until it's ready for wider use.
     class ThemeManager {
         private static colorSectorCount = 12;
-
+      
+        // declare the Theme code as a private implementation detail inside the DataColorPalette so that the code stays hidden
+        // until it's ready for wider use.
         private static defaultBaseColors: IColorInfo[] = [
             // First loop
             { value: '#01B8AA' },

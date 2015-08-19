@@ -28,8 +28,9 @@
 
 module powerbi.visuals.controls.internal {
 
-    /** Base class for Tablix realization manager
-      */
+    /**
+     * Base class for Tablix realization manager.
+     */
     export class TablixDimensionRealizationManager {
         private _realizedLeavesCount: number;
         private _adjustmentFactor: number;
@@ -111,8 +112,9 @@ module powerbi.visuals.controls.internal {
         }
     }
 
-    /** DOM implementation for Row Tablix realization manager
-      */
+    /** 
+     * DOM implementation for Row Tablix realization manager.
+     */
     export class RowRealizationManager extends TablixDimensionRealizationManager {
         private _owner: RowLayoutManager;
 
@@ -202,8 +204,9 @@ module powerbi.visuals.controls.internal {
         }
     }
 
-    /** DOM implementation for Column Tablix realization manager
-      */
+    /**
+     * DOM implementation for Column Tablix realization manager.
+     */
     export class ColumnRealizationManager extends TablixDimensionRealizationManager {
         private _owner: ColumnLayoutManager;
 

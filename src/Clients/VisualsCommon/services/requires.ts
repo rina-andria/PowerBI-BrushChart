@@ -39,7 +39,9 @@ module jsCommon {
 
     linkElement.setAttribute('rel', 'stylesheet');
 
-    // Public API
+    /**
+     * Public API.
+     */
 	export interface IJavaScriptDependency {
 		javascriptFile: string;
 
@@ -66,7 +68,9 @@ module jsCommon {
         loadJavaScriptFiles(scriptsToRun, to);
     }
 
-    // Private Helpers
+    /**
+     * Private Helpers.
+     */
     function loadStyleSheets(hrefList: string[]): void {
         hrefList.forEach(href => {
             if (styleSheetLoaded.indexOf(href) === -1) {

@@ -55,8 +55,10 @@ module powerbi.visuals {
             }
             return this.highlight === other.highlight &&  Selector.equals(this.selector, other.selector);
         }
-
-        /** Checks equality against other for all identifiers existing in this */
+        
+        /**
+         * Checks equality against other for all identifiers existing in this.
+         */
         public includes(other: SelectionId, ignoreHighlight: boolean = false): boolean {
             var thisSelector = this.selector;
             var otherSelector = other.selector;
@@ -86,8 +88,10 @@ module powerbi.visuals {
         public getKey(): string {
             return this.key;
         }
-
-        /** Temporary workaround since a few things currently rely on this, but won't need to. */
+        
+        /**
+         * Temporary workaround since a few things currently rely on this, but won't need to.
+         */
         public hasIdentity(): boolean {
             return (this.selector && !!this.selector.data);
         }

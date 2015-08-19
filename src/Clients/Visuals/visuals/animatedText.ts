@@ -31,10 +31,13 @@ module powerbi.visuals {
         align?: string;
         maxFontSize?: number;
     }
-
-    /** Base class for values that are animated when resized */
+    
+    /**
+     * Base class for values that are animated when resized.
+     */
     export class AnimatedText {
-        // Public for testability
+        
+        /** Note: Public for testability */
         public static formatStringProp: DataViewObjectPropertyIdentifier = {
             objectName: 'general',
             propertyName: 'formatString',
@@ -44,7 +47,7 @@ module powerbi.visuals {
 
         private name: string;
 
-        // Public for testability
+        /** Note: Public for testability */
         public svg: D3.Selection;
         public currentViewport: IViewport;
         public value: any;

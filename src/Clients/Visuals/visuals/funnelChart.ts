@@ -126,7 +126,9 @@ module powerbi.visuals {
         minHeightFunnelCategoryLabelsVisible: number;
     }
 
-    /** Renders a funnel chart */
+    /** 
+     * Renders a funnel chart.
+     */
     export class FunnelChart implements IVisual, IInteractiveVisual {
         public static DefaultBarOpacity = 1;
         public static DimmedBarOpacity = 0.4;
@@ -179,8 +181,10 @@ module powerbi.visuals {
         // TODO: Remove onDataChanged & onResizing once all visuals have implemented update.
         private dataViews: DataView[];
         private funnelSmallViewPortProperties: FunnelSmallViewPortProperties;
-
-        /* Public for testing */
+        
+        /**
+         * Note: Public for testing.
+         */
         public animator: IFunnelAnimator;
 
         constructor(options?: FunnelChartConstructorOptions) {

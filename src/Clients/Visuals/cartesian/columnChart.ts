@@ -79,8 +79,11 @@ module powerbi.visuals {
         originalValue: number;
         originalPosition: number;
         originalValueAbsolute: number;
-        /** True if this data point is a highlighted portion and overflows (whether due to the highlight
-          * being greater than original or of a different sign), so it needs to be thinner to accomodate. */
+
+        /** 
+         * True if this data point is a highlighted portion and overflows (whether due to the highlight
+         * being greater than original or of a different sign), so it needs to be thinner to accomodate. 
+         */
         drawThinner?: boolean;
         key: string;
         lastSeries?: boolean;
@@ -189,7 +192,9 @@ module powerbi.visuals {
         y: 'Y',
     };
 
-    /** Renders a stacked and clustered column chart */
+    /**
+     * Renders a stacked and clustered column chart.
+     */
     export class ColumnChart implements ICartesianVisual, IInteractiveVisual {
         private static ColumnChartClassName = 'columnChart';
         public static SeriesClasses: ClassAndSelector = {

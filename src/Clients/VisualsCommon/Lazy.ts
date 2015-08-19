@@ -28,7 +28,9 @@
 
 module jsCommon {
 
-    /** Represents a lazily instantiated value. */
+    /** 
+     * Represents a lazily instantiated value.
+     */
     export class Lazy<T> {
         private _value: T;
         private _factoryMethod: () => T;

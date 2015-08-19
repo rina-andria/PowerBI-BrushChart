@@ -54,8 +54,10 @@ module powerbi.visuals {
     export interface TextboxDataViewObject extends DataViewObject {
         paragraphs: ParagraphContext[];
     }
-
-    /** Represents a rich text box that supports view & edit mode. */
+    
+    /**
+     * Represents a rich text box that supports view & edit mode. 
+     */
     export class RichTextbox implements IVisual {
         private editor: RichText.QuillWrapper;
         private element: JQuery;
@@ -411,8 +413,10 @@ module powerbi.visuals {
             label: string;
             value: string;
         }
-
-        // These fonts are embedded using CSS, or are aliases to other fonts.
+        
+        /**
+         * These fonts are embedded using CSS, or are aliases to other fonts.
+         */        
         var fontMap = {
             'Segoe (Bold)': 'wf_segoe-ui_bold',
             'Segoe UI': 'wf_segoe-ui_normal',
@@ -498,13 +502,15 @@ module powerbi.visuals {
             public initialized: boolean;
             public readOnly: boolean;
             public textChanged: (delta, source) => void = (d, s) => { };
-
-            /*
-             * JavaScript and CSS resources are typically resolved asynchronously. This means we potentially defer certain
-             * events which typically occur synchronously until resources are loaded. Setting the global loadQuillResources
-             * flag to true will override this behavior and cause the wrapper to assume these resources are already loaded
+            
+            /**
+             * JavaScript and CSS resources are typically resolved asynchronously.
+             * This means we potentially defer certain events which typically occur
+             * synchronously until resources are loaded.
+             * Setting the global loadQuillResources flag to true will override
+             * this behavior and cause the wrapper to assume these resources are already loaded
              * and not try to load them asynchronously (e.g. for use in unit tests).
-             */
+             */ 
             constructor(readOnly: boolean, host: IVisualHostServices) {
                 this.host = host;
                 this.$container = $('<div>');

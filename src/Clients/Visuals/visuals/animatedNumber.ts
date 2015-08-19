@@ -27,7 +27,9 @@
 /// <reference path="../_references.ts"/>
 
 module powerbi.visuals {
-    /** Renders a number that can be animate change in value */
+    /**
+     * Renders a number that can be animate change in value.
+     */
     export class AnimatedNumber extends AnimatedText implements IVisual {
         private options: VisualInitOptions;
 

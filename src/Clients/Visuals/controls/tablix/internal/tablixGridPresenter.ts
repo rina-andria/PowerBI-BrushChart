@@ -30,8 +30,7 @@ module powerbi.visuals.controls.internal {
 
     var UNSELECTABLE_CLASS_NAME = "unselectable";
 
-    /** This class is responsible for tablix header resizing
-      */
+    /** This class is responsible for tablix header resizing */
     export class TablixResizer {
         private _element: HTMLElement;
         private _handler: ITablixResizeHandler;
@@ -393,9 +392,11 @@ module powerbi.visuals.controls.internal {
                 TablixCellPresenter._noMarginsStyle = style;
             }
         }
-
-        // In order to allow dragging of the tableCell we need to
-        // disable dragging of the container of the cell in IE.
+        
+        /**
+         * In order to allow dragging of the tableCell we need to
+         * disable dragging of the container of the cell in IE.
+         */
         public disableDragResize() {
             this._tableCell.setAttribute(TablixCellPresenter._dragResizeDisabledAttributeName, "true");
         }

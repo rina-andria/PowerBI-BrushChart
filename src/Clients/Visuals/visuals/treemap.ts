@@ -43,8 +43,10 @@ module powerbi.visuals {
         legendObjectProperties?: DataViewObject;
         dataWasCulled: boolean;
     }
-
-    // Treemap node (we extend D3 node (GraphNode) because treemap layout methods rely on the type).
+    
+    /**
+     * Treemap node (we extend D3 node (GraphNode) because treemap layout methods rely on the type).
+     */
     export interface TreemapNode extends D3.Layout.GraphNode, SelectableDataPoint, TooltipEnabledDataPoint, LabelEnabledDataPoint {
         key: any;
         highlightMultiplier?: number;
@@ -92,8 +94,10 @@ module powerbi.visuals {
     interface DataPointObject extends DataViewObject {
         fill: Fill;
     }
-
-    /** Renders an interactive treemap visual from categorical data */
+    
+    /**
+     * Renders an interactive treemap visual from categorical data.
+     */
     export class Treemap implements IVisual, IInteractiveVisual {
         public static DimmedShapeOpacity = 0.4;
 
@@ -120,7 +124,12 @@ module powerbi.visuals {
             fontFamily: 'wf_segoe-ui_normal',
             fontSize: Treemap.MajorLabelTextSize + 'px'
         };
-        private static CullableArea = 9; // A rect with an area of 9 is a treemap rectangle of only a single pixel in the middle with a 1 pixel stroke on each edge
+        
+        /**
+         * A rect with an area of 9 is a treemap rectangle of only
+         * a single pixel in the middle with a 1 pixel stroke on each edge.
+         */
+        private static CullableArea = 9;
 
         private svg: D3.Selection;
         private treemap: D3.Layout.TreeMapLayout;
@@ -137,8 +146,10 @@ module powerbi.visuals {
         private options: VisualInitOptions;
         private isScrollable: boolean;
         private hostService: IVisualHostServices;
-
-        /* Public for testing */
+        
+        /**
+         * Note: Public for testing.
+         */
         public animator: ITreemapAnimator;
         private interactivityService: IInteractivityService;
 
@@ -211,8 +222,10 @@ module powerbi.visuals {
 
             this.hostService = options.host;
         }
-
-        /** Public for testing purposes */
+        
+        /**
+         * Note: Public for testing purposes.
+         */
         public static converter(dataView: DataView, colors: IDataColorPalette, labelSettings: VisualDataLabelsSettings, interactivityService: IInteractivityService, viewport: IViewport, legendObjectProperties?: DataViewObject): TreemapData {
             var rootNode: TreemapNode = {
                 key: "root",

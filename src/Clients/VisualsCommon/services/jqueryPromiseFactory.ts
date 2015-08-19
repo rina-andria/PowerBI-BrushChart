@@ -53,7 +53,9 @@ module powerbi {
         }
     }
 
-    /** Implements IDeferred via a wrapped a jQuery Deferred. */
+    /** 
+     * Implements IDeferred via a wrapped a jQuery Deferred.
+     */
     class JQueryDeferredWrapper<TSuccess, TError> implements IDeferred2<TSuccess, TError> {
         public promise: IPromise2<TSuccess, TError>;
         private deferred: JQueryDeferred<any>;
@@ -74,7 +76,9 @@ module powerbi {
         }
     }
 
-    /** Implements IDeferred via a wrapped a jQuery Promise. */
+    /** 
+     * Implements IDeferred via a wrapped a jQuery Promise.
+     */
     class JQueryPromiseWrapper<TSuccess, TError> implements IPromise2<TSuccess, TError> {
         private promise: JQueryPromise<any>;
 
@@ -101,7 +105,9 @@ module powerbi {
             return this;
         }
 
-        /** Wraps a callback, which may return a IPromise. */
+        /** 
+         * Wraps a callback, which may return a IPromise. 
+         */
         private static wrapCallback(callback: (arg: any) => any): (arg: any) => any {
             if (callback)
                 return arg => {

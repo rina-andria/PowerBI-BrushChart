@@ -28,7 +28,9 @@
 
 module jsCommon {
 
-    /** CSS constants */
+    /**
+     * CSS constants.
+     */
     export module CssConstants {
         export const styleAttribute = 'style';
         export const pixelUnits = 'px';

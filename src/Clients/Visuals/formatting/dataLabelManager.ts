@@ -289,10 +289,9 @@ module powerbi {
         }
 
         /**
-        * Merges the label element info with the panel element info and returns correct label info.
-        * @param {ILabelElementInfo} source The label info.
-        * @return {ILabelElementInfo}
-        */
+         * Merges the label element info with the panel element info and returns correct label info.
+         * @param source The label info.
+         */
         public getLabelInfo(source: IDataLabelInfo): IDataLabelInfo {
 
             var settings = this._defaultSettings;
@@ -564,10 +563,9 @@ module powerbi {
         private static ARRANGEGRID_MAX_COUNT = 100;
 
         /**
-        * Creates new ArrangeGrid.
-        * @param {DataLabelManager} manager The owner data labels.
-        * @param {shapes.ISize} size The available size
-        */
+         * Creates new ArrangeGrid.
+         * @param size The available size
+         */
         constructor(size: shapes.ISize, elements: any[], layout: powerbi.visuals.ILabelLayout) {
             if (size.width === 0 || size.height === 0) {
                 this._cellSize = size;
@@ -626,10 +624,10 @@ module powerbi {
         }
 
         /**
-        * Register a new label element.
-        * @param {ILabelElement} element The label element to register.
-        * @param {shapes.IRect} rect The label element position rectangle.
-        */
+         * Register a new label element.
+         * @param element The label element to register.
+         * @param rect The label element position rectangle.
+         */
         public add(element: IDataLabelInfo, rect: shapes.IRect) {
             var indexRect = this.getGridIndexRect(rect);
             var grid = this._grid;
@@ -641,10 +639,10 @@ module powerbi {
         }
 
         /**
-        * Checks for conflict of given rectangle in registered elements.
-        * @param {shapes.IRect} rect The rectengle to check.
-        * @return {Boolean} True if conflict is detected.
-        */
+         * Checks for conflict of given rectangle in registered elements.
+         * @param rect The rectengle to check.
+         * @return True if conflict is detected.
+         */
         public hasConflict(rect: shapes.IRect): boolean {
             var indexRect = this.getGridIndexRect(rect);
             var grid = this._grid;
@@ -664,22 +662,22 @@ module powerbi {
         }
 
         /**
-        * Calculates the number of rows or columns in a grid
-        * @param {number} step is the largest label size (width or height)
-        * @param {number} length is the grid size (width or height)
-        * @param {number} minCount is the minimum allowed size
-        * @param {number} maxCount is the maximum allowed size
-        * @return {number} the number of grid rows or columns
-        */
+         * Calculates the number of rows or columns in a grid
+         * @param step is the largest label size (width or height)
+         * @param length is the grid size (width or height)
+         * @param minCount is the minimum allowed size
+         * @param maxCount is the maximum allowed size
+         * @return the number of grid rows or columns
+         */
         private getGridRowColCount(step: number, length: number, minCount: number, maxCount: number): number {
             return Math.min(Math.max(Math.ceil(length / step), minCount), maxCount);
         }
 
         /**
-        * Returns the grid index of a given recangle
-        * @param {shapes.IRect} rect The rectengle to check.
-        * @return {shapes.IThickness} grid index as a thickness object.
-        */
+         * Returns the grid index of a given recangle
+         * @param rect The rectengle to check.
+         * @return grid index as a thickness object.
+         */
         private getGridIndexRect(rect: shapes.IRect): shapes.IThickness {
             var restrict = (n, min, max) => Math.min(Math.max(n, min), max);
             return {

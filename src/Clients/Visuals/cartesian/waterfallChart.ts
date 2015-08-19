@@ -97,8 +97,10 @@ module powerbi.visuals {
         private data: WaterfallChartData;
         private element: JQuery;
         private isScrollable: boolean;
-
-        // If we overflowed horizontally then this holds the subset of data we should render.
+        
+        /**
+         * Note: If we overflowed horizontally then this holds the subset of data we should render.
+         */
         private clippedData: WaterfallChartData;
 
         private style: IVisualStyle;
@@ -177,7 +179,8 @@ module powerbi.visuals {
                 }];
 
             /**
-             * The position represents the starting point for each bar, for any value it is the sum of all previous values.
+             * The position represents the starting point for each bar,
+             * for any value it is the sum of all previous values.
              * Values > 0 are considered gains, values < 0 are losses.
              */
             var pos = 0, posMin = 0, posMax = 0;

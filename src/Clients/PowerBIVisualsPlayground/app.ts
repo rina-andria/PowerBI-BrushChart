@@ -27,7 +27,7 @@
 /// <reference path="_references.ts"/>
 
 interface JQuery {
-    // Demonstrates how Power BI visual creation could be implemented as jQuery plugin
+    /** Demonstrates how Power BI visual creation could be implemented as jQuery plugin */
     visual(plugin: Object, dataView?: Object): JQuery;
 }
 
@@ -63,14 +63,14 @@ module powerbi.visuals {
      */
     export class Playground {
 
-        // Represents sample data view used by visualization elements.
+        /** Represents sample data view used by visualization elements. */
         private static pluginService: IVisualPluginService = powerbi.visuals.visualPluginFactory.create();
         private static visualElement: IVisual;
 
         private static hostControls: HostControls;
         private static container: JQuery;
 
-        // Performs sample app initialization.
+        /** Performs sample app initialization.*/
         public static initialize(): void {
             this.hostControls = new HostControls($('#options'));
             this.container = $('#container');

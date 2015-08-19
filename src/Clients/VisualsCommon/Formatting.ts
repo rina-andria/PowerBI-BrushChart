@@ -39,7 +39,8 @@ module jsCommon {
 
         var _regexCache: IRegexInt[];
 
-        /** Translate .NET format into something supported by jQuery.Globalize
+        /** 
+         * Translate .NET format into something supported by jQuery.Globalize.
          */
         export function findDateFormat(value: Date, format: string, cultureName: string)
         {
@@ -90,7 +91,8 @@ module jsCommon {
               return { value: value, format: format };
         }
          
-        /** Translates unsupported .NET custom format expressions to the custom expressions supported by JQuery.Globalize
+        /** 
+         * Translates unsupported .NET custom format expressions to the custom expressions supported by JQuery.Globalize.
          */
         export function fixDateTimeFormat(format: string): string {
             // Fix for the "K" format (timezone): 

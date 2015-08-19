@@ -153,7 +153,7 @@ module powerbi.visuals {
                     powerbi.visuals.plugins.multiRowCard,
                     powerbi.visuals.plugins.card,
                     powerbi.visuals.plugins.slicer,
-                    powerbi.visuals.plugins.donutChart,
+                    powerbi.visuals.plugins.donutChart
                 ];
 
                 if (this.featureSwitches.devToolsEnabled) {

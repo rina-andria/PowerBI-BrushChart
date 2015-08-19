@@ -362,7 +362,7 @@ module powerbi.visuals {
                     fontSize: dataLabelUtils.LabelTextProperties.fontSize,
                     fontWeight: dataLabelUtils.LabelTextProperties.fontWeight,
                 };
-                var outsideBelowPosition = yPos + yValue + TextMeasurementService.measureSvgTextHeight(properties);
+                var outsideBelowPosition = yPos + yValue + TextMeasurementService.estimateSvgTextHeight(properties);
                 // Try to honor the position, but if the label doesn't fit where specified, then swap the position.
                 if (scaleMinDomain > outsideBelowPosition) {
                     return outsideBelowPosition;
@@ -410,7 +410,7 @@ module powerbi.visuals {
                 return true;
 
             var textWidth = TextMeasurementService.measureSvgTextWidth(properties);
-            var textHeight = TextMeasurementService.measureSvgTextHeight(properties);
+            var textHeight = TextMeasurementService.estimateSvgTextHeight(properties);
 
             var shapeWidth = layout.categoryWidth;
             var shapeHeight = Math.abs(AxisHelper.diffScaled(yAxisProperties.scale, Math.max(0, Math.abs(d.value)), 0));
@@ -486,7 +486,7 @@ module powerbi.visuals {
                 fontWeight: dataLabelUtils.LabelTextProperties.fontWeight,
             };
             var textWidth = TextMeasurementService.measureSvgTextWidth(properties);
-            var textHeight = TextMeasurementService.measureSvgTextHeight(properties);
+            var textHeight = TextMeasurementService.estimateSvgTextHeight(properties);
             var shapeWidth, shapeHeight;
             var inside = false;
             var outsidePosition: number = ColumnUtil.calculatePosition(d, axisOptions);

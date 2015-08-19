@@ -1,4 +1,5 @@
-﻿/*
+
+/*
 *  Power BI Visualizations
 *
 *  Copyright (c) Microsoft Corporation

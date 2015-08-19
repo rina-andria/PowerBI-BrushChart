@@ -43,7 +43,7 @@ module powerbi.visuals.sampleDataViews {
             "spot trends",
             "charts",
             "simple drag-and-drop gestures",
-            "personalized dashboards"
+            "personalized dashboards"                
         ];
 
         private sampleSingleData = this.sampleData[0];
@@ -70,6 +70,7 @@ module powerbi.visuals.sampleDataViews {
 
             return this.buildParagraphsDataView(paragraphs);
         }
+
         
         private buildParagraphsDataView(paragraphs: powerbi.visuals.ParagraphContext[]): powerbi.DataView[] {
             return [{ metadata: { columns: [], objects: { general: { paragraphs: paragraphs } } } }];

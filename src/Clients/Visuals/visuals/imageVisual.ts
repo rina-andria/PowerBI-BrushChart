@@ -38,17 +38,6 @@ module powerbi.visuals {
     }
 
     export class ImageVisual implements IVisual {
-        public static capabilities: VisualCapabilities = {
-            objects: {
-                general: {
-                    properties: {
-                        imageUrl: {
-                            type: { misc: { imageUrl: true } }
-                        }
-                    }
-                }
-            }
-        };
 
         private element: JQuery;
 

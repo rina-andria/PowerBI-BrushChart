@@ -88,12 +88,6 @@ module powerbi.visuals {
         headerItemEquals(item1: MatrixVisualNode, item2: MatrixVisualNode): boolean;
     }
 
-    var RoleNames = {
-        rows: 'Rows',
-        columns: 'Columns',
-        values: 'Values',
-    };
-
     interface MatrixHierarchy extends DataViewHierarchy {
         leafNodes?: MatrixVisualNode[];
     }
@@ -755,70 +749,6 @@ module powerbi.visuals {
         private tablixControl: controls.TablixControl;
         private lastAllowHeaderResize: boolean;
         private waitingForSort: boolean;
-
-        public static capabilities: VisualCapabilities = {
-            dataRoles: [
-                {
-                    name: RoleNames.rows,
-                    kind: VisualDataRoleKind.Grouping
-                }, {
-                    name: RoleNames.columns,
-                    kind: VisualDataRoleKind.Grouping
-                }, {
-                    name: RoleNames.values,
-                    kind: VisualDataRoleKind.Measure
-                }
-            ],
-            objects: {
-                general: {
-                    displayName: data.createDisplayNameGetter('Visual_General'),
-                    properties: {
-                        formatString: {
-                            type: { formatting: { formatString: true } },
-                        },
-                        rowSubtotals: {
-                            type: { bool: true },
-                            displayName: data.createDisplayNameGetter('Visual_RowTotals')
-                        },
-                        columnSubtotals: {
-                            type: { bool: true },
-                            displayName: data.createDisplayNameGetter('Visual_ColumnTotals')
-                        }
-                    },
-                }
-            },
-            dataViewMappings: [{
-                conditions: [
-                    { 'Rows': { max: 0 }, 'Columns': { max: 0 }, 'Values': { min: 1 } },
-                    { 'Rows': { min: 1 }, 'Columns': { min: 0 }, 'Values': { min: 0 } },
-                    { 'Rows': { min: 0 }, 'Columns': { min: 1 }, 'Values': { min: 0 } }
-                ],
-                matrix: {
-                    rows: {
-                        for: { in: 'Rows' },
-                        /* Explicitly override the server data reduction to make it appropriate for matrix. */
-                        dataReductionAlgorithm: { window: { count: 100 } }
-                    },
-                    columns: {
-                        for: { in: 'Columns' },
-                        /* Explicitly override the server data reduction to make it appropriate for matrix. */
-                        dataReductionAlgorithm: { top: { count: 100 } }
-                    },
-                    values: {
-                        for: { in: 'Values' }
-                    }
-                }
-            }],
-            filterMappings: {
-                measureFilter: {
-                    targetRoles: [RoleNames.rows]
-                }
-            },
-            sorting: {
-                custom: {},
-            },
-            suppressDefaultTitle: true,
-        };
 
         public static customizeQuery(options: CustomizeQueryOptions): void {
             var dataViewMapping = options.dataViewMappings[0];

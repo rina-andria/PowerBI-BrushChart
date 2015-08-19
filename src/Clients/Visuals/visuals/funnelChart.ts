@@ -875,7 +875,7 @@ module powerbi.visuals {
             var baseline = FunnelChart.getFunnelSliceValue(slices[0]);
 
             if (baseline <= 0) {
-                FunnelChart.drawPercentBarComponents(graphicsContext, [], layout); 
+                FunnelChart.drawPercentBarComponents(graphicsContext, [], layout);
                 return;
             }
 

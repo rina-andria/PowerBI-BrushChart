@@ -73,6 +73,7 @@ module powerbi {
 
     export class ServiceErrorToClientError implements IClientError {
         private m_serviceError: ServiceError;
+        private httpRequestId: string;
         private static codeName = 'ServiceErrorToClientError';
 
         public get code(): string {
@@ -81,6 +82,14 @@ module powerbi {
 
         public get ignorable(): boolean {
             return false;
+        }
+
+        public get requestId(): string {
+            return this.httpRequestId;
+        }
+
+        public set requestId(value: string) {
+            this.httpRequestId = value;
         }
 
         constructor(serviceError: ServiceError) {

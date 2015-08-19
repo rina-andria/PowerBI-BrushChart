@@ -27,7 +27,7 @@
 /// <reference path="../_references.ts"/>
 
 module powerbi.visuals.sampleDataViews {
-
+    
     export class ImageData extends SampleDataViews implements ISampleDataViewsMethods {
 
         public name: string = "ImageData";
@@ -44,6 +44,7 @@ module powerbi.visuals.sampleDataViews {
         private sampleIndex: number = 0;
         private sampleData = this.sampleImages[this.sampleIndex];
     
+
         public getDataViews(): DataView[] {
             return [{
                 metadata: {

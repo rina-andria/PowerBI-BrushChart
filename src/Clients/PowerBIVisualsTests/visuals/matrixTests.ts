@@ -34,6 +34,7 @@ module powerbitests {
     import DataViewMatrixNode = powerbi.DataViewMatrixNode;
     import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
     import Matrix = powerbi.visuals.Matrix;
+    import matrixCapabilities = powerbi.visuals.matrixCapabilities;
     import MatrixDataViewObjects = powerbi.visuals.MatrixDataViewObjects;
     import MatrixVisualNode = powerbi.visuals.MatrixVisualNode;
     import MatrixHierarchyNavigator = powerbi.visuals.IMatrixHierarchyNavigator;
@@ -2076,15 +2077,14 @@ module powerbitests {
     describe("Matrix", () => {
 
         it("Matrix registered capabilities", () => {
-            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("matrix").capabilities).toBe(Matrix.capabilities);
+            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("matrix").capabilities).toBe(matrixCapabilities);
         });
 
-        it("Capabilities should include dataViewMappings", () => expect(Matrix.capabilities.dataViewMappings).toBeDefined());
+        it("Capabilities should include dataViewMappings", () => expect(matrixCapabilities.dataViewMappings).toBeDefined());
 
-        it("Capabilities should include dataRoles", () => expect(Matrix.capabilities.dataRoles).toBeDefined());
+        it("Capabilities should include dataRoles", () => expect(matrixCapabilities.dataRoles).toBeDefined());
 
         it("Capabilities should include row windowing", () => {
-            expect(Matrix.capabilities.dataViewMappings[0].matrix.rows.dataReductionAlgorithm).toBeDefined();
         });
 
         it("Capabilities should allow measure only matrices", () => {
@@ -2101,7 +2101,7 @@ module powerbitests {
                     ])
                 };
 
-            var dataViewMappings = Matrix.capabilities.dataViewMappings;
+            var dataViewMappings = matrixCapabilities.dataViewMappings;
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections1, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
         });
@@ -2120,7 +2120,7 @@ module powerbitests {
                     ])
                 };
 
-            var dataViewMappings = Matrix.capabilities.dataViewMappings;
+            var dataViewMappings = matrixCapabilities.dataViewMappings;
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections1, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
         });
@@ -2167,7 +2167,7 @@ module powerbitests {
                     ])
                 };
 
-            var dataViewMappings = Matrix.capabilities.dataViewMappings;
+            var dataViewMappings = matrixCapabilities.dataViewMappings;
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections1, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections3, dataViewMappings)).toEqual(dataViewMappings);
@@ -2188,7 +2188,7 @@ module powerbitests {
                     ])
                 };
 
-            var dataViewMappings = Matrix.capabilities.dataViewMappings;
+            var dataViewMappings = matrixCapabilities.dataViewMappings;
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections1, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
         });
@@ -2235,7 +2235,7 @@ module powerbitests {
                     ])
                 };
 
-            var dataViewMappings = Matrix.capabilities.dataViewMappings;
+            var dataViewMappings = matrixCapabilities.dataViewMappings;
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections1, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections3, dataViewMappings)).toEqual(dataViewMappings);
@@ -2298,7 +2298,7 @@ module powerbitests {
                     ])
                 };
 
-            var dataViewMappings = Matrix.capabilities.dataViewMappings;
+            var dataViewMappings = matrixCapabilities.dataViewMappings;
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections1, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections2, dataViewMappings)).toEqual(dataViewMappings);
             expect(DataViewAnalysis.chooseDataViewMappings(allowedProjections3, dataViewMappings)).toEqual(dataViewMappings);
@@ -2306,11 +2306,11 @@ module powerbitests {
         });
 
         it("Capabilities should suppressDefaultTitle", () => {
-            expect(Matrix.capabilities.suppressDefaultTitle).toBe(true);
+            expect(matrixCapabilities.suppressDefaultTitle).toBe(true);
         });
 
         it("FormatString property should match calculated", () => {
-            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(Matrix.capabilities.objects)).toEqual(Matrix.formatStringProp);
+            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(matrixCapabilities.objects)).toEqual(Matrix.formatStringProp);
         });
 
         it("CustomizeQuery picks up enabled row subtotals", () => {

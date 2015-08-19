@@ -27,9 +27,8 @@
 /// <reference path="../_references.ts"/>
 
 module powerbi.visuals.sampleDataViews {
-
     import DataViewTransform = powerbi.data.DataViewTransform;
-    
+
     export class SalesByCountryData extends SampleDataViews implements ISampleDataViewsMethods {
 
         public name: string = "SalesByCountryData";
@@ -119,6 +118,7 @@ module powerbi.visuals.sampleDataViews {
                 single: { value: this.sampleSingleData }
             }];
         }
+
         
         public randomize(): void {
 

@@ -28,15 +28,16 @@
 
 module powerbitests {
     import AnimatedNumber = powerbi.visuals.AnimatedNumber;
+    import animatedNumberCapabilities = powerbi.visuals.animatedNumberCapabilities;
 
     describe("AnimatedNumber", () => {
 
         it("AnimatedNumber registered capabilities", () => {
-            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("animatedNumber").capabilities).toBe(AnimatedNumber.capabilities);
+            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("animatedNumber").capabilities).toBe(animatedNumberCapabilities);
         });
 
         it("FormatString property should match calculated", () => {
-            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(AnimatedNumber.capabilities.objects)).toEqual(AnimatedNumber.formatStringProp);
+            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(animatedNumberCapabilities.objects)).toEqual(AnimatedNumber.formatStringProp);
         });
     });
 

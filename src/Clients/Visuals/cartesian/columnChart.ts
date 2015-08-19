@@ -575,25 +575,15 @@ module powerbi.visuals {
                         position = baseValuesPos[categoryIndex];
                     }
 
-                    var categoryMap: SelectorForColumn;
-                    if (categoryMetadata && categoryIdentities) {
-                        categoryMap = {
-                            queryName: categoryMetadata ? categoryMetadata.queryName : undefined,
-                            data: categoryIdentities ? categoryIdentities[categoryIndex] : undefined
-                        };
-                    };
+                    var dataMap: SelectorForColumn = {};
+                    if (categoryMetadata && categoryIdentities)
+                        dataMap[categoryMetadata.queryName] = categoryIdentities[categoryIndex];
 
-                    var seriesMap: SelectorForColumn;
-                    if (hasDynamicSeries) {
-                        seriesMap = {
-                            queryName: dataViewCat.values.source.queryName,
-                            data: grouped[seriesIndex].identity
-                        };
-                    }
+                    if (hasDynamicSeries)
+                        dataMap[dataViewCat.values.source.queryName] = grouped[seriesIndex].identity;
 
-                    var identity = SelectionId.createWithIdsAndMeasureAndCategory(
-                        categoryMap,
-                        seriesMap,
+                    var identity = SelectionId.createWithSelectorForColumnAndMeasure(
+                        dataMap,
                         converterStrategy.getMeasureNameByIndex(seriesIndex));
 
                     var rawCategoryValue = categories[categoryIndex];
@@ -775,8 +765,8 @@ module powerbi.visuals {
             return tickValues[1] - tickValues[0];
         }
 
-        public static getInteractiveLegendDomElement(element: JQuery): HTMLElement {
-            return element.children(".interactive-legend").get(0);
+        public static getInteractiveColumnChartDomElement(element: JQuery): HTMLElement {
+            return element.children("svg").get(0);
         }
 
         public setData(dataViews: DataView[]): void {
@@ -1046,19 +1036,19 @@ module powerbi.visuals {
                         this.selectColumn(index);
                     };
 
-                    var legend: EventTarget = ColumnChart.getInteractiveLegendDomElement(this.element);
+                    var ColumnChartSvg: EventTarget = ColumnChart.getInteractiveColumnChartDomElement(this.element);
 
                     //set click interaction on the visual
                     this.svg.on('click', dragMove);
                     //set click interaction on the background
-                    d3.select(legend).on('click', dragMove);
+                    d3.select(ColumnChartSvg).on('click', dragMove);
                     var drag = d3.behavior.drag()
                         .origin(Object)
                         .on("drag", dragMove);
                     //set drag interaction on the visual
                     this.svg.call(drag);
                     //set drag interaction on the background
-                    d3.select(legend).call(drag);
+                    d3.select(ColumnChartSvg).call(drag);
                 }
             }
         }

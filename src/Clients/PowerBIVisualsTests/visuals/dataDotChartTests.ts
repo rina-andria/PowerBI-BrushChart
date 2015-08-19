@@ -28,6 +28,7 @@
 
 module powerbitests {
     import DataDotChart = powerbi.visuals.DataDotChart;
+    import dataDotChartCapabilities = powerbi.visuals.dataDotChartCapabilities;
     import DataViewTransform = powerbi.data.DataViewTransform;
     import EventType = powerbitests.helpers.ClickEventType;
     import ColumnUtil = powerbi.visuals.ColumnUtil;
@@ -39,23 +40,23 @@ module powerbitests {
     describe("Check DataDotChart capabilities", () => {
 
         it("DataDotChart registered capabilities", () => {
-            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("dataDotChart").capabilities).toBe(DataDotChart.capabilities);
+            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("dataDotChart").capabilities).toBe(dataDotChartCapabilities);
         });
 
         it("DataDotChart capabilities should include dataRoles", () => {
-            expect(DataDotChart.capabilities.dataRoles).toBeDefined();
+            expect(dataDotChartCapabilities.dataRoles).toBeDefined();
         });
 
         it("DataDotChart capabilities should include dataViewMappings", () => {
-            expect(DataDotChart.capabilities.dataViewMappings).toBeDefined();
+            expect(dataDotChartCapabilities.dataViewMappings).toBeDefined();
         });
 
         it("Capabilities should not suppressDefaultTitle", () => {
-            expect(DataDotChart.capabilities.suppressDefaultTitle).toBeUndefined();
+            expect(dataDotChartCapabilities.suppressDefaultTitle).toBeUndefined();
         });
 
         it("FormatString property should match calculated", () => {
-            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(DataDotChart.capabilities.objects)).toEqual(DataDotChart.formatStringProp);
+            expect(powerbi.data.DataViewObjectDescriptors.findFormatString(dataDotChartCapabilities.objects)).toEqual(DataDotChart.formatStringProp);
         });
     });
 

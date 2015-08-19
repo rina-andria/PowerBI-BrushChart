@@ -97,6 +97,18 @@ module powerbi.data {
             propertyId: DataViewObjectPropertyIdentifier,
             selector: Selector): DataViewObjectPropertyDefinition {
 
+            var properties = getPropertyContainer(defns, propertyId, selector);
+            if (!properties)
+                return;
+
+            return properties[propertyId.propertyName];
+        }
+
+        export function getPropertyContainer(
+            defns: DataViewObjectDefinitions,
+            propertyId: DataViewObjectPropertyIdentifier,
+            selector: Selector): DataViewObjectPropertyDefinitions {
+
             var defnsForObject = defns[propertyId.objectName];
             if (!defnsForObject)
                 return;
@@ -104,7 +116,7 @@ module powerbi.data {
             for (var i = 0, len = defnsForObject.length; i < len; i++) {
                 var defn = defnsForObject[i];
                 if (Selector.equals(defn.selector, selector))
-                    return defn.properties[propertyId.propertyName];
+                    return defn.properties;
             }
         }
 

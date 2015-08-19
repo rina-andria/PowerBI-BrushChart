@@ -28,6 +28,7 @@
 
 module powerbitests {
     import ImageVisual = powerbi.visuals.ImageVisual;
+    import imageVisualCapabilities = powerbi.visuals.imageVisualCapabilities;
 
     describe("ImageVisual", () => {
         var imageVisualDataBuilder: ImageVisualDataBuilder;
@@ -37,7 +38,7 @@ module powerbitests {
         });
 
         it("ImageVisual registered capabilities", () => {
-            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("image").capabilities).toBe(ImageVisual.capabilities);
+            expect(powerbi.visuals.visualPluginFactory.create().getPlugin("image").capabilities).toBe(imageVisualCapabilities);
         });
 
         it("ImageVisual registered capabilities: objects", () => {

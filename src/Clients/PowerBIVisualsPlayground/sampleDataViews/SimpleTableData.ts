@@ -27,7 +27,6 @@
 /// <reference path="../_references.ts"/>
 
 module powerbi.visuals.sampleDataViews {
-
     import ValueType = powerbi.ValueType;
     import PrimitiveType = powerbi.PrimitiveType;
     
@@ -41,7 +40,7 @@ module powerbi.visuals.sampleDataViews {
 
         public getDataViews(): DataView[] {
             var dataTypeNumber = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double);
-            var dataTypeString = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text);
+            var dataTypeString = ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text);            
 
             var groupSource1: DataViewMetadataColumn = { displayName: 'group1', type: dataTypeString, index: 0 };
             var groupSource2: DataViewMetadataColumn = { displayName: 'group2', type: dataTypeString, index: 1 };

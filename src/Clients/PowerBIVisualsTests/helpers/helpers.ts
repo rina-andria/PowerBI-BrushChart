@@ -24,7 +24,7 @@
  *  THE SOFTWARE.
  */
 
-/// <reference path="_references.ts"/>
+/// <reference path="../_references.ts"/>
 
 /* tslint:disable */
 var powerBIAccessToken = "fooBarBaz";
@@ -59,6 +59,13 @@ module powerbitests.helpers {
 
         // Tolerance of 1
         return deltaX <= 1 && deltaY <= 1;
+    }
+
+    export function buildSelectorForColumn(queryName: string, data, selector?) {
+        var newSelector = selector ? selector : {};
+        newSelector[queryName] = data;
+
+        return newSelector;
     }
 
     /** Returns a function that can be called to trigger a dragstart. */

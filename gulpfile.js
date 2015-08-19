@@ -273,8 +273,8 @@ gulp.task("run_tests", function () {
 		"src/Clients/externals/ThirdPartyIP/LoDash/lodash.min.js",
 		"src/Clients/externals/ThirdPartyIP/GlobalizeJS/globalize.min.js",
 		"src/Clients/externals/ThirdPartyIP/MomentJS/moment.min.js",
-		"src/Clients/externals/ThirdPartyIP/Velocity/velocity.js",
-		"src/Clients/externals/ThirdPartyIP/Velocity/velocity.ui.js",
+		"src/Clients/externals/ThirdPartyIP/Velocity/velocity.min.js",
+		"src/Clients/externals/ThirdPartyIP/Velocity/velocity.ui.min.js",
 		"src/Clients/externals/ThirdPartyIP/QuillJS/quill.min.js",
 		
 		"VisualsTests/powerbi-visuals.all.min.js",
@@ -286,8 +286,8 @@ gulp.task("run_tests", function () {
 
 gulp.task("test", function (callback) {
     runSequence(
-		"build",
 		"dependencies",
+		"build",
 		"copy_dependencies_visuals_tests", 
 		"run_tests", 
 		callback);
@@ -319,7 +319,7 @@ gulp.task("createdocs", function () {
 	        }));
 });
 
-gulp.task("typedoc", function (callback) {
+gulp.task("gendocs", function (callback) {
 	runSequence(
 		"build",
 		"combine_internal_d_ts",

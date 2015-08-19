@@ -390,13 +390,12 @@ module powerbi {
     }
 
     export interface SelectorForColumn {
-        queryName: string;
-        data: data.DataRepetitionSelector;
+        [queryName: string]: data.DataRepetitionSelector;
     }
 
     export interface SelectorsByColumn {
         /** Data-bound repetition selection. */
-        dataMap?: SelectorForColumn[];
+        dataMap?: SelectorForColumn;
 
         /** Metadata-bound repetition selection.  Refers to a DataViewMetadataColumn queryName. */
         metadata?: string;

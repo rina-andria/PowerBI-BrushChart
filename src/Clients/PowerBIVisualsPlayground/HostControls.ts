@@ -42,7 +42,7 @@ module powerbi.visuals {
 
         private suppressAnimationsElement: JQuery;
         private animationDurationElement: JQuery;
-
+        
         private viewport: IViewport;
 
         constructor(parent: JQuery) {
@@ -56,7 +56,7 @@ module powerbi.visuals {
             this.animationDurationElement = parent.find('input[name=animation_duration]').first();
             this.animationDurationElement.on('change', () => this.onChangeDuration());
         }
-
+        
         public setVisual(visualElement: IVisual, viewport: IViewport): void {
             this.visualElement = visualElement;
             this.viewport = viewport;

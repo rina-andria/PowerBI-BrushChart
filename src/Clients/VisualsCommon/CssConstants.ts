@@ -61,6 +61,10 @@ module jsCommon {
         export const maxWidthProperty = 'max-width';
         export const minWidthProperty = 'min-width';
         export const overflowProperty = 'overflow';
+        export const overflowXProperty = 'overflow-x';
+        export const overflowYProperty = 'overflow-y';
+        export const transformProperty = 'transform';
+        export const webkitTransformProperty = '-webkit-transform';
         export const cursorProperty = 'cursor';
         export const visibilityProperty = 'visibility';
 

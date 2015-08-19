@@ -1463,7 +1463,7 @@ module powerbitests {
                     expect($('.lineChart .axisGraphicsContext .y.axis .tick').length).toBeGreaterThan(0);
                     expect($('.lineChart .axisGraphicsContext .y.axis .tick').find('text').first().text()).toBe('480K');
                     if (interactiveChart) {
-                        expect(LineChart.getInteractiveLegendDomElement(element)).toBeDefined();
+                        expect(LineChart.getInteractiveLineChartDomElement(element)).toBeDefined();
                     }
                     done();
                 }, DefaultWaitForRender);

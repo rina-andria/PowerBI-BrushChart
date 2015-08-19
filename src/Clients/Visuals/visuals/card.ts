@@ -96,24 +96,6 @@ module powerbi.visuals {
             }
         }
 
-        public static capabilities: VisualCapabilities = {
-            dataRoles: [
-                {
-                    name: 'Values',
-                    kind: VisualDataRoleKind.Measure,
-                    displayName: data.createDisplayNameGetter('Role_DisplayName_Fields')
-                }
-            ],
-            objects: AnimatedText.objectDescs,
-            dataViewMappings: [{
-                conditions: [
-                    { 'Values': { max: 1 } }
-                ],
-                single: { role: "Values" }
-            }],
-            suppressDefaultTitle: true,
-        };
-
         public init(options: VisualInitOptions) {
             debug.assertValue(options, 'options');
             this.animationOptions = options.animation;

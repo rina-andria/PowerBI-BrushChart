@@ -157,7 +157,8 @@ module powerbi.visuals {
             var categoryValues: any[],
                 categoryFormatter: IValueFormatter,
                 categoryObjects: DataViewObjects[],
-                categoryIdentities: DataViewScopeIdentity[];
+                categoryIdentities: DataViewScopeIdentity[],
+                categoryQueryName: string;
 
             var dataViewCategorical: DataViewCategorical = dataView.categorical;
             var dataViewMetadata: DataViewMetadata = dataView.metadata;
@@ -167,6 +168,7 @@ module powerbi.visuals {
                 categoryFormatter = valueFormatter.create({ format: valueFormatter.getFormatString(dataViewCategorical.categories[0].source, scatterChartProps.general.formatString), value: categoryValues[0], value2: categoryValues[categoryValues.length - 1] });
                 categoryIdentities = dataViewCategorical.categories[0].identity;
                 categoryObjects = dataViewCategorical.categories[0].objects;
+                categoryQueryName = dataViewCategorical.categories[0].source.queryName;
             }
             else {
                 categoryValues = [null];
@@ -210,7 +212,8 @@ module powerbi.visuals {
                 currentViewport,
                 hasDynamicSeries,
                 dataLabelsSettings,
-                defaultDataPointColor);
+                defaultDataPointColor,
+                categoryQueryName);
 
             if (interactivityService) {
                 interactivityService.applySelectionStateToData(dataPoints);
@@ -285,7 +288,8 @@ module powerbi.visuals {
             viewport: IViewport,
             hasDynamicSeries: boolean,
             labelSettings: PointDataLabelsSettings,
-            defaultDataPointColor?: string): ScatterChartDataPoint[] {
+            defaultDataPointColor?: string,
+            categoryQueryName?: string): ScatterChartDataPoint[]{
 
             var dataPoints: ScatterChartDataPoint[] = [],
                 indicies = metadata.idx,
@@ -327,9 +331,16 @@ module powerbi.visuals {
                         color = colorHelper.getColorForMeasure(categoryObjects && categoryObjects[categoryIdx], measureSource);
                     }
 
-                    var identity = SelectionId.createWithIds(
-                        categoryIdentities ? categoryIdentities[categoryIdx] : undefined,
-                        hasDynamicSeries ? grouping.identity : undefined);
+                    var dataMap: SelectorForColumn = {};
+                    if (categoryIdentities && categoryQueryName) {
+                        dataMap[categoryQueryName] = categoryIdentities[categoryIdx];
+                    }
+
+                    if (hasDynamicSeries) {
+                        dataMap[dataValueSource.queryName] = grouping.identity;
+                    }
+
+                    var identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, null);
 
                     var seriesData: TooltipSeriesDataItem[] = [];
                     if (dataValueSource) {

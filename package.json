@@ -3,6 +3,7 @@
   "version": "0.2.1",
   "description": "Microsoft PowerBI Visuals",
   "devDependencies": {
+    "fs": "0.0.2",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
     "gulp-download": "0.0.1",

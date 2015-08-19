@@ -47,6 +47,7 @@ module powerbitests {
     import SQExprShortSerializer = powerbi.data.SQExprShortSerializer;
     import LegendIcon = powerbi.visuals.LegendIcon;
     import LegendPosition = powerbi.visuals.LegendPosition;
+    import buildSelector = powerbitests.helpers.buildSelectorForColumn;
 
     var labelColor = powerbi.visuals.dataLabelUtils.defaultLabelColor;
     var defaultInsideLabelColor = '#ffffff';
@@ -998,10 +999,10 @@ module powerbitests {
 
             var data = ColumnChart.converter(dataView, colors);
             var selectionIds: SelectionId[] = [
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[0] }, { queryName: measureColumnDynamic1.queryName, data: seriesIdentities[0] }, measureColumnDynamic1.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[1] }, { queryName: measureColumnDynamic2.queryName, data: seriesIdentities[0] }, measureColumnDynamic2.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[0] }, { queryName: measureColumnDynamic1.queryName, data: seriesIdentities[1] }, measureColumnDynamic1.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[1] }, { queryName: measureColumnDynamic2.queryName, data: seriesIdentities[1] }, measureColumnDynamic2.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic1.queryName, seriesIdentities[0], buildSelector(categoryColumn.queryName, categoryIdentities[0])), measureColumnDynamic1.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic2.queryName, seriesIdentities[0], buildSelector(categoryColumn.queryName, categoryIdentities[1])), measureColumnDynamic2.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic1.queryName, seriesIdentities[1], buildSelector(categoryColumn.queryName, categoryIdentities[0])), measureColumnDynamic1.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic2.queryName, seriesIdentities[1], buildSelector(categoryColumn.queryName, categoryIdentities[1])), measureColumnDynamic2.queryName),
             ];
             var legendItems = data.legendData.dataPoints;
             expect(data.series).toEqual(
@@ -1184,10 +1185,10 @@ module powerbitests {
             var colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
             var data = ColumnChart.converter(dataView, colors);
             var selectionIds: SelectionId[] = [
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[0] }, { queryName: measureColumnDynamic1.queryName, data: seriesIdentities[0] }, measureColumnDynamic1.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[1] }, { queryName: measureColumnDynamic2.queryName, data: seriesIdentities[0] }, measureColumnDynamic2.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[0] }, { queryName: measureColumnDynamic1.queryName, data: seriesIdentities[1] }, measureColumnDynamic1.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[1] }, { queryName: measureColumnDynamic2.queryName, data: seriesIdentities[1] }, measureColumnDynamic2.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic1.queryName, seriesIdentities[0], buildSelector(categoryColumn.queryName, categoryIdentities[0])), measureColumnDynamic1.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic2.queryName, seriesIdentities[0], buildSelector(categoryColumn.queryName, categoryIdentities[1])), measureColumnDynamic2.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic1.queryName, seriesIdentities[1], buildSelector(categoryColumn.queryName, categoryIdentities[0])), measureColumnDynamic1.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic2.queryName, seriesIdentities[1], buildSelector(categoryColumn.queryName, categoryIdentities[1])), measureColumnDynamic2.queryName),
             ];
             var legendItems = data.legendData.dataPoints;
             expect(data.series).toEqual(
@@ -1332,10 +1333,10 @@ module powerbitests {
                         
             var data = ColumnChart.converter(dataView, colors, null, null, null, metadata);
             var selectionIds: SelectionId[] = [
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[0] }, { queryName: measureColumnDynamic1.queryName, data: seriesIdentities[0] }, measureColumnDynamic1.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[1] }, { queryName: measureColumnDynamic2.queryName, data: seriesIdentities[0] }, measureColumnDynamic2.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[0] }, { queryName: measureColumnDynamic1.queryName, data: seriesIdentities[1] }, measureColumnDynamic1.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[1] }, { queryName: measureColumnDynamic2.queryName, data: seriesIdentities[1] }, measureColumnDynamic2.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic1.queryName, seriesIdentities[0], buildSelector(categoryColumn.queryName, categoryIdentities[0])), measureColumnDynamic1.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic2.queryName, seriesIdentities[0], buildSelector(categoryColumn.queryName, categoryIdentities[1])), measureColumnDynamic2.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic1.queryName, seriesIdentities[1], buildSelector(categoryColumn.queryName, categoryIdentities[0])), measureColumnDynamic1.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic2.queryName, seriesIdentities[1], buildSelector(categoryColumn.queryName, categoryIdentities[1])), measureColumnDynamic2.queryName),
             ];
             var legendItems = data.legendData.dataPoints;
             expect(data.series).toEqual(
@@ -1480,10 +1481,10 @@ module powerbitests {
             };
             var data = ColumnChart.converter(dataView, colors, undefined, undefined, undefined, metadata);
             var selectionIds: SelectionId[] = [
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[0] }, { queryName: measureColumnDynamic1.queryName, data: seriesIdentities[0] }, measureColumnDynamic1.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[1] }, { queryName: measureColumnDynamic2.queryName, data: seriesIdentities[0] }, measureColumnDynamic2.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[0] }, { queryName: measureColumnDynamic1.queryName, data: seriesIdentities[1] }, measureColumnDynamic1.queryName),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: categoryColumn.queryName, data: categoryIdentities[1] }, { queryName: measureColumnDynamic2.queryName, data: seriesIdentities[1] }, measureColumnDynamic2.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic1.queryName, seriesIdentities[0], buildSelector(categoryColumn.queryName, categoryIdentities[0])), measureColumnDynamic1.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic2.queryName, seriesIdentities[0], buildSelector(categoryColumn.queryName, categoryIdentities[1])), measureColumnDynamic2.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic1.queryName, seriesIdentities[1], buildSelector(categoryColumn.queryName, categoryIdentities[0])), measureColumnDynamic1.queryName),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(measureColumnDynamic2.queryName, seriesIdentities[1], buildSelector(categoryColumn.queryName, categoryIdentities[1])), measureColumnDynamic2.queryName),
             ];
             var legendItems = data.legendData.dataPoints;
             expect(data.series).toEqual(
@@ -2577,8 +2578,8 @@ module powerbitests {
             var colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
             var data = ColumnChart.converter(dataView.categorical, colors);
             var selectionIds: SelectionId[] = [
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: 'select1', data: seriesIdentities[0] }, null, 'select2'),
-                SelectionId.createWithIdsAndMeasureAndCategory({ queryName: 'select1', data: seriesIdentities[1] }, null, 'select2'),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector('select1', seriesIdentities[0]), 'select2'),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector('select1', seriesIdentities[1]), 'select2'),
             ];
             var legendItems = data.legendData.dataPoints;
             expect(legendItems.length).toBe(2);
@@ -3492,7 +3493,7 @@ module powerbitests {
                 expect($('.column').length).toBe(2);
                 expect($('.data-labels').length).toBe(0);
                 if (interactiveChart) {
-                    expect(ColumnChart.getInteractiveLegendDomElement(element)).toBeDefined();
+                    expect(ColumnChart.getInteractiveColumnChartDomElement(element)).toBeDefined();
                 }
                 done();
             }, DefaultWaitForRender);
@@ -7575,7 +7576,7 @@ module powerbitests {
                 ],
                 data2: [
                     {
-                        dataMap: [{ queryName: 'col1', data: dataViewScopeIdentity2}],
+                        dataMap: buildSelector('col1', dataViewScopeIdentity2),
                         metadata: 'col2',
                     }
 
@@ -7735,7 +7736,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[0] }],
+                            dataMap: buildSelector('col1', identities[0]),
                             metadata: 'col2',
                         }
 
@@ -7757,7 +7758,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[0] }],
+                            dataMap: buildSelector('col1', identities[0]),
                             metadata: 'col2',
                         }
 
@@ -7773,7 +7774,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[3] }],
+                            dataMap: buildSelector('col1', identities[3]),
                             metadata: 'col2',
                         }
 
@@ -7852,7 +7853,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[0] }],
+                            dataMap: buildSelector('col1', identities[0]),
                             metadata: 'col2',
                         }
 
@@ -7874,7 +7875,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[3] }],
+                            dataMap: buildSelector('col1', identities[3]),
                             metadata: 'col2',
                         }
 
@@ -7970,7 +7971,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[0] }],
+                            dataMap: buildSelector('col1', identities[0]),
                             metadata: 'col2',
                         }
 
@@ -7992,7 +7993,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[0] }],
+                            dataMap: buildSelector('col1', identities[0]),
                             metadata: 'col2',
                         }
 
@@ -8008,7 +8009,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[3] }],
+                            dataMap: buildSelector('col1', identities[3]),
                             metadata: 'col2',
                         }
 
@@ -8030,7 +8031,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[3] }],
+                            dataMap: buildSelector('col1', identities[3]),
                             metadata: 'col2',
                         }
 
@@ -8052,7 +8053,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[3] }],
+                            dataMap: buildSelector('col1', identities[3]),
                             metadata: 'col2',
                         }
 
@@ -8068,7 +8069,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[1] }],
+                            dataMap: buildSelector('col1', identities[1]),
                             metadata: 'col2',
                         }
 
@@ -8090,7 +8091,7 @@ module powerbitests {
                     ],
                     data2: [
                         {
-                            dataMap: [{ queryName: 'col1', data: identities[4] }],
+                            dataMap: buildSelector('col1', identities[4]),
                             metadata: 'col2',
                         }
 
@@ -8916,6 +8917,7 @@ module powerbitests {
             setTimeout(() => {
                 var ticks = $('.columnChart .axisGraphicsContext .x.axis .tick');
                 var tickCount = ticks.length;
+
                 var startIndex = 10;
                 var expectedValues = _.range(0, tickCount).map(i => String.fromCharCode('a'.charCodeAt(0) + startIndex + i));
 

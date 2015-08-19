@@ -107,46 +107,6 @@ module powerbi.visuals {
         private interactivityService: IInteractivityService;
         private interactivity: InteractivityOptions;
 
-        // I support a categorical (ordinal) X with measure Y for a single series
-        public static capabilities: VisualCapabilities = {
-            dataRoles: [
-                {
-                    name: 'Category',
-                    kind: VisualDataRoleKind.Grouping,
-                }, {
-                    name: 'Y',
-                    kind: VisualDataRoleKind.Measure,
-                },
-            ],
-            objects: {
-                general: {
-                    displayName: data.createDisplayNameGetter('Visual_General'),
-                    properties: {
-                        formatString: {
-                            type: { formatting: { formatString: true } },
-                        },
-                    },
-                },
-            },
-            dataViewMappings: [{
-                conditions: [
-                    { 'Category': { max: 1 }, 'Y': { max: 1 } }
-                ],
-                categorical: {
-                    categories: {
-                        for: { in: 'Category' },
-                        dataReductionAlgorithm: { top: {} }
-                    },
-                    values: {
-                        select: [{
-                            for: { in: 'Y' },
-                            dataReductionAlgorithm: { top: {} }
-                        }]
-                    },
-                },
-            }]
-        };
-
         constructor(options: DataDotChartConstructorOptions) {
             this.isScrollable = options.isScrollable;
             this.interactivityService = options.interactivityService;

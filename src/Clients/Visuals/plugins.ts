@@ -31,7 +31,7 @@ module powerbi.visuals.plugins {
 
     export var animatedNumber: IVisualPlugin = {
         name: 'animatedNumber',
-        capabilities: AnimatedNumber.capabilities,
+        capabilities: animatedNumberCapabilities,
         create: () => new AnimatedNumber()
     };
 
@@ -56,14 +56,14 @@ module powerbi.visuals.plugins {
     export var card: IVisualPlugin = {
         name: 'card',
         watermarkKey: 'card',
-        capabilities: Card.capabilities,
+        capabilities: cardCapabilities,
         create: () => new Card()
     };
 
     export var multiRowCard: IVisualPlugin = {
         name: 'multiRowCard',
         watermarkKey: 'multiRowCard',
-        capabilities: MultiRowCard.capabilities,
+        capabilities: multiRowCardCapabilities,
         create: () => new MultiRowCard()
     };
 
@@ -103,7 +103,7 @@ module powerbi.visuals.plugins {
 
     export var dataDotChart: IVisualPlugin = {
         name: 'dataDotChart',
-        capabilities: DataDotChart.capabilities,
+        capabilities: dataDotChartCapabilities,
         create: () => new CartesianChart({ chartType: CartesianChartType.DataDot })
     };
 
@@ -138,7 +138,7 @@ module powerbi.visuals.plugins {
     export var gauge: IVisualPlugin = {
         name: 'gauge',
         watermarkKey: 'gauge',
-        capabilities: Gauge.capabilities,
+        capabilities: gaugeCapabilities,
         create: () => new Gauge()
     };
 
@@ -162,7 +162,7 @@ module powerbi.visuals.plugins {
 
     export var image: IVisualPlugin = {
         name: 'image',
-        capabilities: ImageVisual.capabilities,
+        capabilities: imageVisualCapabilities,
         create: () => new ImageVisual()
     };
 
@@ -229,7 +229,7 @@ module powerbi.visuals.plugins {
     export var table: IVisualPlugin = {
         name: 'table',
         watermarkKey: 'table',
-        capabilities: Table.capabilities,
+        capabilities: tableCapabilities,
         create: () => new Table(),
         customizeQuery: Table.customizeQuery,
         getSortableRoles: (visualSortableOptions?: VisualSortableOptions) => Table.getSortableRoles(),
@@ -238,7 +238,7 @@ module powerbi.visuals.plugins {
     export var matrix: IVisualPlugin = {
         name: 'matrix',
         watermarkKey: 'matrix',
-        capabilities: Matrix.capabilities,
+        capabilities: matrixCapabilities,
         create: () => new Matrix(),
         customizeQuery: Matrix.customizeQuery,
         getSortableRoles: (visualSortableOptions?: VisualSortableOptions) => Matrix.getSortableRoles(),
@@ -253,7 +253,7 @@ module powerbi.visuals.plugins {
 
     export var textbox: IVisualPlugin = {
         name: 'textbox',
-        capabilities: RichTextbox.capabilities,
+        capabilities: richTextboxCapabilities,
         create: () => new RichTextbox()
     };
 
@@ -266,7 +266,7 @@ module powerbi.visuals.plugins {
 
     export var cheerMeter: IVisualPlugin = {
         name: 'cheerMeter',
-        capabilities: CheerMeter.capabilities,
+        capabilities: cheerMeterCapabilities,
         create: () => new CheerMeter()
     };
 

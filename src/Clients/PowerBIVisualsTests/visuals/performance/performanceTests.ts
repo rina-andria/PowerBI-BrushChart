@@ -40,7 +40,7 @@ module powerbitests {
     const ESTIMATE_FOR_MEASURE_PLUGIN_NAME = "scatterChart";
     const DEFAULT_HEIGHT = "770";
     const DEFAULT_WIDTH = "770";
-    const EXCLUDED_VISUALS: string[] = [MEASURE_PLUGIN_NAME, "sunburstChart", "bingNews", "partitionMap", "categoricalFilter"];
+    const EXCLUDED_VISUALS: string[] = [MEASURE_PLUGIN_NAME, "sunburstChart", "bingNews", "partitionMap", "categoricalFilter", "consoleWriter"];
 
     describe("Performance measuring", () => {
         var visual: powerbi.IVisual, element: JQuery;

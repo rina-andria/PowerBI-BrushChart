@@ -35,7 +35,7 @@ module powerbi.visuals {
         private visualElement: IVisual;
         private dataViewsSelect: JQuery;
 
-        // Represents sample data views used by visualization elements.
+        /** Represents sample data views used by visualization elements.*/
         private sampleDataViews;
         private animation_duration: number = 250;
         private suppressAnimations: boolean = false;

@@ -26,7 +26,9 @@
 
 module InJs
 {
-    /** The types of possible traces within the system, this aligns to the traces available in Cloud Platform */
+    /** 
+     * The types of possible traces within the system, this aligns to the traces available in Cloud Platform.
+     */
     export enum TraceType {
         information = 0,
         verbose = 1,

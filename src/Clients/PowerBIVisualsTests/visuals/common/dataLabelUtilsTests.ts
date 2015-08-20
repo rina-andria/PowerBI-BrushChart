@@ -2,7 +2,7 @@
  *  Power BI Visualizations
  *
  *  Copyright (c) Microsoft Corporation
- *  All rights reserved. 
+ *  All rights reserved.
  *  MIT License
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -11,14 +11,14 @@
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *   
- *  The above copyright notice and this permission notice shall be included in 
+ *
+ *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *   
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
@@ -32,536 +32,535 @@ module powerbitests {
     import PrimitiveType = powerbi.PrimitiveType;
     import DataLabelUtils = powerbi.visuals.dataLabelUtils;
 
-    var DefaultWaitForRender = 100;
-
     powerbitests.mocks.setLocale();
 
-    describe("dataLabelUtils Line Chart Collision Detection", () => {
-
-        var v: powerbi.IVisual, element: JQuery;
-        var dataViewMetadata: powerbi.DataViewMetadata = {
-            columns: [
-                {
-                    displayName: 'col1',
-                    queryName: 'col1',
-                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
-                },
-                {
-                    displayName: 'col2',
-                    queryName: 'col2',
-                    isMeasure: true,
-                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
-                    format: '0.000'
-                },
-                {
-                    displayName: 'col3',
-                    queryName: 'col3',
-                    isMeasure: false,
-                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime),
-                    format: 'd'
-                }],
-            objects:
-            { labels: { show: true } },
-        };
-
-        var hostServices = powerbitests.mocks.createVisualHostServices();
-
-        beforeEach(() => {
-            element = powerbitests.helpers.testDom('500', '145');
-            v = powerbi.visuals.visualPluginFactory.create().getPlugin('lineChart').create();
-            v.init({
-                element: element,
-                host: hostServices,
-                style: powerbi.visuals.visualStyles.create(),
-                viewport: {
-                    height: element.height(),
-                    width: element.width()
-                },
-                animation: { transitionImmediate: true },
-            });
-        });
-
-        it('Show labels validation', (done) => {
-            v.onDataChanged({
-                dataViews: [{
-                    metadata: dataViewMetadata,
-                    categorical: {
-                        categories: [{
-                            source: dataViewMetadata.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
-                        }],
-                        values: DataViewTransform.createValueColumns([{
-                            source: dataViewMetadata.columns[1],
-                            values: [500000, 495000, 490000, 480000, 500000],
-                            subtotal: 2465000
-                        }])
-                    }
-                }]
-            });
-            setTimeout(() => {
-                // Only the top two label should be hidden
-                expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(3);
-                expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toContain("495");
-                done();
-            }, DefaultWaitForRender);
-        });
-
-        it('Hide labels validation', (done) => {
-            var metadata = powerbi.Prototype.inherit(dataViewMetadata);
-            //label format will be overriden by label settings
-            metadata.objects = { labels: { show: true, labelPrecision: 3 } };
-            
-            v.onDataChanged({
-                dataViews: [{
-                    metadata: metadata,
-                    categorical: {
-                        categories: [{
-                            source: dataViewMetadata.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
-                        }],
-                        values: DataViewTransform.createValueColumns([{
-                            source: dataViewMetadata.columns[1],
-                            values: [500000, 495000, 495050, 480000, 500000],
-                        }])
-                    }
-                }]
-            });
-            setTimeout(() => {
-                // Two label should be hidden because it collides
-                expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(2);
-                done();
-            }, DefaultWaitForRender);
-        });
-
-        it('Hide labels DOM validation', (done) => {
-            var metadata = powerbi.Prototype.inherit(dataViewMetadata);
-            //label format will be overriden by label settings
-            metadata.objects = { labels: { show: true, labelPrecision: 3 } };
-
-            element = powerbitests.helpers.testDom('10', '10');
-            v.init({
-                element: element,
-                host: hostServices,
-                style: powerbi.visuals.visualStyles.create(),
-                viewport: {
-                    height: element.height(),
-                    width: element.width()
-                },
-                animation: { transitionImmediate: true },
-            });
-
-            v.onDataChanged({
-                dataViews: [{
-                    metadata: metadata,
-                    categorical: {
-                        categories: [{
-                            source: dataViewMetadata.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
-                        }],
-                        values: DataViewTransform.createValueColumns([{
-                            source: dataViewMetadata.columns[1],
-                            values: [500000, 495000, 495050, 480000, 500000],
-                        }])
-                    }
-                }]
-            });
-            setTimeout(() => {
-                // All labels should be hidden and no 'labels' class should be created
-                expect($('.lineChart .axisGraphicsContext .labels').length).toBe(0);
-                done();
-            }, DefaultWaitForRender);
-        });
-
-        it('undefined labelSettings validation',() => {
-            var labelSettings: powerbi.visuals.VisualDataLabelsSettings;
-            var instance = DataLabelUtils.enumerateDataLabels(labelSettings, false);
-            expect(instance).toEqual([]);
-        });
-    });
-
-    describe("dataLabelUtils Scatter Chart Collision Detection", () => {
-
-        var v: powerbi.IVisual, element: JQuery;
-        var dataViewMetadata: powerbi.DataViewMetadata = {
-            columns: [
-                {
-                    displayName: 'col1',
-                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
-                },
-                {
-                    displayName: 'col2',
-                    isMeasure: true,
-                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
-                    format: '0.000'
-                },
-                {
-                    displayName: 'col3',
-                    isMeasure: false,
-                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime),
-                    format: 'd'
-                }],
-            objects:
-            { categoryLabels: { show: true } },
-        };
-
-        var hostServices = powerbitests.mocks.createVisualHostServices();
-
-        beforeEach(() => {
-            element = powerbitests.helpers.testDom('250', '200');
-            v = powerbi.visuals.visualPluginFactory.create().getPlugin('scatterChart').create();
-            v.init({
-                element: element,
-                host: hostServices,
-                style: powerbi.visuals.visualStyles.create(),
-                viewport: {
-                    height: element.height(),
-                    width: element.width()
-                },
-                animation: { transitionImmediate: true },
-            });
-        });
-
-        it('Show labels validation', (done) => {
-            v.onDataChanged({
-                dataViews: [{
-                    metadata: dataViewMetadata,
-                    categorical: {
-                        categories: [{
-                            source: dataViewMetadata.columns[0],
-                            values: ['First', 'Second', 'Third', 'Fourth']
-                        }],
-                        values: DataViewTransform.createValueColumns([{
-                            source: dataViewMetadata.columns[1],
-                            values: [110, 120, 130, 140],
-                        }])
-                    }
-                }]
-            });
-            setTimeout(() => {
-                // No label should be hidden
-                expect($('.scatterChart .axisGraphicsContext .mainGraphicsContext .data-labels').length).toBe(4);
-                expect($('.scatterChart .axisGraphicsContext .mainGraphicsContext .data-labels').first().text()).toBe('First');
-                done();
-            }, DefaultWaitForRender);
-        });
-
-        it('Hide labels validation', (done) => {
-            v.onDataChanged({
-                dataViews: [{
-                    metadata: dataViewMetadata,
-                    categorical: {
-                        categories: [{
-                            source: dataViewMetadata.columns[0],
-                            values: ['First', 'Second', 'Third', 'Fourth', 'Fifth']
-                        }],
-                        values: DataViewTransform.createValueColumns([{
-                            source: dataViewMetadata.columns[1],
-                            values: [110, 120, 130, 140, 150],
-                        }])
-                    }
-                }]
-            });
-            setTimeout(() => {
-                // Two labels should be hidden because they collides
-                expect($('.scatterChart .axisGraphicsContext .mainGraphicsContext .data-labels').length).toBe(3);
-                done();
-            }, DefaultWaitForRender);
-        });
-    });
-
-    describe("dataLabelUtils Map Collision Detection", () => {
-        
-        var mockDatalabelSettings: powerbi.visuals.PointDataLabelsSettings = {
-            show: true,
-            displayUnits: 2,
-            position: powerbi.visuals.PointLabelPosition.Above,
-            precision: 2,
-            labelColor: "#000000",
-            formatterOptions: {},
-        };
-        var mockViewPort = {
-            height: 150,
-            width: 300
-        };
+    describe("DataLabelUtils", () => {
+        var visualBuilder: VisualBuilder;
 
         afterEach(() => {
-            // Clear labels
-            $('.data-labels').remove();
+            $(".data-labels").remove();
+        });
+        
+        describe("Line Chart Collision Detection", () => {
+            var dataViewMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    {
+                        displayName: "col1",
+                        queryName: "col1",
+                        type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
+                    },
+                    {
+                        displayName: "col2",
+                        queryName: "col2",
+                        isMeasure: true,
+                        type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
+                        format: "0.000"
+                    },
+                    {
+                        displayName: "col3",
+                        queryName: "col3",
+                        isMeasure: false,
+                        type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime),
+                        format: "d"
+                    }],
+                objects: {
+                    labels: {
+                        show: true
+                    }
+                }
+            };
+
+            beforeEach(() => {
+                visualBuilder = new VisualBuilder("500", "145", "lineChart");
+
+                visualBuilder.metadata = dataViewMetadata;
+                visualBuilder.categoriesValues = ["a", "b", "c", "d", "e"];
+                visualBuilder.values = [500000, 495000, 490000, 480000, 500000];
+            });
+
+            it("Show labels validation", (done) => {
+                visualBuilder.onDataChanged();
+
+                setTimeout(() => {
+                    // Only the top two label should be hidden
+                    expect(getDataLabel().length).toBe(3);
+
+                    expect(getDataLableText(0)).toContain("495");
+                    expect(getDataLableText(1)).toContain("490");
+                    expect(getDataLableText(2)).toContain("480");
+
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it("Overlap labels validation", (done) => {
+                //label format will be overriden by label settings
+                visualBuilder.metadata.objects = { labels: { show: true, labelPrecision: 3 } };
+                visualBuilder.values = [500000, 495000, 495050, 480000, 500000];
+
+                visualBuilder.onDataChanged();
+
+                setTimeout(() => {
+                    // Two label should be hidden because it collides
+                    expect(getDataLabel().length).toBe(2);
+
+                    expect(getDataLableText(0)).toContain("495");
+                    expect(getDataLableText(1)).toContain("480");
+
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it('Hide labels DOM validation', (done) => {
+                visualBuilder.setSize("10", "10");
+
+                visualBuilder.metadata.objects = {
+                    labels: {
+                        show: true,
+                        labelPrecision: 3
+                    }
+                };
+
+                visualBuilder.onDataChanged();
+
+                setTimeout(() => {
+                    // All labels should be hidden and no 'labels' class should be created
+                    expect($('.lineChart .axisGraphicsContext .labels').length).toBe(0);
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it("undefined labelSettings validation", () => {
+                var labelSettings: powerbi.visuals.VisualDataLabelsSettings;
+                var instance = DataLabelUtils.enumerateDataLabels(labelSettings, false);
+                expect(instance).toEqual([]);
+            });
         });
 
-        it('Show bubble labels validation', () => {
-            var mockBubbleData: powerbi.visuals.MapBubble[] = [
-                {
-                    x: 0,
-                    y: 55,
-                    radius: 10,
-                    fill: "#000000",
-                    stroke: "2",
-                    strokeWidth: 2,
-                    selected: true,
-                    identity: null,
-                    labeltext: "Label 1",
+        describe("Scatter Chart Collision Detection", () => {
+            var dataViewMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    {
+                        displayName: "col1",
+                        type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
+                    },
+                    {
+                        displayName: "col2",
+                        isMeasure: true,
+                        type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
+                        format: "0.000"
+                    },
+                    {
+                        displayName: "col3",
+                        isMeasure: false,
+                        type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime),
+                        format: "d"
+                    }],
+                objects: {
+                    categoryLabels: {
+                        show: true
+                    }
                 },
-                {
-                    x: 50,
-                    y: 55,
-                    radius: 10,
-                    fill: "#000000",
-                    stroke: "2",
-                    strokeWidth: 2,
-                    selected: true,
-                    identity: null,
-                    labeltext: "Label 2",
-                }];
+            };
 
-            var mockLayout: powerbi.visuals.ILabelLayout = DataLabelUtils.getMapLabelLayout(mockDatalabelSettings);
+            beforeEach(() => {
+                visualBuilder = new VisualBuilder("250", "200", "scatterChart");
 
-            var mockBubbleGraphicsContext: D3.Selection = d3.select('body')
-                .append('svg')
-                .style("position", "absolute")
-                .append("g")
-                .classed("mapBubbles1", true);
+                visualBuilder.metadata = dataViewMetadata;
+                visualBuilder.categoriesValues = ["First", "Second", "Third", "Fourth"];
+                visualBuilder.values = [110, 120, 130, 140];
+            });
 
-            var result = DataLabelUtils.drawDefaultLabelsForDataPointChart(mockBubbleData, mockBubbleGraphicsContext, mockLayout, mockViewPort);
+            it("Show labels validation", (done) => {
+                visualBuilder.onDataChanged();
 
-            expect(result).toBeDefined();
-            expect($('.mapBubbles1 text').length).toBe(2);
+                setTimeout(() => {
+                    // No label should be hidden
+                    expect(getDataLabel().length).toBe(4);
+
+                    for(var i = 0; i < visualBuilder.categoriesValues.length; i++) {
+                        expect(getDataLableText(i)).toBe(visualBuilder.categoriesValues[i]);
+                    }
+
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it("Overlap labels validation", (done) => {
+                visualBuilder.categoriesValues = ["First", "Second", "Third", "Fourth", "Fifth"];
+                visualBuilder.values = [110, 120, 130, 140, 150];
+
+                visualBuilder.onDataChanged();
+
+                setTimeout(() => {
+                    // Two labels should be hidden because they collides
+                    expect(getDataLabel().length).toBe(3);
+
+                    expect(getDataLableText(0)).toBe("First");
+                    expect(getDataLableText(1)).toBe("Second");
+                    expect(getDataLableText(2)).toBe("Fourth");
+
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it('Hide labels DOM validation', (done) => {
+                visualBuilder.setSize("10", "10");
+
+                visualBuilder.onDataChanged();
+
+                setTimeout(() => {
+                    // All labels should be hidden and no 'labels' class should be created
+                    expect($('.lineChart .axisGraphicsContext .labels').length).toBe(0);
+                    done();
+                }, DefaultWaitForRender);
+            });
         });
 
-        it('Hide bubble labels validation', () => {
-            var mockBubbleData: powerbi.visuals.MapBubble[] = [
-                {
-                    x: 45,
-                    y: 60,
-                    radius: 10,
-                    fill: "#000000",
-                    stroke: "2",
-                    strokeWidth: 2,
-                    selected: true,
-                    identity: null,
-                    labeltext: "Label 1",
-                },
-                {
-                    x: 50,
-                    y: 60,
-                    radius: 10,
-                    fill: "#000000",
-                    stroke: "2",
-                    strokeWidth: 2,
-                    selected: true,
-                    identity: null,
-                    labeltext: "Label 2",
-                }];
+        describe("Map Collision Detection", () => {
+            var mapBubbleBuilder: MapBubbleBuilder,
+                mapSliceBuilder: MapSliceBuilder;
 
-            var mockLayout: powerbi.visuals.ILabelLayout = DataLabelUtils.getMapLabelLayout(mockDatalabelSettings);
+            beforeEach(() => {
+                mapBubbleBuilder =  new MapBubbleBuilder();
+                mapSliceBuilder = new MapSliceBuilder();
+            });
 
-            var mockBubbleGraphicsContext: D3.Selection = d3.select('body')
-                .append('svg')
-                .style("position", "absolute")
-                .append("g")
-                .classed("mapBubbles2", true);
+            it("Show bubble labels validation", () => {
+                var mockBubbleData: powerbi.visuals.MapBubble[] = [
+                    mapBubbleBuilder.buildMapBubble(0, 55, "Label 1"),
+                    mapBubbleBuilder.buildMapBubble(50, 55, "Label 2")
+                ];
 
-            var result = DataLabelUtils.drawDefaultLabelsForDataPointChart(mockBubbleData, mockBubbleGraphicsContext, mockLayout, mockViewPort);
+                var result = mapBubbleBuilder.getResult(mockBubbleData, "mapBubbles");
 
-            expect(result).toBeDefined();
-            expect($('.mapBubbles2 text').length).toBe(1);
+                expect(result).toBeDefined();
+                expect($(".mapBubbles text").length).toBe(2);
+            });
+
+            it("Overlap bubble labels validation", () => {
+                var mockBubbleData: powerbi.visuals.MapBubble[] = [
+                    mapBubbleBuilder.buildMapBubble(45, 60, "Label 1"),
+                    mapBubbleBuilder.buildMapBubble(50, 60, "Label 2")
+                ];
+
+                var result = mapBubbleBuilder.getResult(mockBubbleData, "mapBubbles");
+
+                expect(result).toBeDefined();
+                expect($(".mapBubbles text").length).toBe(1);
+            });
+
+            it("Show slice labels validation", () => {
+                var mockSliceData: powerbi.visuals.MapSlice[] = [
+                    mapSliceBuilder.buildMapSlice(0, 55, "Label 1", 20),
+                    mapSliceBuilder.buildMapSlice(50, 55, "Label 2", 20)
+                ];
+
+                var result = mapSliceBuilder.getResult(mockSliceData, "mapSlice");
+
+                expect(result).toBeDefined();
+                expect($(".mapSlice text").length).toBe(2);
+            });
+
+            it("Overlap slice labels validation", () => {
+                var mockSliceData: powerbi.visuals.MapSlice[] = [
+                    mapSliceBuilder.buildMapSlice(45, 60, "Label 1", 20),
+                    mapSliceBuilder.buildMapSlice(50, 60, "Label 2", 20)
+                ];
+
+                var result = mapSliceBuilder.getResult(mockSliceData, "mapSlice");
+
+                expect(result).toBeDefined();
+                expect($(".mapSlice text").length).toBe(1);
+            });
         });
 
-        it('Show slice labels validation', () => {
-            var mockSliceData: powerbi.visuals.MapSlice[] = [
-                {
-                    x: 0,
-                    y: 55,
-                    radius: 10,
-                    fill: "#000000",
-                    stroke: "2",
-                    strokeWidth: 2,
-                    selected: true,
-                    identity: null,
-                    labeltext: "Label 1",
-                    value: 20,
-                },
-                {
-                    x: 50,
-                    y: 55,
-                    radius: 10,
-                    fill: "#000000",
-                    stroke: "2",
-                    strokeWidth: 2,
-                    selected: true,
-                    identity: null,
-                    labeltext: "Label 2",
-                    value: 20,
-                }];
+        describe("Waterfall Chart Collision Detection", () => {
+            var categoryColumn: powerbi.DataViewMetadataColumn = {
+                displayName: "year",
+                queryName: "selectYear",
+                type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
+            };
 
-            var mockLayout: powerbi.visuals.ILabelLayout = DataLabelUtils.getMapLabelLayout(mockDatalabelSettings);
+            var measureColumn: powerbi.DataViewMetadataColumn = {
+                displayName: "sales",
+                queryName: "selectSales",
+                isMeasure: true, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Integer),
+                objects: {
+                    general: {
+                        formatString: "$0"
+                    }
+                }
+            };
 
-            var mockSliceGraphicsContext: D3.Selection = d3.select('body')
-                .append('svg')
-                .style("position", "absolute")
-                .append("g")
-                .classed("mapSlice1", true);
+            var metadata: powerbi.DataViewMetadata = {
+                columns: [categoryColumn, measureColumn],
+                objects: {
+                    labels: {
+                        show: true
+                    }
+                }
+            };
 
-            var result = DataLabelUtils.drawDefaultLabelsForDataPointChart(mockSliceData, mockSliceGraphicsContext, mockLayout, mockViewPort);
+            beforeEach(() => {
+                visualBuilder = new VisualBuilder("500", "500", "waterfallChart");
 
-            expect(result).toBeDefined();
-            expect($('.mapSlice1 text').length).toBe(2);
+                visualBuilder.metadata = metadata;
+                visualBuilder.categoriesValues = [2010, 2011, 2012];
+                visualBuilder.values = [100, -200, 250];
+                visualBuilder.isIdentity = true;
+            });
+
+            it("Show labels validation", (done) => {
+                visualBuilder.onDataChanged();
+
+                setTimeout(() => {
+                    expect($('.labels text').length).toBe(4);
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it("Overlap labels validation", (done) => {
+                visualBuilder.setSize("120", "100");
+
+                visualBuilder.metadata.objects = {
+                    labels: {
+                        show: true
+                    }
+                };
+
+                visualBuilder.onDataChanged();
+
+                setTimeout(() => {
+                    expect($('.labels text').length).toBe(2);
+                    done();
+                }, DefaultWaitForRender);
+            });
         });
 
-        it('Hide slice labels validation', () => {
-            var mockSliceData: powerbi.visuals.MapSlice[] = [
-                {
-                    x: 45,
-                    y: 60,
-                    radius: 10,
-                    fill: "#000000",
-                    stroke: "2",
-                    strokeWidth: 2,
-                    selected: true,
-                    identity: null,
-                    labeltext: "Label 1",
-                    value: 20,
-                },
-                {
-                    x: 50,
-                    y: 60,
-                    radius: 10,
-                    fill: "#000000",
-                    stroke: "2",
-                    strokeWidth: 2,
-                    selected: true,
-                    identity: null,
-                    labeltext: "Label 2",
-                    value: 20,
-                }];
+        describe("Tests", () => {
+            it("display units formatting values : Auto", () => {
+                var value: number = 20000;
+                var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
+                labelSettings.displayUnits = 0;
+                labelSettings.precision = 0;
+                var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
+                var formatter = formattersCache.getOrCreate(null, labelSettings);
+                var formattedValue = formatter.format(value);
+                expect(formattedValue).toBe("20,000");
+            });
 
-            var mockLayout: powerbi.visuals.ILabelLayout = DataLabelUtils.getMapLabelLayout(mockDatalabelSettings);
+            it("display units formatting values : K", () => {
+                var value: number = 20000;
+                var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
+                labelSettings.displayUnits = 10000;
+                labelSettings.precision = 0;
+                var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
+                var formatter = formattersCache.getOrCreate(null, labelSettings);
+                var formattedValue = formatter.format(value);
+                expect(formattedValue).toBe("20K");
+            });
 
-            var mockSliceGraphicsContext: D3.Selection = d3.select('body')
-                .append('svg')
-                .style("position", "absolute")
-                .append("g")
-                .classed("mapSlice2", true);
+            it("display units formatting values : M", () => {
+                var value: number = 200000;
+                var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
+                labelSettings.displayUnits = 1000000;
+                labelSettings.precision = 1;
+                var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
+                var formatter = formattersCache.getOrCreate(null, labelSettings);
+                var formattedValue = formatter.format(value);
+                expect(formattedValue).toBe("0.2M");
+            });
 
-            var result = DataLabelUtils.drawDefaultLabelsForDataPointChart(mockSliceData, mockSliceGraphicsContext, mockLayout, mockViewPort);
+            it("display units formatting values : B", () => {
+                var value: number = 200000000000;
+                var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
+                labelSettings.displayUnits = 1000000000;
+                labelSettings.precision = 0;
+                var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
+                var formatter = formattersCache.getOrCreate(null, labelSettings);
+                var formattedValue = formatter.format(value);
+                expect(formattedValue).toBe("200bn");
+            });
 
-            expect(result).toBeDefined();
-            expect($('.mapSlice2 text').length).toBe(1);
+            it("display units formatting values : T", () => {
+                var value: number = 200000000000;
+                var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
+                labelSettings.displayUnits = 1000000000000;
+                labelSettings.precision = 1;
+                var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
+                var formatter = formattersCache.getOrCreate(null, labelSettings);
+                var formattedValue = formatter.format(value);
+                expect(formattedValue).toBe("0.2T");
+            });
+
+            it("label formatting - multiple formats", () => {
+                var formatCol1 = "#,0.0";
+                var formatCol2 = "$#,0.0";
+                var value: number = 1545;
+                var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
+                labelSettings.displayUnits = null;
+                labelSettings.precision = 1;
+
+                var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
+                var formatter1 = formattersCache.getOrCreate(formatCol1, labelSettings);
+                var formattedValue = formatter1.format(value);
+
+                expect(formattedValue).toBe("1,545.0");
+
+                var formatter2 = formattersCache.getOrCreate(formatCol2, labelSettings);
+                formattedValue = formatter2.format(value);
+
+                expect(formattedValue).toBe("$1,545.0");
+            });
         });
+
+        describe("Test enumerateCategoryLabels", () => {
+            it("test default values", () => {
+                var labelSettings = DataLabelUtils.getDefaultPointLabelSettings();
+                var objectsWithColor = DataLabelUtils.enumerateCategoryLabels(labelSettings, true);
+                var objectsNoColor = DataLabelUtils.enumerateCategoryLabels(labelSettings, false);
+
+                expect(objectsWithColor[0].properties["show"]).toBe(false);
+                expect(objectsNoColor[0].properties["show"]).toBe(false);
+
+                expect(objectsWithColor[0].properties["color"]).toBe(labelSettings.labelColor);
+                expect(objectsNoColor[0].properties["color"]).toBeUndefined();
+            });
+
+            it("test custom values", () => {
+                var labelSettings = DataLabelUtils.getDefaultPointLabelSettings();
+                labelSettings.show = true;
+                labelSettings.labelColor = "#FF0000";
+
+                var objectsWithColor = DataLabelUtils.enumerateCategoryLabels(labelSettings, true);
+
+                expect(objectsWithColor[0].properties["show"]).toBe(true);
+                expect(objectsWithColor[0].properties["color"]).toBe("#FF0000");
+            });
+
+            it("test category labels objetcs for donut chart", () => {
+                var labelSettings = DataLabelUtils.getDefaultDonutLabelSettings();
+                var objectsWithColor = DataLabelUtils.enumerateCategoryLabels(labelSettings, false, true);
+
+                expect(objectsWithColor[0].properties["show"]).toBe(labelSettings.showCategory);
+            });
+
+            it("test null values", () => {
+                var labelSettings = DataLabelUtils.getDefaultPointLabelSettings();
+                var donutLabelSettings = DataLabelUtils.getDefaultDonutLabelSettings();
+
+                var objectsWithColor = DataLabelUtils.enumerateCategoryLabels(null, true);
+                var donutObjectsWithColor = DataLabelUtils.enumerateCategoryLabels(null, false, true);
+
+                expect(objectsWithColor[0].properties["show"]).toBe(labelSettings.show);
+                expect(objectsWithColor[0].properties["color"]).toBe(labelSettings.labelColor);
+
+                expect(donutObjectsWithColor[0].properties["show"]).toBe(donutLabelSettings.showCategory);
+            });
+        });
+
+        function getDataLabel(): JQuery {
+            return $("." + visualBuilder.pluginName + " .axisGraphicsContext .labels .data-labels");
+        }
+
+        function getDataLableText(elementId: number): string {
+            return getDataLabel().eq(elementId).text();
+        }
     });
 
     function columnChartDataLabelsShowValidation(chartType: string, collide: boolean) {
-        var v: powerbi.IVisual, element: JQuery;
+        var visualBuilder: VisualBuilder;
 
         var dataViewMetadataThreeColumn: powerbi.DataViewMetadataColumn[] = [
             {
-                displayName: 'col1',
-                queryName: 'col1',
+                displayName: "col1",
+                queryName: "col1",
                 type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
             },
             {
-                displayName: 'col2',
-                queryName: 'col2',
+                displayName: "col2",
+                queryName: "col2",
                 isMeasure: true,
                 type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
             },
             {
-                displayName: 'col3',
-                queryName: 'col3',
+                displayName: "col3",
+                queryName: "col3",
                 isMeasure: true,
                 type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
             }
         ];
 
-        function metadata(columns): powerbi.DataViewMetadata {
+        function createMetadata(columns): powerbi.DataViewMetadata {
             var metadata: powerbi.DataViewMetadata = {
                 columns: columns,
             };
 
             metadata.objects = {
-                labels: { show: true, labelPrecision: 0,  color: { solid: { color: '#FF0000' } } }
+                labels: {
+                    show: true,
+                    labelPrecision: 0,
+                    color: {
+                        solid: {
+                            color: "#FF0000"
+                        }
+                    }
+                }
             };
 
             return metadata;
         }
 
-        var hostServices = powerbitests.mocks.createVisualHostServices();
-
         beforeEach(() => {
+            if (collide) {
+                visualBuilder = new VisualBuilder("100", "100", chartType);
+            } else {
+                visualBuilder = new VisualBuilder("500", "500", chartType);
+            }
 
-            if (collide)
-                element = powerbitests.helpers.testDom('100', '100');
-            else
-                element = powerbitests.helpers.testDom('500', '500');
-
-            v = powerbi.visuals.visualPluginFactory.create().getPlugin(chartType).create();
-            v.init({
-                element: element,
-                host: hostServices,
-                style: powerbi.visuals.visualStyles.create(),
-                viewport: {
-                    height: element.height(),
-                    width: element.width()
-                },
-                animation: { transitionImmediate: true },
-            });
+            visualBuilder.metadata = createMetadata(dataViewMetadataThreeColumn);
         });
 
-        it('Data Label Visibility Validation', (done) => {
-            var categoryIdentities = [
-                mocks.dataViewScopeIdentity("John Domo"),
-                mocks.dataViewScopeIdentity("Delta Force"),
-                mocks.dataViewScopeIdentity("Mr Bing"),
-            ];
-            var dataView: powerbi.DataView = {
-                metadata: metadata(dataViewMetadataThreeColumn),
-                categorical: {
-                    categories: [{
-                        source: dataViewMetadataThreeColumn[0],
-                        values: ['John Domo', 'Delta Force', 'Mr Bing'],
-                        identity: categoryIdentities
-                    }],
-                    values: DataViewTransform.createValueColumns([{
-                        source: dataViewMetadataThreeColumn[1],
-                        values: [20, 20, 100],
-                        subtotal: 140
-                    }])
-                }
-            };
-            v.onDataChanged({ dataViews: [dataView] });
+        it("Data Label Visibility Validation", (done) => {
+            visualBuilder.categoriesValues = ["John Domo", "Delta Force", "Mr Bing"];
+            visualBuilder.values = [20, 20, 100];
+            visualBuilder.isIdentity = true;
 
-            var labels = $('.data-labels');
+            visualBuilder.onDataChanged();
+
+            var labels = $(".data-labels");
 
             setTimeout(() => {
 
                 if (collide)
                     switch (chartType) {
-                        case 'columnChart':
-                        case 'clusteredColumnChart':
+                        case "columnChart":
+                        case "clusteredColumnChart":
                             expect(labels.length).toBe(2);
                             break;
-                        case 'barChart':
-                        case 'clusteredBarChart':                        
+                        case "barChart":
+                        case "clusteredBarChart":
                             expect(labels.length).toBe(3);
                             break;
                         //Formatting support localization, 100.00% will be displayed as 100% so the label will be displayed.
-                        case 'hundredPercentStackedColumnChart':
+                        case "hundredPercentStackedColumnChart":
                             expect(labels.length).toBe(0);
                             break;
-                        case 'hundredPercentStackedBarChart':
+                        case "hundredPercentStackedBarChart":
                             expect(labels.length).toBe(3);
                             break;
                     }
                 else
                     switch (chartType) {
-                        case 'columnChart':
-                        case 'barChart':
-                        case 'clusteredColumnChart':
-                        case 'clusteredBarChart':
+                        case "columnChart":
+                        case "barChart":
+                        case "clusteredColumnChart":
+                        case "clusteredBarChart":
                             expect(labels.length).toBe(3);
-                            break;                        
-                        case 'hundredPercentStackedColumnChart':
-                        case 'hundredPercentStackedBarChart':
+                            break;
+                        case "hundredPercentStackedColumnChart":
+                        case "hundredPercentStackedBarChart":
                             expect(labels.length).toBe(3);
                             break;
                     }
@@ -571,249 +570,222 @@ module powerbitests {
         });
     }
 
-    describe("Stacked Bar Chart show labels validation", () => columnChartDataLabelsShowValidation('barChart', false));
-    describe("Clustered Bar Chart show labels validation", () => columnChartDataLabelsShowValidation('clusteredBarChart', false));
-    describe("Hundred Percent Stacked Bar Chart show labels validation", () => columnChartDataLabelsShowValidation('hundredPercentStackedBarChart', false));
-    describe("Stacked Column Chart show labels validation", () => columnChartDataLabelsShowValidation('columnChart', false));
-    describe("Clustered Column Chart show labels validation", () => columnChartDataLabelsShowValidation('clusteredColumnChart', false));
-    describe("Hundred Percent Stacked Column Chart show labels validation", () => columnChartDataLabelsShowValidation('hundredPercentStackedColumnChart', false));
+    describe("Stacked Bar Chart show labels validation", () =>
+        columnChartDataLabelsShowValidation("barChart", false));
+    describe("Clustered Bar Chart show labels validation", () =>
+        columnChartDataLabelsShowValidation("clusteredBarChart", false));
+    describe("Hundred Percent Stacked Bar Chart show labels validation", () =>
+        columnChartDataLabelsShowValidation("hundredPercentStackedBarChart", false));
+    describe("Stacked Column Chart show labels validation", () =>
+        columnChartDataLabelsShowValidation("columnChart", false));
+    describe("Clustered Column Chart show labels validation", () =>
+        columnChartDataLabelsShowValidation("clusteredColumnChart", false));
+    describe("Hundred Percent Stacked Column Chart show labels validation", () =>
+        columnChartDataLabelsShowValidation("hundredPercentStackedColumnChart", false));
 
-    describe("Stacked Bar Chart hide labels validation", () => columnChartDataLabelsShowValidation('barChart', true));
-    describe("Clustered Bar Chart hide labels validation", () => columnChartDataLabelsShowValidation('clusteredBarChart', true));
-    describe("Hundred Percent Stacked Bar Chart hide labels validation", () => columnChartDataLabelsShowValidation('hundredPercentStackedBarChart', true));
-    describe("Stacked Column Chart hide labels validation", () => columnChartDataLabelsShowValidation('columnChart', true));
-    describe("Clustered Column Chart hide labels validation", () => columnChartDataLabelsShowValidation('clusteredColumnChart', true));
-    describe("Hundred Percent Stacked Column Chart hide labels validation", () => columnChartDataLabelsShowValidation('hundredPercentStackedColumnChart', true));
+    describe("Stacked Bar Chart hide labels validation", () =>
+        columnChartDataLabelsShowValidation("barChart", true));
+    describe("Clustered Bar Chart hide labels validation", () =>
+        columnChartDataLabelsShowValidation("clusteredBarChart", true));
+    describe("Hundred Percent Stacked Bar Chart hide labels validation", () =>
+        columnChartDataLabelsShowValidation("hundredPercentStackedBarChart", true));
+    describe("Stacked Column Chart hide labels validation", () =>
+        columnChartDataLabelsShowValidation("columnChart", true));
+    describe("Clustered Column Chart hide labels validation", () =>
+        columnChartDataLabelsShowValidation("clusteredColumnChart", true));
+    describe("Hundred Percent Stacked Column Chart hide labels validation", () =>
+        columnChartDataLabelsShowValidation("hundredPercentStackedColumnChart", true));
 
-    describe("dataLabelUtils Waterfall Chart Collision Detection", () => {
-        var v: powerbi.IVisual, element: JQuery;;
-        var DataViewTransform = powerbi.data.DataViewTransform;
+    class VisualBuilder {
+        private visual: powerbi.IVisual;
 
-        //only 2 values should be visible due to collision detection
-        var values = [100, 50, 100];
-        var categories = [2010, 2011, 2012];
+        private element: JQuery;
 
-        var categoryIdentities = [
-            mocks.dataViewScopeIdentity(2010),
-            mocks.dataViewScopeIdentity(2011),
-            mocks.dataViewScopeIdentity(2012),
-        ];
+        private host: powerbi.IVisualHostServices;
 
-        var categoryColumn: powerbi.DataViewMetadataColumn = { displayName: 'year', queryName: 'selectYear', type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) };
-        var measureColumn: powerbi.DataViewMetadataColumn = { displayName: 'sales', queryName: 'selectSales', isMeasure: true, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Integer), objects: { general: { formatString: '$0' } } };
+        private style: powerbi.IVisualStyle;
 
-        var dataView: powerbi.DataViewCategorical = {
-            categories: [{
-                source: categoryColumn,
-                values: categories,
-                identity: categoryIdentities
-            }],
-            values: DataViewTransform.createValueColumns([{
-                source: measureColumn,
-                values: values,
-            }]),
-        };
-        var metadata: powerbi.DataViewMetadata = {
-            columns: [categoryColumn, measureColumn],
-        };
+        public metadata: powerbi.DataViewMetadata;
 
-        var data: powerbi.DataView = {
-            categorical: dataView,
-            metadata: metadata,
-        };
+        public values: any[] = [];
 
-        beforeEach(() => {
-            v = powerbi.visuals.visualPluginFactory.create().getPlugin('waterfallChart').create();            
-        });
+        public categoriesValues: any[] = [];
 
-        it('Show labels validation', (done) => {
-            element = powerbitests.helpers.testDom('500', '500');
+        public categoryIdentities: powerbi.DataViewScopeIdentity[];
 
-            v.init({
-                element: element,
-                host: powerbitests.mocks.createVisualHostServices(),
-                style: powerbi.visuals.visualStyles.create(),
+        public isIdentity: boolean = false;
+
+        private dataView: powerbi.DataView;
+
+        private height: string;
+
+        private width: string;
+
+        private _pluginName: string;
+
+        public get pluginName(): string {
+            return this._pluginName;
+        }
+
+        constructor(height: string, width: string, pluginName: string) {
+            this.width = width;
+            this.height = height;
+            this._pluginName = pluginName;
+
+            this.init();
+        }
+
+        private init() {
+            this.element = powerbitests.helpers.testDom(this.height, this.width);
+            this.host = powerbitests.mocks.createVisualHostServices();
+            this.style = powerbi.visuals.visualStyles.create();
+
+            this.createVisual();
+        }
+
+        public setSize(width: string, height: string) {
+            this.width = width;
+            this.height = height;
+
+            this.init();
+        }
+
+        private createVisual() {
+            this.visual = powerbi.visuals.visualPluginFactory.create().getPlugin(this._pluginName).create();
+
+            this.visual.init(this.createInitOptions());
+        }
+
+        private createInitOptions(): powerbi.VisualInitOptions {
+            return <powerbi.VisualInitOptions> {
+                element: this.element,
+                host: this.host,
+                style: this.style,
                 viewport: {
-                    height: element.height(),
-                    width: element.width()
+                    height: this.element.height(),
+                    width: this.element.width()
                 },
-                animation: { transitionImmediate: true }
-            });
+                animation: {transitionImmediate: true}
+            };
+        }
 
-            data.metadata.objects = {
-                labels: {
-                    show: true,
+        protected createIdentities() {
+            if (!this.isIdentity) {
+                this.categoryIdentities = undefined;
+
+                return;
+            }
+
+            var categoryIdentities: powerbi.DataViewScopeIdentity[] = [];
+
+            for(var i = 0; i < this.categoriesValues.length; i++) {
+                categoryIdentities.push(mocks.dataViewScopeIdentity(this.categoriesValues[i]));
+            }
+
+            this.categoryIdentities = categoryIdentities;
+        }
+
+        private createDataView() {
+            this.dataView = <powerbi.DataView> {
+                metadata: this.metadata,
+                categorical: {
+                    categories: [{
+                        source: this.metadata.columns[0],
+                        values: this.categoriesValues,
+                        identity: this.categoryIdentities
+                    }],
+                    values: DataViewTransform.createValueColumns([{
+                        source: this.metadata.columns[1],
+                        values: this.values
+                    }])
                 }
             };
-            var dataChangedOptions = {
-                dataViews: [data]
-            };
+        }
 
-            v.onDataChanged(dataChangedOptions);
+        public update() {
+            this.createIdentities();
+            this.createDataView();
+        }
 
-            setTimeout(() => {
-                expect($('.labels text').length).toBe(4);
-                done();
-            }, DefaultWaitForRender);
-        });
+        public onDataChanged() {
+            this.update();
 
-        it('Hide labels validation', (done) => {
-            element = powerbitests.helpers.testDom('120', '100');
-
-            v.init({
-                element: element,
-                host: powerbitests.mocks.createVisualHostServices(),
-                style: powerbi.visuals.visualStyles.create(),
-                viewport: {
-                    height: element.height(),
-                    width: element.width()
-                },
-                animation: { transitionImmediate: true }
+            this.visual.onDataChanged({
+                dataViews: [this.dataView]
             });
+        }
+    }
 
-            data.metadata.objects = {
-                labels: {
-                    show: true,
-                }
+    class MapBuilder {
+        public datalabelSettings: powerbi.visuals.PointDataLabelsSettings = {
+            show: true,
+            displayUnits: 2,
+            position: powerbi.visuals.PointLabelPosition.Above,
+            precision: 2,
+            labelColor: "#000000",
+            formatterOptions: {}
+        };
+
+        public viewPort = {
+            height: 150,
+            width: 300
+        };
+
+        public layout(): powerbi.visuals.ILabelLayout {
+            return DataLabelUtils.getMapLabelLayout(this.datalabelSettings);
+        }
+
+        public graphicsContext(className: string): D3.Selection {
+            return d3.select("body")
+                .append("svg")
+                .style("position", "absolute")
+                .append("g")
+                .classed(className, true);
+        }
+
+        public build(x: number, y: number, labeltext: string) {
+            return {
+                x: x,
+                y: y,
+                radius: 10,
+                fill: "#000000",
+                stroke: "2",
+                strokeWidth: 2,
+                selected: true,
+                identity: null,
+                labeltext: labeltext
             };
-            var dataChangedOptions = {
-                dataViews: [data]
-            };
-            v.onDataChanged(dataChangedOptions);
+        }
+    }
 
-            setTimeout(() => {
-                expect($('.labels text').length).toBe(2);
-                done();
-            }, DefaultWaitForRender);
-        });
-    });
+    class MapBubbleBuilder extends MapBuilder {
+        public buildMapBubble(x: number, y: number, labeltext: string): powerbi.visuals.MapBubble {
+            return <powerbi.visuals.MapBubble> this.build(x, y, labeltext);
+        }
 
-    describe("dataLabelUtils tests", () => {
+        public getResult(data: any[], className: string): D3.UpdateSelection {
+            return DataLabelUtils.drawDefaultLabelsForDataPointChart(
+                data,
+                this.graphicsContext(className),
+                this.layout(),
+                this.viewPort);
+        }
+    }
 
-        it('display units formatting values : Auto', () => {
-            var value: number = 20000;
-            var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
-            labelSettings.displayUnits = 0;
-            labelSettings.precision = 0;
-            var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
-            var formatter = formattersCache.getOrCreate(null, labelSettings);
-            var formattedValue = formatter.format(value);
-            expect(formattedValue).toBe("20,000");
-        });
+    class MapSliceBuilder extends MapBuilder {
+        public buildMapSlice(x: number, y: number, labeltext: string, value: any): powerbi.visuals.MapSlice {
+            var map: any = this.build(x, y, labeltext);
+            map.value = value;
 
-        it('display units formatting values : K', () => {
-            var value: number = 20000;
-            var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
-            labelSettings.displayUnits = 10000;
-            labelSettings.precision = 0;
-            var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
-            var formatter = formattersCache.getOrCreate(null, labelSettings);
-            var formattedValue = formatter.format(value);
-            expect(formattedValue).toBe("20K");
-        });
+            return <powerbi.visuals.MapSlice> map;
+        }
 
-        it('display units formatting values : M', () => {
-            var value: number = 200000;
-            var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
-            labelSettings.displayUnits = 1000000;
-            labelSettings.precision = 1;
-            var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
-            var formatter = formattersCache.getOrCreate(null, labelSettings);
-            var formattedValue = formatter.format(value);
-            expect(formattedValue).toBe("0.2M");
-        });
-
-        it('display units formatting values : B', () => {
-            var value: number = 200000000000;
-            var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
-            labelSettings.displayUnits = 1000000000;
-            labelSettings.precision = 0;
-            var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
-            var formatter = formattersCache.getOrCreate(null, labelSettings);
-            var formattedValue = formatter.format(value);
-            expect(formattedValue).toBe("200bn");
-        });
-
-        it('display units formatting values : T', () => {
-            var value: number = 200000000000;
-            var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
-            labelSettings.displayUnits = 1000000000000;
-            labelSettings.precision = 1;
-            var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
-            var formatter = formattersCache.getOrCreate(null, labelSettings);
-            var formattedValue = formatter.format(value);
-            expect(formattedValue).toBe("0.2T");
-        });
-
-        it('label formatting - multiple formats', () => {
-            var formatCol1 = '#,0.0';
-            var formatCol2 = '$#,0.0';
-            var value: number = 1545;
-            var labelSettings: powerbi.visuals.VisualDataLabelsSettings = DataLabelUtils.getDefaultLabelSettings();
-            labelSettings.displayUnits = null;
-            labelSettings.precision = 1;
-
-            var formattersCache = DataLabelUtils.createColumnFormatterCacheManager();
-            var formatter1 = formattersCache.getOrCreate(formatCol1, labelSettings);
-            var formattedValue = formatter1.format(value);
-
-            expect(formattedValue).toBe("1,545.0");
-
-            var formatter2 = formattersCache.getOrCreate(formatCol2, labelSettings);
-            var formattedValue = formatter2.format(value);
-
-            expect(formattedValue).toBe("$1,545.0");
-        });
-    });
-
-    describe("dataLabelUtils Test enumerateCategoryLabels", () => {
-
-        it('test default values', () => {
-
-            var labelSettings = DataLabelUtils.getDefaultPointLabelSettings();
-            var objectsWithColor = DataLabelUtils.enumerateCategoryLabels(labelSettings, true);
-            var objectsNoColor = DataLabelUtils.enumerateCategoryLabels(labelSettings, false);
-
-            expect(objectsWithColor[0].properties['show']).toBe(false);
-            expect(objectsNoColor[0].properties['show']).toBe(false);
-
-            expect(objectsWithColor[0].properties['color']).toBe(labelSettings.labelColor);
-            expect(objectsNoColor[0].properties['color']).toBeUndefined();
-        });
-
-        it('test custom values', () => {
-
-            var labelSettings = DataLabelUtils.getDefaultPointLabelSettings();
-            labelSettings.show = true;
-            labelSettings.labelColor = '#FF0000';
-
-            var objectsWithColor = DataLabelUtils.enumerateCategoryLabels(labelSettings, true);
-            
-            expect(objectsWithColor[0].properties['show']).toBe(true);
-            expect(objectsWithColor[0].properties['color']).toBe('#FF0000');
-            
-        });
-
-        it('test category labels objetcs for donut chart', () => {
-
-            var labelSettings = DataLabelUtils.getDefaultDonutLabelSettings();
-            var objectsWithColor = DataLabelUtils.enumerateCategoryLabels(labelSettings, false, true);
-
-            expect(objectsWithColor[0].properties['show']).toBe(labelSettings.showCategory);
-        });
-
-        it('test null values', () => {
-
-            var labelSettings = DataLabelUtils.getDefaultPointLabelSettings();
-            var donutLabelSettings = DataLabelUtils.getDefaultDonutLabelSettings();
-
-            var objectsWithColor = DataLabelUtils.enumerateCategoryLabels(null, true);
-            var donutObjectsWithColor = DataLabelUtils.enumerateCategoryLabels(null, false, true);
-            
-            expect(objectsWithColor[0].properties['show']).toBe(labelSettings.show);
-            expect(objectsWithColor[0].properties['color']).toBe(labelSettings.labelColor);
-
-            expect(donutObjectsWithColor[0].properties['show']).toBe(donutLabelSettings.showCategory);
-        });
-    });
+        public getResult(data: any[], className: string) {
+            return DataLabelUtils.drawDefaultLabelsForDataPointChart(
+                data,
+                this.graphicsContext(className),
+                this.layout(),
+                this.viewPort);
+        }
+    }
 }

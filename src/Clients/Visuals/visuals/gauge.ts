@@ -105,7 +105,9 @@ module powerbi.visuals {
         animator?: IAnimator;
     }
 
-    /** Renders a number that can be animate change in value */
+    /** 
+     * Renders a number that can be animate change in value.
+     */
     export class Gauge implements IVisual {
         private static MIN_VALUE = -Infinity;
         private static MAX_VALUE = +Infinity;
@@ -165,7 +167,7 @@ module powerbi.visuals {
             selector: '.targetText'
         };
 
-        // Public for testability
+        /** Note: Public for testability */
         public static formatStringProp: DataViewObjectPropertyIdentifier = {
             objectName: 'general',
             propertyName: 'formatString',
@@ -405,7 +407,7 @@ module powerbi.visuals {
             return settings;
         }
 
-        //Made public for testability
+        /** Note: Made public for testability */
         public static converter(dataView: DataView): GaugeData {
             var gaugeData = Gauge.getGaugeData(dataView);
             var total = gaugeData.total;
@@ -543,7 +545,7 @@ module powerbi.visuals {
             });
         }
 
-        //public for testability
+        /** Note: public for testability */
         public getAnimatedNumberProperties(radius: number,
             innerRadiusFactor: number,
             top: number, left: number): AnimatedNumberProperties {
@@ -568,7 +570,7 @@ module powerbi.visuals {
             return properties;
         }
 
-        //public for testability
+        /** Note: public for testability */
         public getGaugeVisualProperties(): GaugeVisualProperties {
             var viewport = this.currentViewport;
             var margin: IMargin = this.margin;
@@ -597,7 +599,7 @@ module powerbi.visuals {
             return gaugeData;
         }
 
-        //public for testability
+        /** Note: public for testability */
         public drawViewPort(drawOptions: GaugeVisualProperties): void {
             debug.assertAnyValue(drawOptions, "Gauge options");
 

@@ -49,9 +49,10 @@ module powerbi.visuals {
 
     export type IAnimator = Animator<IAnimatorOptions, IAnimationOptions, IAnimationResult>;
 
-    /** We just need to have a non-null animator to allow axis animations in cartesianChart .
-      * Use this temporarily for Line/Scatter until we add more animations (MinervaPlugins only).
-      */
+    /** 
+     * We just need to have a non-null animator to allow axis animations in cartesianChart.
+     * Note: Use this temporarily for Line/Scatter until we add more animations (MinervaPlugins only).
+     */
     export class Animator<T extends IAnimatorOptions, U extends IAnimationOptions, V extends IAnimationResult> implements IAnimator {
         protected animationDuration: number;
 

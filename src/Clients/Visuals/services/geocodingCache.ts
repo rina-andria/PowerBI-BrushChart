@@ -54,8 +54,10 @@ module powerbi.visuals.BI.Services {
             this.maxCacheSize = maxCacheSize;
             this.maxCacheSizeOverflow = maxCacheSizeOverflow;
         }
-
-        /** Retrieves the coordinate for the key from the cache, returning undefined on a cache miss */
+        
+        /**
+         * Retrieves the coordinate for the key from the cache, returning undefined on a cache miss.
+         */
         public getCoordinates(query: GeocodeQuery): IGeocodeCoordinate {
             // Check in-memory cache
             var pair = this.geocodeCache[query.key];
@@ -71,8 +73,10 @@ module powerbi.visuals.BI.Services {
             }
             return undefined;
         }
-
-        /** Registers the query and coordinate to the cache */
+        
+        /**
+         * Registers the query and coordinate to the cache.
+         */
         public registerCoordinates(query: GeocodeQuery, coordinate: IGeocodeCoordinate): void {
             this.registerInMemory(query, coordinate);
             this.registerInStorage(query, coordinate);

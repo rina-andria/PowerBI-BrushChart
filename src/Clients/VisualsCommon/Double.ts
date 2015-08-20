@@ -28,10 +28,13 @@
 
 module powerbi {
 
-    /** Class Double contains a set of constants and precision based utility methods for dealing with doubles and their decimal garbage in the javascript */
+    /**
+     * Module Double contains a set of constants and precision based utility methods 
+     * for dealing with doubles and their decimal garbage in the javascript.
+     */
     export module Double {
 
-        // Constants
+        // Constants.
         export var MIN_VALUE = -Number.MAX_VALUE;
         export var MAX_VALUE = Number.MAX_VALUE;
         export var MIN_EXP = -308;
@@ -51,11 +54,11 @@ module powerbi {
                 1E-200, 1E-201, 1E-202, 1E-203, 1E-204, 1E-205, 1E-206, 1E-207, 1E-208, 1E-209, 1E-210, 1E-211, 1E-212, 1E-213, 1E-214, 1E-215, 1E-216, 1E-217, 1E-218, 1E-219, 1E-220, 1E-221, 1E-222, 1E-223, 1E-224, 1E-225, 1E-226, 1E-227, 1E-228, 1E-229, 1E-230, 1E-231, 1E-232, 1E-233, 1E-234, 1E-235, 1E-236, 1E-237, 1E-238, 1E-239, 1E-240, 1E-241, 1E-242, 1E-243, 1E-244, 1E-245, 1E-246, 1E-247, 1E-248, 1E-249, 1E-250, 1E-251, 1E-252, 1E-253, 1E-254, 1E-255, 1E-256, 1E-257, 1E-258, 1E-259, 1E-260, 1E-261, 1E-262, 1E-263, 1E-264, 1E-265, 1E-266, 1E-267, 1E-268, 1E-269, 1E-270, 1E-271, 1E-272, 1E-273, 1E-274, 1E-275, 1E-276, 1E-277, 1E-278, 1E-279, 1E-280, 1E-281, 1E-282, 1E-283, 1E-284, 1E-285, 1E-286, 1E-287, 1E-288, 1E-289, 1E-290, 1E-291, 1E-292, 1E-293, 1E-294, 1E-295, 1E-296, 1E-297, 1E-298, 1E-299,
                 1E-300, 1E-301, 1E-302, 1E-303, 1E-304, 1E-305, 1E-306, 1E-307, 1E-308, 1E-309, 1E-310, 1E-311, 1E-312, 1E-313, 1E-314, 1E-315, 1E-316, 1E-317, 1E-318, 1E-319, 1E-320, 1E-321, 1E-322, 1E-323, 1E-324];
 
-        // Methods
-
-        /** Returns powers of 10. Unlike the Math.pow this function produces no decimal garbage.
-          * @param exp - exponent
-          */
+        /**
+         * Returns powers of 10. 
+         * Unlike the Math.pow this function produces no decimal garbage.
+         * @param exp Exponent.
+         */
         export function pow10(exp: number): number {
             debug.assertValue(exp, "exp");
 
@@ -76,9 +79,11 @@ module powerbi {
             }
         }
 
-        /** Returns the 10 base logarithm of the number. Unlike Math.log function this produces integer results with no decimal garbage.
-          * @param value - positive value or zero
-          */
+        /** 
+         * Returns the 10 base logarithm of the number.
+         * Unlike Math.log function this produces integer results with no decimal garbage.
+         * @param val Positive value or zero.
+         */
         export function log10(val: number): number {
             debug.assert(val >= 0, "val");
 
@@ -216,11 +221,12 @@ module powerbi {
             return Double.floorWithPrecision(log10);
         }
 
-        /** Returns a power of 10 representing precision of the number based on the number of meaningfull decimal digits. 
-          * For example the precision of 56,263.3767 with the 6 meaningfull decimal digit is 0.1
-          * @param x - value
-          * @param decimalDigits - how many decimal digits are meaningfull
-          */
+        /**
+         * Returns a power of 10 representing precision of the number based on the number of meaningfull decimal digits. 
+         * For example the precision of 56,263.3767 with the 6 meaningfull decimal digit is 0.1.
+         * @param x Value.
+         * @param decimalDigits How many decimal digits are meaningfull.
+         */
         export function getPrecision(x: number, decimalDigits?: number): number {
             if (decimalDigits === undefined) {
                 decimalDigits = Double.DEFAULT_PRECISION_IN_DECIMAL_DIGITS;
@@ -240,11 +246,12 @@ module powerbi {
             return Double.pow10(precisionExp);
         }
 
-        /** Checks if a delta between 2 numbers is less than provided precision.
-          * @param x - one value
-          * @param y - another value
-          * @param precision - precision value
-          */
+        /** 
+         * Checks if a delta between 2 numbers is less than provided precision.
+         * @param x One value.
+         * @param y Another value.
+         * @param precision Precision value.
+         */
         export function equalWithPrecision(x: number, y: number, precision?: number): boolean {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -252,11 +259,13 @@ module powerbi {
             return x === y || Math.abs(x - y) < precision;
         }
 
-        /** Checks if a first value is less than another taking into account the loose precision based equality.
-          * @param x - one value
-          * @param y - another value
-          * @param precision - precision value
-          */
+        /** 
+         * Checks if a first value is less than another taking 
+         * into account the loose precision based equality.
+         * @param x One value.
+         * @param y Another value.
+         * @param precision Precision value.
+         */
         export function lessWithPrecision(x: number, y: number, precision?: number): boolean {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -264,11 +273,13 @@ module powerbi {
             return x < y && Math.abs(x - y) > precision;
         }
 
-        /** Checks if a first value is less or equal than another taking into account the loose precision based equality.
-          * @param x - one value
-          * @param y - another value
-          * @param precision - precision value
-          */
+        /** 
+         * Checks if a first value is less or equal than another taking 
+         * into account the loose precision based equality.
+         * @param x One value.
+         * @param y Another value.
+         * @param precision Precision value.
+         */
         export function lessOrEqualWithPrecision(x: number, y: number, precision?: number): boolean {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -276,11 +287,13 @@ module powerbi {
             return x < y || Math.abs(x - y) < precision;
         }
 
-        /** Checks if a first value is greater than another taking into account the loose precision based equality.
-          * @param x - one value
-          * @param y - another value
-          * @param precision - precision value
-          */
+        /** 
+         * Checks if a first value is greater than another taking 
+         * into account the loose precision based equality.
+         * @param x One value.
+         * @param y Another value.
+         * @param precision Precision value.
+         */
         export function greaterWithPrecision(x: number, y: number, precision?: number): boolean {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -288,11 +301,13 @@ module powerbi {
             return x > y && Math.abs(x - y) > precision;
         }
 
-        /** Checks if a first value is greater or equal to another taking into account the loose precision based equality.
-          * @param x - one value
-          * @param y - another value
-          * @param precision - precision value
-          */
+        /** 
+         * Checks if a first value is greater or equal to another taking 
+         * into account the loose precision based equality.
+         * @param x One value.
+         * @param y Another value.
+         * @param precision Precision value.
+         */
         export function greaterOrEqualWithPrecision(x: number, y: number, precision?: number): boolean {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -300,10 +315,11 @@ module powerbi {
             return x > y || Math.abs(x - y) < precision;
         }
 
-        /** Floors the number unless it's withing the precision distance from the higher int.
-          * @param x - one value
-          * @param precision - precision value
-          */
+        /** 
+         * Floors the number unless it's withing the precision distance from the higher int.
+         * @param x One value.
+         * @param precision Precision value.
+         */
         export function floorWithPrecision(x: number, precision?: number): number {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -316,10 +332,11 @@ module powerbi {
             }
         }
 
-        /** Ciels the number unless it's withing the precision distance from the lower int.
-          * @param x - one value
-          * @param precision - precision value
-          */
+        /** 
+         * Ceils the number unless it's withing the precision distance from the lower int.
+         * @param x One value.
+         * @param precision Precision value.
+         */
         export function ceilWithPrecision(x: number, precision?: number): number {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -332,10 +349,12 @@ module powerbi {
             }
         }
 
-        /** Floors the number to the provided precision. For example 234,578 floored to 1,000 precision is 234,000.
-          * @param x - one value
-          * @param precision - precision value
-          */
+        /** 
+         * Floors the number to the provided precision.
+         * For example 234,578 floored to 1,000 precision is 234,000.
+         * @param x One value.
+         * @param precision Precision value.
+         */
         export function floorToPrecision(x: number, precision?: number): number {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -346,10 +365,12 @@ module powerbi {
             return Math.floor(x / precision) * precision;
         }
 
-        /** Ciels the number to the provided precision. For example 234,578 floored to 1,000 precision is 235,000.
-          * @param x - one value
-          * @param precision - precision value
-          */
+        /** 
+         * Ceils the number to the provided precision.
+         * For example 234,578 floored to 1,000 precision is 235,000.
+         * @param x One value.
+         * @param precision Precision value.
+         */
         export function ceilToPrecision(x: number, precision?: number): number {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -360,10 +381,12 @@ module powerbi {
             return Math.ceil(x / precision) * precision;
         }
 
-        /** Rounds the number to the provided precision. For example 234,578 floored to 1,000 precision is 235,000.
-          * @param x - one value
-          * @param precision - precision value
-          */
+        /** 
+         * Rounds the number to the provided precision. 
+         * For example 234,578 floored to 1,000 precision is 235,000.
+         * @param x One value.
+         * @param precision Precision value.
+         */
         export function roundToPrecision(x: number, precision?: number): number {
             precision = applyDefault(precision, Double.DEFAULT_PRECISION);
             debug.assert(precision >= 0, "precision");
@@ -380,11 +403,12 @@ module powerbi {
             return result;
         }
 
-        /** Returns the value making sure that it's restricted to the provided range.
-          * @param x - one value
-          * @param min - range min boundary
-          * @param max - range max boundary
-          */
+        /** 
+         * Returns the value making sure that it's restricted to the provided range.
+         * @param x One value.
+         * @param min Range min boundary.
+         * @param max Range max boundary.
+         */
         export function ensureInRange(x: number, min: number, max: number): number {
             debug.assert(min <= max, "min must be less or equal to max");
             if (x === undefined || x === null) {
@@ -399,22 +423,23 @@ module powerbi {
             return x;
         }
 
-        /** Rounds the value - this method is actually faster than Math.round - used in the graphics utils.
-          * @param x - value to round
-          */
+        /** 
+         * Rounds the value - this method is actually faster than Math.round - used in the graphics utils.
+         * @param x Value to round.
+         */
         export function round(x: number): number {
             debug.assert(x >= 0, "x must be greater or equal to 0");
 
             return (0.5 + x) << 0;
         }
 
-        /** Projects the value from the source range into the target range.
-          * @param value - value to project
-          * @param fromMin - minimum of the source range
-          * @param fromMax - maximum of the source range
-          * @param toMin - minimum of the target range
-          * @param toMax - maximum of the target range 
-          */
+        /** 
+         * Projects the value from the source range into the target range.
+         * @param value Value to project.
+         * @param fromMin Minimum of the source range.
+         * @param toMin Minimum of the target range.
+         * @param toMax Maximum of the target range.
+         */
         export function project(value: number, fromMin: number, fromSize: number, toMin: number, toSize: number) { 
             if (fromSize===0 || toSize===0) {
                 if (fromMin <= value && value <= fromMin + fromSize) {
@@ -428,16 +453,18 @@ module powerbi {
             return projectedX;
         }
 
-        /** Removes decimal noise
-          * @param value - value to be processed
-          */
+        /** 
+         * Removes decimal noise.
+         * @param value Value to be processed.
+         */
 		export function removeDecimalNoise(value: number): number {
 			return roundToPrecision(value, getPrecision(value));
 		}
 
-        /** Checks whether the number is integer
-          * @param value - value to be checked
-          */
+        /** 
+         * Checks whether the number is integer.
+         * @param value Value to be checked.
+         */
         export function isInteger(value: number): boolean {
             return value !== null && value % 1 === 0;
         }

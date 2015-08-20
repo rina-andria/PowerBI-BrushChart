@@ -41,13 +41,15 @@ module powerbi {
     }
 
     export interface IFormattingService {
-        /** Formats the value using provided format expression and culture
-          * @param value - value to be formatted and converted to string.
-          * @param format - format to be applied. If undefined or empty then generic format is used.        
-          */
+        /** 
+         * Formats the value using provided format expression and culture
+         * @param value - value to be formatted and converted to string.
+         * @param format - format to be applied. If undefined or empty then generic format is used.        
+         */
         formatValue(value: any, format?: string): string;
 
-        /** Replaces the indexed format tokens (for example {0:c2}) in the format string with the localized formatted arguments.
+        /** 
+         * Replaces the indexed format tokens (for example {0:c2}) in the format string with the localized formatted arguments.
          * @param formatWithIndexedTokens - format string with a set of indexed format tokens.
          * @param args - array of values which should replace the tokens in the format string.
          * @param culture - localization culture. If undefined then the current culture is used.

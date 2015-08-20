@@ -30,7 +30,7 @@ module powerbi.data {
     /**
      * Represents the versions of the data shape binding structure.
      * NOTE Keep this file in sync with the Sql\InfoNav\src\Data\Contracts\DsqGeneration\DataShapeBindingVersions.cs
-     *      file in the TFS Dev branch.
+     * file in the TFS Dev branch.
      */
     export enum DataShapeBindingVersions {
         /** The initial version of data shape binding */

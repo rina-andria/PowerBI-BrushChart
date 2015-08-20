@@ -26,12 +26,16 @@
 
 /// <reference path="../_references.ts"/>
 
-// Defined in host
+/**
+ * Defined in host.
+ */
 declare var clusterUri: string;
 
 module jsCommon {
 
-    /** Http Status code we are interested */
+    /**
+     * Http Status code we are interested.
+     */
     export enum HttpStatusCode {
         OK = 200,
         BadRequest = 400,
@@ -40,13 +44,17 @@ module jsCommon {
         RequestEntityTooLarge = 413,
     }
 
-    /** Other HTTP Constants */
+    /**
+     * Other HTTP Constants.
+     */
     export module HttpConstants {
         export const ApplicationOctetStream = 'application/octet-stream';
         export const MultiPartFormData = 'multipart/form-data';
     }
 
-    /** Extensions to String class */
+    /**
+     * Extensions to String class.
+     */
     export module StringExtensions {
         export function format(...args: string[]) {
             var s = args[0];
@@ -61,7 +69,9 @@ module jsCommon {
             return s;
         }
 
-        /** Compares two strings for equality, ignoring case. */
+        /**
+         * Compares two strings for equality, ignoring case.
+         */
         export function equalIgnoreCase(a: string, b: string): boolean {
             return StringExtensions.normalizeCase(a) === StringExtensions.normalizeCase(b);
         }
@@ -71,19 +81,30 @@ module jsCommon {
             return StringExtensions.normalizeCase(a).indexOf(normalizedSearchString) === 0;
         }
 
-        /** Normalizes case for a string.  Used by equalIgnoreCase method. */
+        /** 
+         * Normalizes case for a string.
+         * Used by equalIgnoreCase method. 
+         */
         export function normalizeCase(value: string): string {
             Utility.throwIfNullOrUndefined(value, StringExtensions, 'normalizeCase', 'value');
 
             return value.toUpperCase();
         }
 
-        /** Is string null or empty or undefined? */
+        /** 
+         * Is string null or empty or undefined?
+         * @return True if the value is null or undefined or empty string,
+         * otherwise false.
+         */
         export function isNullOrEmpty(value: string): boolean {
             return (value == null) || (value.length === 0);
         }
 
-        /** Returns true if the string is null, undefined, empty, or only includes white spaces */
+        /** 
+         * Returns true if the string is null, undefined, empty, or only includes white spaces.
+         * @return True if the str is null, undefined, empty, or only includes white spaces,
+         * otherwise false.
+         */
         export function isNullOrUndefinedOrWhiteSpaceString(str: string): boolean {
             return StringExtensions.isNullOrEmpty(str) || StringExtensions.isNullOrEmpty(str.trim());
         }
@@ -107,19 +128,25 @@ module jsCommon {
             return str.trim() === '';
         }
 
-        /** Returns the string with any trailing whitespace from str removed. */
+        /** 
+         * Returns the string with any trailing whitespace from str removed.
+         */
         export function trimTrailingWhitespace(str: string): string {
             Utility.throwIfNullOrUndefined(str, this, 'trimTrailingWhitespace', 'str');
             return str.replace(/\s+$/, '');
         }
 
-        /** Returns the string with any leading and trailing whitespace from str removed. */
+        /**
+         * Returns the string with any leading and trailing whitespace from str removed.
+         */
         export function trimWhitespace(str: string): string {
             Utility.throwIfNullOrUndefined(str, this, 'trimWhitespace', 'str');
             return str.replace(/^\s+/, '').replace(/\s+$/, '');
         }
 
-        /** Returns length difference between the two provided strings */
+        /** 
+         * Returns length difference between the two provided strings.
+         */
         export function getLengthDifference(left: string, right: string) {
             Utility.throwIfNullOrUndefined(left, this, 'getLengthDifference', 'left');
             Utility.throwIfNullOrUndefined(right, this, 'getLengthDifference', 'right');
@@ -127,10 +154,11 @@ module jsCommon {
             return Math.abs(left.length - right.length);
         }
 
-        /** Repeat char or string several times.
-          * @param char The string to repeat.
-          * @param count How many times to repeat the string.
-          */
+        /**
+         * Repeat char or string several times.
+         * @param char The string to repeat.
+         * @param count How many times to repeat the string.
+         */
         export function repeat(char: string, count: number): string {
             var result = "";
             for (var i = 0; i < count; i++) {
@@ -139,11 +167,12 @@ module jsCommon {
             return result;
         }
 
-        /** Replace all the occurrences of the textToFind in the text with the textToReplace
-          * @param text The original string.
-          * @param textToFind Text to find in the original string
-          * @param textToReplace New text replacing the textToFind
-          */
+        /**
+         * Replace all the occurrences of the textToFind in the text with the textToReplace.
+         * @param text The original string.
+         * @param textToFind Text to find in the original string.
+         * @param textToReplace New text replacing the textToFind.
+         */
         export function replaceAll(text: string, textToFind: string, textToReplace: string): string {
             if (!textToFind)
                 return text;
@@ -152,7 +181,9 @@ module jsCommon {
             return text.replace(new RegExp(pattern, 'g'), textToReplace);
         }
 
-        /** Returns a name that is not specified in the values. */
+        /**
+         * Returns a name that is not specified in the values.
+         */
         export function findUniqueName(
             usedNames: { [name: string]: boolean },
             baseName: string): string {
@@ -207,12 +238,16 @@ module jsCommon {
         }
     }
 
-    /** Interface used for interacting with WCF typed objects */
+    /**
+     * Interface used for interacting with WCF typed objects.
+     */
     export interface TypedObject {
         __type: string;
     }
 
-    /** Script#: The general utility class */
+    /** 
+     * The general utility class.
+     */
     export class Utility {
         private static TypeNamespace = 'http://schemas.microsoft.com/sqlbi/2013/01/NLRuntimeService';
 
@@ -233,10 +268,10 @@ module jsCommon {
 
         /**
          * Ensures the specified value is not null or undefined. Throws a relevent exception if it is.
-         * @param value - The value to check
-         * @param context - The context from which the check originated
-         * @param methodName - The name of the method that initiated the check
-         * @param parameterName - The parameter name of the value to check
+         * @param value The value to check.
+         * @param context The context from which the check originated.
+         * @param methodName The name of the method that initiated the check.
+         * @param parameterName The parameter name of the value to check.
          */
         public static throwIfNullOrUndefined(value, context, methodName, parameterName) {
             if (value === null) {
@@ -249,10 +284,10 @@ module jsCommon {
 
         /**
          * Ensures the specified value is not null, undefined or empty. Throws a relevent exception if it is.
-         * @param value - The value to check
-         * @param context - The context from which the check originated
-         * @param methodName - The name of the method that initiated the check
-         * @param parameterName - The parameter name of the value to check
+         * @param value The value to check.
+         * @param context The context from which the check originated.
+         * @param methodName The name of the method that initiated the check.
+         * @param parameterName The parameter name of the value to check.
          */
         public static throwIfNullOrEmpty(value: any, context: any, methodName: string, parameterName: string) {
             Utility.throwIfNullOrUndefined(value, context, methodName, parameterName);
@@ -263,10 +298,10 @@ module jsCommon {
 
         /**
          * Ensures the specified string is not null, undefined or empty. Throws a relevent exception if it is.
-         * @param value - The value to check
-         * @param context - The context from which the check originated
-         * @param methodName - The name of the method that initiated the check
-         * @param parameterName - The parameter name of the value to check
+         * @param value The value to check.
+         * @param context The context from which the check originated.
+         * @param methodName The name of the method that initiated the check.
+         * @param parameterName The parameter name of the value to check.
          */
         public static throwIfNullOrEmptyString(value: string, context: any, methodName: string, parameterName: string) {
             Utility.throwIfNullOrUndefined(value, context, methodName, parameterName);
@@ -277,10 +312,10 @@ module jsCommon {
 
         /**
          * Ensures the specified value is not null, undefined, whitespace or empty. Throws a relevent exception if it is.
-         * @param value - The value to check
-         * @param context - The context from which the check originated
-         * @param methodName - The name of the method that initiated the check
-         * @param parameterName - The parameter name of the value to check
+         * @param value The value to check.
+         * @param context The context from which the check originated.
+         * @param methodName The name of the method that initiated the check.
+         * @param parameterName The parameter name of the value to check.
          */
         public static throwIfNullEmptyOrWhitespaceString(value: string, context: any, methodName: string, parameterName: string) {
             Utility.throwIfNullOrUndefined(value, context, methodName, parameterName);
@@ -291,10 +326,10 @@ module jsCommon {
 
         /**
          * Ensures the specified condition is true. Throws relevant exception if it isn't.
-         * @param condition - The condition to check
-         * @param context - The context from which the check originated
-         * @param methodName - The name of the method that initiated the check
-         * @param parameterName - The parameter name against which the condition is checked
+         * @param condition The condition to check.
+         * @param context The context from which the check originated.
+         * @param methodName The name of the method that initiated the check.
+         * @param parameterName The parameter name against which the condition is checked.
          */
         public static throwIfNotTrue(condition: boolean, context: any, methodName: string, parameterName: string) {
             if (!condition) {
@@ -304,7 +339,7 @@ module jsCommon {
 
         /**
          * Checks whether the provided value is a 'string'.
-         * @param value - The value to test
+         * @param value The value to test.
          */
         public static isString(value: any): boolean {
             return ((typeof value) === 'string');
@@ -312,7 +347,7 @@ module jsCommon {
 
         /**
          * Checks whether the provided value is a 'boolean'.
-         * @param value - The value to test
+         * @param value The value to test.
          */
         public static isBoolean(value: any): boolean {
             return ((typeof value) === 'boolean');
@@ -320,7 +355,7 @@ module jsCommon {
 
         /**
          * Checks whether the provided value is a 'number'.
-         * @param value - The value to test
+         * @param value The value to test.
          */
         public static isNumber(value: any): boolean {
             return ((typeof value) === 'number');
@@ -328,7 +363,7 @@ module jsCommon {
 
         /**
          * Checks whether the provided value is a Date instance.
-         * @param value - The value to test
+         * @param value The value to test.
          */
         public static isDate(value: any): boolean {
             return Utility.isObject(value) && (value instanceof Date);
@@ -336,7 +371,7 @@ module jsCommon {
 
         /**
          * Checks whether the provided value is an 'object'.
-         * @param value - The value to test
+         * @param value The value to test.
          */
         public static isObject(value: any): boolean {
             return (value != null) && ((typeof value) === 'object');
@@ -344,17 +379,17 @@ module jsCommon {
 
         /**
          * Checks whether the provided value is null or undefined.
-         * @param value - The value to test
-        */
+         * @param value The value to test.
+         */
         public static isNullOrUndefined(value: any): boolean {
             return (value === null) || (typeof (value) === Utility.Undefined);
         }
 
         /**
-         * Combine a base url and a path
-         * @param baseUrl - The base url
-         * @param path - The path to add on to the base url
-         * @returns The combined url
+         * Combine a base url and a path.
+         * @param baseUrl The base url.
+         * @param path The path to add on to the base url.
+         * @returns The combined url.
          */
         public static urlCombine(baseUrl: string, path: string) {
             Utility.throwIfNullOrUndefined(baseUrl, null, "urlCombine", "baseUrl");
@@ -426,8 +461,8 @@ module jsCommon {
         }
 
         /**
-         * Creates a client-side Guid string
-         * @returns A string representation of a Guid
+         * Creates a client-side Guid string.
+         * @returns A string representation of a Guid.
          */
         public static generateGuid(): string {
             var guid = "",
@@ -450,8 +485,8 @@ module jsCommon {
         }
 
         /**
-         * Generates a random 7 character string that is used as a connection group name
-         * @returns A random connection group name
+         * Generates a random 7 character string that is used as a connection group name.
+         * @returns A random connection group name.
          */
         public static generateConnectionGroupName(): string {
             var name = "";
@@ -464,7 +499,7 @@ module jsCommon {
         }
 
         /**
-         * Try extract a cookie from <paramref name="cookie"/> identified by key <paramref name="key"/>
+         * Try extract a cookie from {@link document.cookie} identified by key.
          */
         public static getCookieValue(key: string): string {
             // the cookie is of the format <key1=value1>; <key2=value2>. Split by ';', then by '=' 
@@ -481,9 +516,9 @@ module jsCommon {
         }
 
         /**
-         * Extracts the protocol://hostname section of a url
-         * @param url - The URL from which to extract the section
-         * @returns The protocol://hostname portion of the given URL
+         * Extracts the protocol://hostname section of a url.
+         * @param url The URL from which to extract the section.
+         * @returns The protocol://hostname portion of the given URL.
          */
         public static getDomainForUrl(url: string): string {
             var hrefObject = Utility.getHrefObjectFromUrl(url);
@@ -491,9 +526,9 @@ module jsCommon {
         }
 
         /**
-         * Extracts the hostname and absolute path sections of a url
-         * @param url - The URL from which to extract the section
-         * @returns The hostname and absolute path portion of the given URL
+         * Extracts the hostname and absolute path sections of a url.
+         * @param url The URL from which to extract the section.
+         * @returns The hostname and absolute path portion of the given URL.
          */
         public static getHostNameForUrl(url: string): string {
             var hrefObject = Utility.getHrefObjectFromUrl(url);
@@ -501,28 +536,28 @@ module jsCommon {
         }
 
         /**
-        * Return the original url with query string stripped.
-        * @param url - The URL from which to extract the section
-        * @returns the original url with query string stripped.
-        */
+         * Return the original url with query string stripped.
+         * @param url The URL from which to extract the section.
+         * @returns the original url with query string stripped.
+         */
         public static getUrlWithoutQueryString(url: string): string {
             var hrefObject = Utility.getHrefObjectFromUrl(url);
             return hrefObject.prop('protocol') + '//' + Utility.urlCombine(hrefObject.prop('host'), hrefObject.prop('pathname'));
         }
 
         /**
-         * Extracts the protocol section of a url
-         * @param url - The URL from which to extract the section
-         * @returns The protocol for the current URL
+         * Extracts the protocol section of a url.
+         * @param url The URL from which to extract the section.
+         * @returns The protocol for the current URL.
          */
         public static getProtocolFromUrl(url: string): string {
             return Utility.getHrefObjectFromUrl(url).prop('protocol').replace(':', '');
         }
 
         /**
-         * Returns a formatted href object from a URL
-         * @param url - The URL used to generate the object
-         * @returns A jQuery object with the url
+         * Returns a formatted href object from a URL.
+         * @param url The URL used to generate the object.
+         * @returns A jQuery object with the url.
          */
         public static getHrefObjectFromUrl(url: string): JQuery {
             var aObject = $('<a>');
@@ -531,9 +566,9 @@ module jsCommon {
         }
 
         /**
-         * Converts a WCF representation of a dictionary to a JavaScript dictionary
-         * @param wcfDictionary - The WCF dictionary to convert
-         * @returns The native JavaScript representation of this dictionary
+         * Converts a WCF representation of a dictionary to a JavaScript dictionary.
+         * @param wcfDictionary The WCF dictionary to convert.
+         * @returns The native JavaScript representation of this dictionary.
          */
         public static convertWcfToJsDictionary(wcfDictionary: any[]): { [index: string]: any; } {
             // convert the WCF JSON representation of a dictionary
@@ -573,28 +608,28 @@ module jsCommon {
         }
 
         /**
-         * Get the outer html of the given jquery object
-         * @param content - The jquery object
-         * @returns The entire html representation of the object
+         * Get the outer html of the given jquery object.
+         * @param content The jquery object.
+         * @returns The entire html representation of the object.
          */
         public static getOuterHtml(content: JQuery): string {
             return $('<div>').append(content).html();
         }
 
         /**
-         * Comparison Method: Compares two integer numbers
-         * @param a - An integer value
-         * @param b - An integer value
-         * @returns The comparison result
+         * Comparison Method: Compares two integer numbers.
+         * @param a An integer value.
+         * @param b An integer value.
+         * @returns The comparison result.
          */
         public static compareInt(a: number, b: number): number {
             return a - b;
         }
-
-        /** 
-          Return the index of the smallest value in a numerical array
-          @param a - A numeric array
-          @returns - The index of the smallest value in the array
+        
+        /**
+         * Return the index of the smallest value in a numerical array.
+         * @param a A numeric array.
+         * @returns The index of the smallest value in the array.
          */
         public static getIndexOfMinValue(a: number[]) {
             var retValue = 0;
@@ -609,39 +644,39 @@ module jsCommon {
 
             return retValue;
         }
-
-        /** 
-          Tests whether a URL is valid
-          @param url - The url to be tested
-          @returns - Whether the provided url is valid
-        */
+        
+        /**
+         * Tests whether a URL is valid.
+         * @param url The url to be tested.
+         * @returns Whether the provided url is valid.
+         */
         public static isValidUrl(url: string): boolean {
             return !StringExtensions.isNullOrEmpty(url) &&
                 (StringExtensions.startsWithIgnoreCase(url, 'http://') || StringExtensions.startsWithIgnoreCase(url, 'https://'));
         }
-
-        /** 
-          Extracts a url from a background image attribute in the format of: url('www.foobar.com/image.png')
-          @param url - The value of the background-image attribute
-          @returns - The extracted url
-        */
+        
+        /**
+         * Extracts a url from a background image attribute in the format of: url('www.foobar.com/image.png').
+         * @param input The value of the background-image attribute.
+         * @returns The extracted url.
+         */
         public static extractUrlFromCssBackgroundImage(input: string) {
             return input.replace(/"/g, "").replace(/url\(|\)$/ig, "");
         }
-
-        /** 
-        *   Verifies image data url of images        
-        */
+        
+        /**
+         * Verifies image data url of images.
+         */
         public static isValidImageDataUrl(url: string): boolean {
             var regex: RegExp = new RegExp('data:(image\/(png|jpg|jpeg|gif|svg))');
             return regex.test(url);
         }
-
+        
         /**
-         Downloads a content string as a file
-         @param content - Content stream
-         @param fileName - File name to use
-        */
+         * Downloads a content string as a file.
+         * @param content Content stream.
+         * @param fileName File name to use.
+         */
         public static saveAsFile(content: any, fileName: string): void {
             var contentBlob = new Blob([content], { type: HttpConstants.ApplicationOctetStream });
             var url = window['webkitURL'] || URL;
@@ -668,9 +703,9 @@ module jsCommon {
         }
 
         /**
-         * Helper method to get the simple type name from a typed object
-         * @param obj - The typed object
-         * @returns The simple type name for the object
+         * Helper method to get the simple type name from a typed object.
+         * @param obj The typed object.
+         * @returns The simple type name for the object.
          */
         public static getType(obj: TypedObject) {
             Utility.throwIfNullEmptyOrWhitespaceString(obj.__type, this, 'getType', 'obj');
@@ -689,10 +724,10 @@ module jsCommon {
         }
 
         /** 
-         * check if an element supports a specific event type
-         * @param eventName - The name of the event
-         * @param element - The element to test for event support
-         * @returns Whether the even is supported on the provided element
+         * Check if an element supports a specific event type.
+         * @param eventName The name of the event.
+         * @param element The element to test for event support.
+         * @returns Whether the even is supported on the provided element.
          */
         public static isEventSupported(eventName: string, element: Element): boolean {
             eventName = 'on' + eventName;
@@ -732,9 +767,9 @@ module jsCommon {
         }
 
         /** 
-         * check if an element supports a specific event type
-         * @param filePath - file path
-         * @returns file extension
+         * Check if an element supports a specific event type.
+         * @param filePath File path.
+         * @returns File extension.
          */
         public static getFileExtension(filePath: string): string {
             if (filePath) {
@@ -746,20 +781,20 @@ module jsCommon {
         }
 
         /** 
-         * Extract the filename out of a full path delimited by '\' or '/'
-         * @param filePath - file path
-         * @returns filename
+         * Extract the filename out of a full path delimited by '\' or '/'.
+         * @param filePath File path.
+         * @returns filename File name.
          */
         public static extractFileNameFromPath(filePath: string): string {
             return filePath.replace(/^.*[\\\/]/, '');
         }
 
         /**
-         *
          * This method indicates whether window.clipboardData is supported.
          * For example, clipboard support for Windows Store apps is currently disabled 
          * since window.clipboardData is unsupported (it raises access denied error)
-         * since clipboard in Windows Store is being achieved through Windows.ApplicationModel.DataTransfer.Clipboard class
+         * since clipboard in Windows Store is being 
+         * achieved through Windows.ApplicationModel.DataTransfer.Clipboard class.
          */
         public static canUseClipboard(): boolean {
             return (typeof MSApp === "undefined");
@@ -795,9 +830,11 @@ module jsCommon {
         }
 
         /**
-         * Return local timezone string or UTC if timezone cannot be found
-         * This function uses summer and winter offset to determine local time zone. The result localTimeZoneString must be a subset of the strings used by server, as
-         * documented here: https://msdn.microsoft.com/en-us/library/gg154758.aspx (Dynamic Daylight Savings Time (Compact 2013))
+         * Return local timezone.
+         * This function uses summer and winter offset to determine local time zone.
+         * The result localTimeZoneString must be a subset of the strings used by server, 
+         * as documented here: https://msdn.microsoft.com/en-us/library/gg154758.aspx (Dynamic Daylight Savings Time (Compact 2013)).
+         * @return Local timezone string or UTC if timezone cannot be found.
          */
         public static getLocalTimeZoneString(): string {
             var timeSummer = new Date(Date.UTC(2005, 6, 30, 0, 0, 0, 0));
@@ -867,10 +904,10 @@ module jsCommon {
 
     export class VersionUtility {
         /**
-         * Compares 2 version strings
-         * @param versionA - The first version string
-         * @param versionB - The second version string
-         * @returns A result for the comparison
+         * Compares 2 version strings.
+         * @param versionA The first version string.
+         * @param versionB The second version string.
+         * @returns A result for the comparison.
          */
         static compareVersions(versionA: string, versionB: string): number {
             var a = versionA.split('.').map(parseFloat);
@@ -930,13 +967,13 @@ module jsCommon {
         }
     }
 
-    export module DeferUtility {
+    export module DeferUtility {        
         /**
-        * Wraps a callback and returns a new function
-        * The function can be called many times but the callback
-        * will only be executed once on the next frame.
-        * Use this to throttle big UI updates and access to DOM
-        */
+         * Wraps a callback and returns a new function.
+         * The function can be called many times but the callback
+         * will only be executed once on the next frame.
+         * Use this to throttle big UI updates and access to DOM.
+         */
         export function deferUntilNextFrame(callback: Function): Function {
             var isWaiting, args, context;
 

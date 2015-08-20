@@ -28,7 +28,9 @@
 
 module powerbi {
     export module Prototype {
-        /** Returns a new object with the provided obj as its prototype. */
+        /**
+         * Returns a new object with the provided obj as its prototype.
+         */
         export function inherit<T>(obj: T, extension?: (inherited: T) => void): T {
             debug.assertValue(obj, 'obj');
 
@@ -44,9 +46,9 @@ module powerbi {
         }
 
         /**
-         * Uses the provided callback function to selectively replace contents in the provided array, and returns
-         * a new array with those values overriden.
-         * Returns undefined if no overrides are necessary.
+         * Uses the provided callback function to selectively replace contents in the provided array. 
+         * @return A new array with those values overriden 
+         * or undefined if no overrides are necessary.
          */
         export function overrideArray<T, TArray>(prototype: TArray, override: (T) => T): TArray {
             if (!prototype)

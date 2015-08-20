@@ -29,19 +29,21 @@
 module powerbi.visuals {
     /**
      * Contains functions/constants to aid in SVG manupilation. 
-    */
+     */
     export module SVGUtil {
         /** 
-         * very small values, when stringified, may be converted to scientific notation and cause a temporarily 
-         * invalid attribute or style property value. For example, the number 0.0000001 is converted to the string "1e-7". 
-         * This is particularly noticeable when interpolating opacity values. To avoid scientific notation, 
-         * start or end the transition at 1e-6, which is the smallest value that is not stringified in exponential notation.
-        */
+         * Very small values, when stringified, may be converted to scientific notation and cause a temporarily 
+         * invalid attribute or style property value.
+         * For example, the number 0.0000001 is converted to the string "1e-7". 
+         * This is particularly noticeable when interpolating opacity values.
+         * To avoid scientific notation, start or end the transition at 1e-6,
+         * which is the smallest value that is not stringified in exponential notation.
+         */
         export var AlmostZero = 1e-6;
 
         /**
          * Creates a translate string for use with the SVG transform call.
-        */
+         */
         export function translate(x: number, y: number): string {
             debug.assertValue(x, 'x');
             debug.assertValue(y, 'y');
@@ -50,7 +52,7 @@ module powerbi.visuals {
 
         /**
          * Creates a translateX string for use with the SVG transform call.
-        */
+         */
         export function translateXWithPixels(x: number): string {
             debug.assertValue(x, 'x');
             return 'translateX(' + x + 'px)';
@@ -64,7 +66,7 @@ module powerbi.visuals {
 
         /**
          * Creates a translate + rotate string for use with the SVG transform call.
-        */
+         */
         export function translateAndRotate(x: number, y: number, px: number, py: number, angle: number): string {
             debug.assertValue(x, 'x');
             debug.assertValue(y, 'y');
@@ -114,7 +116,7 @@ module powerbi.visuals {
         /**
          * There is a known bug in IE10 that causes cryptic crashes for SVG elements with a null 'd' attribute:
          * https://github.com/mbostock/d3/issues/1737
-        */
+         */
         export function ensureDAttribute(pathElement: D3.D3Element) {
             if (!pathElement.getAttribute('d')) {
                 pathElement.setAttribute('d', '');
@@ -122,8 +124,8 @@ module powerbi.visuals {
         }
 
         /**
-         * In IE10, it is possible to return SVGPoints with NaN members
-        */
+         * In IE10, it is possible to return SVGPoints with NaN members.
+         */
         export function ensureValidSVGPoint(point: SVGPoint) {
             if (isNaN(point.x)) {
                 point.x = 0;
@@ -134,9 +136,10 @@ module powerbi.visuals {
         }
 
         /**
-         * Parse the Transform string with value 'translate(x,y)'
-         * In Chrome for the translate(position) string the delimiter is a comma and in IE it is a space so checking for both
-        */
+         * Parse the Transform string with value 'translate(x,y)'.
+         * In Chrome for the translate(position) string the delimiter 
+         * is a comma and in IE it is a spaceso checking for both.
+         */
         export function parseTranslateTransform(input: string): { x: string; y: string } {
             if (!input || input.length === 0) { // Interpet falsy and empty string as a no-op translate
                 return {
@@ -171,15 +174,15 @@ module powerbi.visuals {
         }
 
         /**
-         * Appends 'px' to the end of number value for use as pixel string in styles
-        */
+         * Appends 'px' to the end of number value for use as pixel string in styles.
+         */
         export function convertToPixelString(value: number): string {
             return value + "px";
         }
 
         /**
-         * create an arrow.
-        */
+         * Create an arrow.
+         */
         export function createArrow(width: number, height: number, rotate: number): { path: string; transform: string } {
             var transform = "rotate(" + rotate + " " + width / 2 + " " + height / 2 + ")";
             var path = "M0 0";

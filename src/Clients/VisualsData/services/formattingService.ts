@@ -31,9 +31,7 @@ module powerbi {
     import StringExtensions = jsCommon.StringExtensions;
     import Formatting = jsCommon.Formatting;
 
-    // ================================================================================
-    // Culture interfaces.  These match the Globalize library interfaces intentionally.
-    // ================================================================================
+    /** Culture interfaces. These match the Globalize library interfaces intentionally. */
     export interface Culture {
         name: string;
         calendar: Calendar;
@@ -57,9 +55,7 @@ module powerbi {
         positiveInfinity: string;
     }
 
-    // ================================================================================
-    // Formatting Encoder
-    // ================================================================================
+    /** Formatting Encoder */
     module FormattingEncoder {
         export function preserveEscaped(format: string, specialChars: string): string {
             // Unicode U+E000 - U+F8FF is a private area and so we can use the chars from the range to encode the escaped sequences
@@ -114,9 +110,7 @@ module powerbi {
         }
     }
 
-    // ================================================================================
-    // FormattingService
-    // ================================================================================
+    /** Formatting Service */ 
     class FormattingService implements IFormattingService {
 
         _currentCultureSelector: string;
@@ -177,9 +171,10 @@ module powerbi {
             return this._dateTimeScaleFormatInfo.getFormatString(unit);
         }
 
-        /** Sets the current localization culture
-          * @param cultureSelector - name of a culture: "en", "en-UK", "fr-FR" etc. (See National Language Support (NLS) for full lists. Use "default" for invariant culture).
-          */
+        /** 
+         * Sets the current localization culture
+         * @param cultureSelector - name of a culture: "en", "en-UK", "fr-FR" etc. (See National Language Support (NLS) for full lists. Use "default" for invariant culture).
+         */
         private setCurrentCulture(cultureSelector: string): void {
             if (this._currentCultureSelector !== cultureSelector) {
                 this._currentCulture = this.getCulture(cultureSelector);
@@ -188,9 +183,11 @@ module powerbi {
             }
         }
 
-        /** Gets the culture assotiated with the specified cultureSelector ("en", "en-US", "fr-FR" etc). 
-          * @param cultureSelector - name of a culture: "en", "en-UK", "fr-FR" etc. (See National Language Support (NLS) for full lists. Use "default" for invariant culture).
-          * Exposing this function for testability of unsupported cultures */
+        /** 
+         * Gets the culture assotiated with the specified cultureSelector ("en", "en-US", "fr-FR" etc). 
+         * @param cultureSelector - name of a culture: "en", "en-UK", "fr-FR" etc. (See National Language Support (NLS) for full lists. Use "default" for invariant culture).
+         * Exposing this function for testability of unsupported cultures 
+         */
         public getCulture(cultureSelector?: string): Culture {
             if (cultureSelector == null) {
                 if (this._currentCulture == null) {
@@ -205,7 +202,7 @@ module powerbi {
             }
         }
 
-        // By default the Globalization module initializes to the culture/calendar provided in the language/culture URL params
+        /** By default the Globalization module initializes to the culture/calendar provided in the language/culture URL params */
         private initialize() {
             var cultureName = this.getUrlParam("language") || window["cultureInfo"] || window.navigator.userLanguage || window.navigator["language"] || Globalize.culture().name;
             this.setCurrentCulture(cultureName);
@@ -225,25 +222,23 @@ module powerbi {
         }
     }
 
-    // ================================================================================
-    // DateTimeFormat
-    // --------------------------------------------------------------------------------
-    // DateTimeFormat module contains the static methods for formatting the DateTimes. 
-    // It extends the JQuery.Globalize functionality to support complete set of .NET 
-    // formatting expressions for dates.
-    // ================================================================================
+    /**
+     * DateTimeFormat module contains the static methods for formatting the DateTimes. 
+     * It extends the JQuery.Globalize functionality to support complete set of .NET 
+     * formatting expressions for dates.
+     */
     module DateTimeFormat {
 
         var _currentCachedFormat: string;
         var _currentCachedProcessedFormat: string;
 
-        // Evaluates if the value can be formatted using the NumberFormat
+        /** Evaluates if the value can be formatted using the NumberFormat */
         export function canFormat(value: any) {
             var result = value instanceof Date;
             return result;
         }
 
-        // Formats the date using provided format and culture
+        /** Formats the date using provided format and culture */
         export function format(value: Date, format: string, culture: Culture): string {
             format = format || "G";
             var isStandard = format.length === 1;
@@ -258,7 +253,7 @@ module powerbi {
             }
         }
 
-        // Formats the date using standard format expression
+        /** Formats the date using standard format expression */
         function formatDateStandard(value: Date, format: string, culture: Culture) {
             // In order to provide parity with .NET we have to support additional set of DateTime patterns.
             var patterns = culture.calendar.patterns;
@@ -275,7 +270,7 @@ module powerbi {
             return Globalize.format(output.value, format, culture);
         }
 
-        // Formats the date using custom format expression
+        /** Formats the date using custom format expression */
         function formatDateCustom(value: Date, format: string, culture: Culture): string {
             var result: string;
             var literals: string[] = [];
@@ -311,7 +306,7 @@ module powerbi {
             return result;
         }
 
-        // Translates unsupported .NET custom format expressions to the custom expressions supported by JQuery.Globalize
+        /** Translates unsupported .NET custom format expressions to the custom expressions supported by JQuery.Globalize */
         function processCustomDateTimeFormat(format: string): string {
             if (format === _currentCachedFormat) {
                 return _currentCachedProcessedFormat;
@@ -322,7 +317,7 @@ module powerbi {
             return format;
         }
 
-        // Localizes the time separator symbol
+        /** Localizes the time separator symbol */
         function localize(value: string, dictionary: any): string {
             var timeSeparator = dictionary[":"];
             if (timeSeparator === ":") {
@@ -354,13 +349,11 @@ module powerbi {
 
     }
 
-    // ================================================================================
-    // NumberFormat
-    // --------------------------------------------------------------------------------
-    // NumberFormat module contains the static methods for formatting the numbers. 
-    // It extends the JQuery.Globalize functionality to support complete set of .NET 
-    // formatting expressions for numeric types including custom formats.
-    // ================================================================================
+    /** 
+     * NumberFormat module contains the static methods for formatting the numbers. 
+     * It extends the JQuery.Globalize functionality to support complete set of .NET 
+     * formatting expressions for numeric types including custom formats.
+     */
     export module NumberFormat {
 
         export interface NumericFormatMetadata {
@@ -378,7 +371,7 @@ module powerbi {
 
         var _lastCustomFormatMeta: NumericFormatMetadata;
 
-        // Evaluates if the value can be formatted using the NumberFormat
+        /** Evaluates if the value can be formatted using the NumberFormat */
         export function canFormat(value: any) {
             var result = typeof (value) === "number";
             return result;
@@ -391,7 +384,7 @@ module powerbi {
             return standardFormatRegex.test(format);
         }
 
-        // Formats the number using specified format expression and culture
+        /** Formats the number using specified format expression and culture */
         export function format(
             value: number,
             format: string,
@@ -422,7 +415,7 @@ module powerbi {
             return formatNumberCustom(value, format, culture, nonScientificOverrideFormat);
         }
 
-        // Formats the number using standard format expression
+        /** Formats the number using standard format expression */
         function formatNumberStandard(value: number, format: string, culture: Culture): string {
             var result: string;
             var precision = <number>(format.length > 1 ? parseInt(format.substr(1, format.length - 1), 10) : undefined);
@@ -491,7 +484,7 @@ module powerbi {
             return result;
         }
 
-        // Formats the number using custom format expression
+        /** Formats the number using custom format expression */
         function formatNumberCustom(
             value: number,
             format: string,
@@ -592,7 +585,7 @@ module powerbi {
             return result;
         }
 
-        // Returns string with the fixed point respresentation of the number
+        /** Returns string with the fixed point respresentation of the number */
         function toNonScientific(value: number, precision: number): string {
             var result = "";
             var precisionZeros = 0;
@@ -641,7 +634,7 @@ module powerbi {
             return result;
         }
 
-        // Returns the formatMetadata of the format
+        /** Returns the formatMetadata of the format */
         export function getCustomFormatMetadata(format: string, calculatePrecision?: boolean, calculateScale?: boolean): NumericFormatMetadata {
             if (_lastCustomFormatMeta !== undefined && format === _lastCustomFormatMeta.format) {
                 return _lastCustomFormatMeta;
@@ -697,7 +690,7 @@ module powerbi {
             return result;
         }
     
-        // Returns the decimal precision of format based on the number of # and 0 chars after the decimal point
+        /** Returns the decimal precision of format based on the number of # and 0 chars after the decimal point */
         function getCustomFormatPrecision(format: string, formatMeta: NumericFormatMetadata): number {
             if (formatMeta.precision > -1) {
                 return formatMeta.precision;
@@ -719,7 +712,7 @@ module powerbi {
             return result;
         }
 
-        // Returns the scale factor of the format based on the "%" and scaling "," chars in the format
+        /** Returns the scale factor of the format based on the "%" and scaling "," chars in the format */
         function getCustomFormatScale(format: string, formatMeta: NumericFormatMetadata): number {
             if (formatMeta.scale > -1) {
                 return formatMeta.scale;
@@ -965,9 +958,10 @@ module powerbi {
         public MillisecondPattern: string;
 
         // Constructor
-        /** Creates new instance of the DateTimeScaleFormatInfo class.
-          * @param culture - culture which calendar info is going to be used to derive the formats.
-          */
+        /** 
+         * Creates new instance of the DateTimeScaleFormatInfo class.
+         * @param culture - culture which calendar info is going to be used to derive the formats.
+         */
         constructor(culture: Culture) {
             var calendar: Calendar = culture.calendar;
             var patterns: any = calendar.patterns;
@@ -1011,9 +1005,10 @@ module powerbi {
 
         // Methods
 
-        /** Returns the format string of the provided DateTimeUnit.
-          * @param unit - date or time unit
-          */
+        /** 
+         * Returns the format string of the provided DateTimeUnit.
+         * @param unit - date or time unit
+         */
         public getFormatString(unit: DateTimeUnit): string {
             switch (unit) {
                 case DateTimeUnit.Year:

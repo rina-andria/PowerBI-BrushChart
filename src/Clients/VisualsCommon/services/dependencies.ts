@@ -27,10 +27,14 @@
 /// <reference path="../_references.ts"/>
 
 module jsCommon {
-    // JavaScript files
+    /**
+     * JavaScript files.
+     */    
     var MSMapcontrol = 'https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&s=1&onscriptload=globalMapControlLoaded';
 
-    // Map loading logic
+    /**
+     * Map loading logic.
+     */
     var MSMapcontrolLoaded = false;
 	var WaitForMSMapLoad: JQueryDeferred<void> = null;
 
@@ -86,4 +90,4 @@ var globalMapControlLoaded = function() {
 	// Map requires a function in the global namespace to callback once loaded
 	jsCommon.mapControlLoaded();
 };
-
+/* tslint:enable:no-unused-variable */

@@ -27,17 +27,28 @@
 /// <reference path="../_references.ts"/>
 
 module powerbi.visuals {
-    
-    /** Extension of the Matrix node for Matrix visual*/
+    /**
+     * Extension of the Matrix node for Matrix visual.
+     */
     export interface MatrixVisualNode extends DataViewMatrixNode {
-        /** Index of the node in its parent's children collection
-        NOTE: for size optimization, we could also look this item up in the parent's children collection, but we may need to pay the perf penalty */
+        /**
+         * Index of the node in its parent's children collection.
+         * 
+         * Note: For size optimization, we could also look this item up in the parent's 
+         * children collection, but we may need to pay the perf penalty.
+         */
         index?: number;
-
-        /** Global index of the node as a leaf node. If the node is not a leaf, the value is undefined */
+        
+        /**
+         * Global index of the node as a leaf node.
+         * If the node is not a leaf, the value is undefined.
+         */
         leafIndex?: number;
-
-        /** Parent of the node. Undefined for outermost nodes (children of the one root node) */
+        
+        /**
+         * Parent of the node.
+         * Undefined for outermost nodes (children of the one root node).
+         */
         parent?: MatrixVisualNode;
     }
 
@@ -51,8 +62,10 @@ module powerbi.visuals {
         content: any;
         isSubtotal: boolean;
     }
-
-    /** Interface for refreshing Matrix Data View */
+    
+    /**
+     * Interface for refreshing Matrix Data View.
+     */
     export interface MatrixDataAdapter {
         update(dataViewMatrix?: DataViewMatrix): void;
         updateRows(): void;
@@ -91,8 +104,10 @@ module powerbi.visuals {
     interface MatrixHierarchy extends DataViewHierarchy {
         leafNodes?: MatrixVisualNode[];
     }
-
-    /** Factory method used by unit tests */
+    
+    /**
+     * Factory method used by unit tests.
+     */
     export function createMatrixHierarchyNavigator(matrix: DataViewMatrix, formatter: ICustomValueFormatter): IMatrixHierarchyNavigator {
         return new MatrixHierarchyNavigator(matrix, formatter);
     }
@@ -112,13 +127,17 @@ module powerbi.visuals {
 
             this.update();
         }
-
-        /** Returns the data view matrix. */
+        
+        /**
+         * Returns the data view matrix.
+         */
         public getDataViewMatrix(): DataViewMatrix {
             return this.matrix;
         }
-
-        /** Returns the depth of a hierarchy. */
+        
+        /**
+         * Returns the depth of a hierarchy.
+         */
         public getDepth(hierarchy: MatrixVisualNode[]): number {
             var matrixHierarchy = this.getMatrixHierarchy(hierarchy);
 
@@ -128,8 +147,10 @@ module powerbi.visuals {
             debug.assertFail('Hierarchy cannot be found');
             return 0;
         }
-
-        /** Returns the leaf count of a hierarchy. */
+        
+        /**
+         * Returns the leaf count of a hierarchy.
+         */
         public getLeafCount(hierarchy: MatrixVisualNode[]): number {
             var matrixHierarchy = this.getMatrixHierarchy(hierarchy);
             if (matrixHierarchy)
@@ -138,8 +159,10 @@ module powerbi.visuals {
             debug.assertFail('Hierarchy cannot be found');
             return 0;
         }
-
-        /** Returns the leaf member of a hierarchy at a specified index. */
+        
+        /**
+         * Returns the leaf member of a hierarchy at a specified index.
+         */
         public getLeafAt(hierarchy: MatrixVisualNode[], index: number): MatrixVisualNode {
             var matrixHierarchy = this.getMatrixHierarchy(hierarchy);
             if (matrixHierarchy)
@@ -147,15 +170,19 @@ module powerbi.visuals {
 
             return null;
         }
-
-        /** Returns the leaf index of the visual node. */
+        
+        /**
+         * Returns the leaf index of the visual node.
+         */
         public getLeafIndex(item: MatrixVisualNode): number {
             debug.assertValue(item, 'item');
 
             return item.leafIndex;
         }
-
-        /** Returns the specified hierarchy member parent. */
+        
+        /**
+         * Returns the specified hierarchy member parent.
+         */
         public getParent(item: MatrixVisualNode): MatrixVisualNode {
             debug.assertValue(item, 'item');
 
@@ -165,15 +192,19 @@ module powerbi.visuals {
 
             return item.parent;
         }
-
-        /** Returns the index of the hierarchy member relative to its parent. */
+        
+        /**
+         * Returns the index of the hierarchy member relative to its parent.
+         */
         public getIndex(item: MatrixVisualNode): number {
             debug.assertValue(item, 'item');
 
             return item.index;
         }
-
-        /** Checks whether a hierarchy member is a leaf. */
+        
+        /**
+         * Checks whether a hierarchy member is a leaf.
+         */
         public isLeaf(item: MatrixVisualNode): boolean {
             debug.assertValue(item, 'item');
 
@@ -187,43 +218,55 @@ module powerbi.visuals {
         public isColumnHierarchyLeaf(item: MatrixCornerItem): boolean {
             return false;
         }
-
-        /** Checks whether a hierarchy member is the last item within its parent. */
+        
+        /**
+         * Checks whether a hierarchy member is the last item within its parent. 
+         */
         public isLastItem(item: MatrixVisualNode, items: MatrixVisualNode[]): boolean {
             debug.assertValue(item, 'item');
 
             return items[items.length - 1] === item;
         }
-
-        /** Gets the children members of a hierarchy member. */
+        
+        /**
+         * Gets the children members of a hierarchy member.
+         */
         public getChildren(item: MatrixVisualNode): MatrixVisualNode[] {
             debug.assertValue(item, 'item');
 
             return item.children;
         }
-
-        /** Gets the members count in a specified collection. */
+        
+        /**
+         * Gets the members count in a specified collection.
+         */
         public getCount(items: MatrixVisualNode[]): number {
             debug.assertValue(items, 'items');
 
             return items.length;
         }
-
-        /** Gets the member at the specified index. */
+        
+        /**
+         * Gets the member at the specified index.
+         */
         public getAt(items: MatrixVisualNode[], index: number): MatrixVisualNode {
             debug.assertValue(items, 'items');
 
             return items[index];
         }
-
-        /** Gets the hierarchy member level. */
+        
+        /**
+         * Gets the hierarchy member level.
+         */
         public getLevel(item: MatrixVisualNode): number {
             debug.assertValue(item, 'item');
 
             return item.level;
         }
-
-        /** Returns the intersection between a row and a column item. */
+        
+        /**
+         * Returns the intersection between a row and a column item.
+         */
         public getIntersection(rowItem: MatrixVisualNode, columnItem: MatrixVisualNode): MatrixVisualBodyItem {
             debug.assertValue(rowItem, 'rowItem');
             debug.assertValue(columnItem, 'columnItem');
@@ -251,8 +294,10 @@ module powerbi.visuals {
                 isSubtotal: isSubtotalItem,
             };
         }
-
-        /** Returns the corner cell between a row and a column level. */
+        
+        /**
+         * Returns the corner cell between a row and a column level.
+         */
         public getCorner(rowLevel: number, columnLevel: number): MatrixCornerItem {
             debug.assert(rowLevel >= 0, 'rowLevel');
             debug.assert(columnLevel >= 0, 'columnLevel');
@@ -298,8 +343,10 @@ module powerbi.visuals {
         public cornerCellItemEquals(item1: any, item2: any): boolean {
             return (item1 === item2);
         }
-
-        /** Implementation for MatrixDataAdapter interface */
+        
+        /**
+         * Implementation for MatrixDataAdapter interface.
+         */
         public update(dataViewMatrix?: DataViewMatrix): void {
             if (dataViewMatrix) {
                 this.matrix = dataViewMatrix;
@@ -312,7 +359,9 @@ module powerbi.visuals {
             MatrixHierarchyNavigator.updateStaticColumnHeaders(this.columnHierarchy);
         }
 
-        /** Implementation for MatrixDataAdapter interface */
+        /**
+         * Implementation for MatrixDataAdapter interface.
+         */
         public updateRows(): void {
             this.updateHierarchy(this.rowHierarchy);
         }
@@ -426,8 +475,10 @@ module powerbi.visuals {
 
         public onEndRenderingSession(): void {
         }
-
-        // Row Header
+        
+        /**
+         * Row Header.
+         */
         public bindRowHeader(item: MatrixVisualNode, cell: controls.ITablixCell): void {
             var styleClasses: string;
 
@@ -461,8 +512,10 @@ module powerbi.visuals {
             cell.extension.clearContainerStyle();
             controls.HTMLElementUtils.clearChildren(cell.extension.contentHost);
         }
-
-        // Column Header
+        
+        /**
+         * Column Header.
+         */
         public bindColumnHeader(item: MatrixVisualNode, cell: controls.ITablixCell): void {
             var styleClasses: string;
             var overwriteTotalLabel = false;
@@ -504,8 +557,10 @@ module powerbi.visuals {
                 this.unregisterColumnHeaderClickHandler(cell);
             }
         }
-
-        // Body Cell
+        
+        /**
+         * Body Cell.
+         */
         public bindBodyCell(item: MatrixVisualBodyItem, cell: controls.ITablixCell): void {
             var styleClasses = MatrixBinder.bodyCellClassName;
 
@@ -535,8 +590,10 @@ module powerbi.visuals {
                 cell.extension.unregisterClickHandler();
             }
         }
-
-        // Corner Cell
+        
+        /**
+         * Corner Cell.
+         */
         public bindCornerCell(item: MatrixCornerItem, cell: controls.ITablixCell): void {
             var styleClasses: string;
 
@@ -585,8 +642,10 @@ module powerbi.visuals {
 
         public unbindEmptySpaceFooterCell(cell: controls.ITablixCell): void {
         }
-
-        // Measurement Helper
+        
+        /**
+         * Measurement Helper.
+         */
         public getHeaderLabel(item: MatrixVisualNode): string {
             return MatrixBinder.getNodeLabel(item);
         }
@@ -636,9 +695,12 @@ module powerbi.visuals {
             else
                 cell.extension.contentHost.textContent = value;
         }
-
-        /** Returns the column metadata of the column that needs to be sorted for the specified matrix corner node.
-            Returns null if the specified corner node does not represent a sortable header. */
+       
+        /**
+         * Returns the column metadata of the column that needs to be sorted for the specified matrix corner node.
+         * 
+         * @return Column metadata or null if the specified corner node does not represent a sortable header.
+         */
         private getSortableCornerColumnMetadata(item: MatrixCornerItem): DataViewMetadataColumn {
             if (!item.isColumnHeaderLeaf)
                 return null;
@@ -680,9 +742,12 @@ module powerbi.visuals {
             // This assumes the source will always be the first item in the array of sources.
             return levelInfo.sources[0];
         }
-
-        /** Returns the column metadata of the column that needs to be sorted for the specified header node.
-            Returns null if the specified header node does not represent a sortable header. */
+        
+        /**
+         * Returns the column metadata of the column that needs to be sorted for the specified header node.
+         * 
+         * @return Column metadata or null if the specified header node does not represent a sortable header.
+         */
         private getSortableHeaderColumnMetadata(item: MatrixVisualNode): DataViewMetadataColumn {
 
             var dataView = this.hierarchyNavigator.getDataViewMatrix();
@@ -733,8 +798,10 @@ module powerbi.visuals {
     export class Matrix implements IVisual {
         public static formatStringProp: DataViewObjectPropertyIdentifier = { objectName: 'general', propertyName: 'formatString' };
         private static preferredLoadMoreThreshold: number = 0.8;
-
-        // DEVNOTE: public only for testing
+        
+        /**
+         * Note: Public only for testing.
+         */
         public static TotalLabel = 'TableTotalLabel';
 
         private element: JQuery;
@@ -899,8 +966,10 @@ module powerbi.visuals {
             this.waitingForSort = true;
             this.hostServices.onCustomSort(args);
         }
-
-        /* Public for testability */
+        
+        /**
+         * Note: Public for testability.
+         */
         public needsMoreData(item: MatrixVisualNode): boolean {
             if (this.waitingForData || !this.hierarchyNavigator.isLeaf(item) || !this.dataView.metadata || !this.dataView.metadata.segment)
                 return false;

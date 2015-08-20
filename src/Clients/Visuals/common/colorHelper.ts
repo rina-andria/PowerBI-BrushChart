@@ -43,7 +43,8 @@ module powerbi.visuals {
         }
 
         /**
-         * Gets the color for the given series value. If no explicit color or default color has been set then the color is
+         * Gets the color for the given series value.
+         * If no explicit color or default color has been set then the color is
          * allocated from the color scale for this series.
          */
         public getColorForSeriesValue(objects: DataViewObjects, fieldIds: powerbi.data.SQExpr[], value: string): string {
@@ -52,7 +53,9 @@ module powerbi.visuals {
                 || this.colors.getColorScaleByKey(SQExprShortSerializer.serializeArray(fieldIds || [])).getColor(value).value;
         }
 
-        /** Gets the color for the given measure. */
+        /** 
+         * Gets the color for the given measure.
+         */
         public getColorForMeasure(objects: DataViewObjects, measureKey: any): string {
             // Note, this allocates the color from the scale regardless of if we use it or not which helps keep colors stable.
             var scaleColor = this.defaultColorScale.getColor(measureKey).value;

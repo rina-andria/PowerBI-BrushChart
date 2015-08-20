@@ -367,6 +367,7 @@ module powerbi.visuals {
             scaleRange: number[],
             forcedTickCount?: number,
             forcedYDomain?: any[]): IAxisProperties {
+            
             var valueDomain = calcValueDomain(data.series, is100Pct),
                 min = valueDomain.min,
                 max = valueDomain.max;

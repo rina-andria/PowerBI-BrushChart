@@ -160,7 +160,9 @@ module powerbi.visuals {
         y2?: IAxisProperties;
     }
 
-    /** Renders a data series as a cartestian visual. */
+    /** 
+     * Renders a data series as a cartestian visual.
+     */
     export class CartesianChart implements IVisual {
         public static MinOrdinalRectThickness = 20;
         public static MinScalarRectThickness = 2;
@@ -1252,8 +1254,10 @@ module powerbi.visuals {
                 this.renderChart(mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, true /* suppressAnimations */, scrollScale, extent);
             }
         }
-
-        /* To show brush every time when mouse is clicked on the empty background */
+        
+        /**
+         * To show brush every time when mouse is clicked on the empty background.
+         */
         private setMinBrush(scrollSpaceLength: number, minExtent: number): void {
             CartesianChart.clampBrushExtent(this.brush, scrollSpaceLength, minExtent);
         }
@@ -1466,19 +1470,23 @@ module powerbi.visuals {
             for (var i = 0, len = layers.length; i < len; i++)
                 layers[i].render(suppressAnimations);
         }
-
-        // Within the context of the given selection (g), find the offset of
-        // the zero tick using the d3 attached datum of g.tick elements.
-        // 'classed' is undefined for transition selections
+        
+        /**
+         * Within the context of the given selection (g), find the offset of
+         * the zero tick using the d3 attached datum of g.tick elements.
+         * 'Classed' is undefined for transition selections
+         */
         private static darkenZeroLine(g: D3.Selection): void {
             var zeroTick = g.selectAll('g.tick').filter((data) => data === 0).node();
             if (zeroTick) {
                 d3.select(zeroTick).select('line').classed('zero-line', true);
             }
         }
-
-        /** Returns the actual viewportWidth if visual is not scrollable. 
-        If visual is scrollable, returns the plot area needed to draw all the datapoints */
+        
+        /**
+         * Returns the actual viewportWidth if visual is not scrollable.
+         * @return If visual is scrollable, returns the plot area needed to draw all the datapoints.
+         */
         public static getPreferredPlotArea(
             categoryCount: number,
             categoryThickness: number,
@@ -1497,12 +1505,16 @@ module powerbi.visuals {
             return preferredViewport;
         }
 
-        /** Returns preferred Category span if the visual is scrollable */
+        /**
+         * Returns preferred Category span if the visual is scrollable.
+         */
         public static getPreferredCategorySpan(categoryCount: number, categoryThickness: number): number {
             return categoryThickness * (categoryCount + (CartesianChart.OuterPaddingRatio * 2));
         }
-
-        // public for testing access
+        
+        /**
+         * Note: Public for testing access.
+         */
         public static getLayout(data: ColumnChartData, options: CategoryLayoutOptions): CategoryLayout {
             var categoryCount = options.categoryCount,
                 availableWidth = options.availableWidth,
@@ -1539,11 +1551,15 @@ module powerbi.visuals {
             };
         }
 
-        /** Returns the thickness for each category. 
-          * -For clustered charts, you still need to divide by the number of series to get column width after calling this method.
-          * -For linear or time scales, category thickness accomodates for the minimum interval between consequtive points.
-          * -For all types, return value has accounted for outer padding, but not inner padding
-        */
+        /** 
+         * Returns the thickness for each category.
+         * For clustered charts, you still need to divide by
+         * the number of series to get column width after calling this method.
+         * For linear or time scales, category thickness accomodates for
+         * the minimum interval between consequtive points.
+         * For all types, return value has accounted for outer padding,
+         * but not inner padding.
+         */
         public static getCategoryThickness(seriesList: CartesianSeries[], numCategories: number, plotLength: number, domain: number[], isScalar: boolean): number {
             var thickness;
             if (numCategories < 2)
@@ -1760,7 +1776,11 @@ module powerbi.visuals {
         return layers.length > 1;
     }
 
-    //** Returns a boolean, that indicates if y axis title should be displayed. */
+    /**
+     * Returns a boolean, that indicates if y axis title should be displayed.
+     * @return True if y axis title should be displayed,
+     * otherwise false.
+     */
     function shouldShowYAxisLabel(layerNumber: number, valueAxisProperties: DataViewObject, yAxisWillMerge: boolean): boolean {
         return ((layerNumber === 0 && !!valueAxisProperties && !!valueAxisProperties['showAxisTitle']) ||
             (layerNumber === 1 && !yAxisWillMerge && !!valueAxisProperties && !!valueAxisProperties['secShowAxisTitle']));
@@ -1838,7 +1858,9 @@ module powerbi.visuals {
             };
     }
     
-    /** Computes the Cartesian Chart axes from the set of layers. */
+    /** 
+     * Computes the Cartesian Chart axes from the set of layers.
+     */
     function calculateAxes(
         layers: ICartesianVisual[],
         viewport: IViewport,

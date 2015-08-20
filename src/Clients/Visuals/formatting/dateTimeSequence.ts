@@ -51,9 +51,10 @@ module powerbi {
         }
 
         // Methods
-        /** Add a new Date to a sequence.
-          * @param x - date to add
-          */
+        /** 
+         * Add a new Date to a sequence.
+         * @param date - date to add
+         */
         public add(date: Date) { 
             if (date < this.min) { 
                 this.min = date;
@@ -65,10 +66,11 @@ module powerbi {
         }
 
         // Methods
-        /** Extends the sequence to cover new date range
-          * @param min - new min to be covered by sequence
-          * @param max - new max to be covered by sequence
-          */
+        /** 
+         * Extends the sequence to cover new date range
+         * @param min - new min to be covered by sequence
+         * @param max - new max to be covered by sequence
+         */
         public extendToCover(min: Date, max: Date): void {
             var x: Date = this.min;
             while (min < x) {
@@ -85,10 +87,11 @@ module powerbi {
             this.max = x;
         }
 
-        /** Move the sequence to cover new date range
-          * @param min - new min to be covered by sequence
-          * @param max - new max to be covered by sequence
-          */
+        /** 
+         * Move the sequence to cover new date range
+         * @param min - new min to be covered by sequence
+         * @param max - new max to be covered by sequence
+         */
         public moveToCover(min: Date, max: Date): void { 
             var delta: number = DateTimeSequence.getDelta(min, max, this.unit);
             var count = Math.floor(delta / this.interval);
@@ -104,12 +107,13 @@ module powerbi {
         }
 
         // Static
-        /** Calculate a new DateTimeSequence
-          * @param dataMin - Date representing min of the data range
-          * @param dataMax - Date representing max of the data range
-          * @param expectedCount - expected number of intervals in the sequence
-          * @param unit - of the intervals in the sequence
-          */
+        /**
+         * Calculate a new DateTimeSequence
+         * @param dataMin - Date representing min of the data range
+         * @param dataMax - Date representing max of the data range
+         * @param expectedCount - expected number of intervals in the sequence
+         * @param unit - of the intervals in the sequence
+         */
         public static calculate(dataMin: Date, dataMax: Date, expectedCount: number, unit?: DateTimeUnit): DateTimeSequence {
             if (!unit) { 
                 unit = DateTimeSequence.getIntervalUnit(dataMin, dataMax, expectedCount);
@@ -406,25 +410,28 @@ module powerbi {
         var MonthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
         var MonthDaysLeap = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-        /** Returns bool indicating weither the provided year is a leap year.
-          * @param year - year value
-          */
+        /**
+         * Returns bool indicating weither the provided year is a leap year.
+         * @param year - year value
+         */
         function isLeap(year: number): boolean { 
             return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
         }
 
-        /** Returns number of days in the provided year/month.
-          * @param year - year value
-          * @param month - month value
-          */
+        /** 
+         * Returns number of days in the provided year/month.
+         * @param year - year value
+         * @param month - month value
+         */
         function getMonthDays(year: number, month: number) { 
             return isLeap(year) ? MonthDaysLeap[month] : MonthDays[month];
         }
 
-        /** Adds a specified number of years to the provided date.
-          * @param date - date value
-          * @param yearDelta - number of years to add
-          */
+        /**
+         * Adds a specified number of years to the provided date.
+         * @param date - date value
+         * @param yearDelta - number of years to add
+         */
         export function addYears(date: Date, yearDelta: number): Date { 
             var year = date.getFullYear();
             var month = date.getMonth();
@@ -440,10 +447,11 @@ module powerbi {
             return result;
         }
 
-        /** Adds a specified number of months to the provided date.
-          * @param date - date value
-          * @param monthDelta - number of months to add
-          */
+        /** 
+         * Adds a specified number of months to the provided date.
+         * @param date - date value
+         * @param monthDelta - number of months to add
+         */
         export function addMonths(date: Date, monthDelta: number): Date { 
             var year = date.getFullYear();
             var month = date.getMonth();
@@ -465,18 +473,20 @@ module powerbi {
             return result;
         }
 
-        /** Adds a specified number of weeks to the provided date.
-          * @param date - date value
-          * @param weekDelta - number of weeks to add
-          */
+        /** 
+         * Adds a specified number of weeks to the provided date.
+         * @param date - date value
+         * @param weeks - number of weeks to add
+         */
         export function addWeeks(date: Date, weeks: number): Date { 
             return addDays(date, weeks * 7);
         }
 
-        /** Adds a specified number of days to the provided date.
-          * @param date - date value
-          * @param dayDelta - number of days to add
-          */
+        /** 
+         * Adds a specified number of days to the provided date.
+         * @param date - date value
+         * @param days - number of days to add
+         */
         export function addDays(date: Date, days: number): Date { 
             var year = date.getFullYear();
             var month = date.getMonth();
@@ -486,34 +496,38 @@ module powerbi {
             return result;
         }
 
-        /** Adds a specified number of hours to the provided date.
-          * @param date - date value
-          * @param hours - number of hours to add
-          */
+        /**
+         * Adds a specified number of hours to the provided date.
+         * @param date - date value
+         * @param hours - number of hours to add
+         */
         export function addHours(date: Date, hours: number): Date { 
             return new Date(date.getTime() + hours * 3600000);
         }
 
-        /** Adds a specified number of minutes to the provided date.
-          * @param date - date value
-          * @param minutes - number of minutes to add
-          */
+        /**
+         * Adds a specified number of minutes to the provided date.
+         * @param date - date value
+         * @param minutes - number of minutes to add
+         */
         export function addMinutes(date: Date, minutes: number): Date { 
             return new Date(date.getTime() + minutes * 60000);
         }
 
-        /** Adds a specified number of seconds to the provided date.
-          * @param date - date value
-          * @param seconds - number of seconds to add
-          */
+        /** 
+         * Adds a specified number of seconds to the provided date.
+         * @param date - date value
+         * @param seconds - number of seconds to add
+         */
         export function addSeconds(date: Date, seconds: number): Date { 
             return new Date(date.getTime() + seconds * 1000);
         }
 
-        /** Adds a specified number of milliseconds to the provided date.
-          * @param date - date value
-          * @param milliseconds - number of milliseconds to add
-          */
+        /** 
+         * Adds a specified number of milliseconds to the provided date.
+         * @param date - date value
+         * @param milliseconds - number of milliseconds to add
+         */
         export function addMilliseconds(date: Date, milliseconds: number): Date { 
             return new Date(date.getTime() + milliseconds);
         }

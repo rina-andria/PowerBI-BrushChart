@@ -28,6 +28,7 @@
 @import "../../PowerBI/styles/colorPalette.less";
 @import "../../PowerBI/styles/fonts.less";
 @import "../../PowerBI/styles/mixins.less";
+@import "../../PowerBI/styles/constants.less";
 @import (optional) "bingNews.less";
 @import (optional) "webChart.less";
 @import (optional) "partitionMap.less";
@@ -963,6 +964,7 @@
     font-size: 11px;
     background-color: @neutralPrimaryColor;
     pointer-events: none;
+    z-index: @tooltip-z-index;
 
     .tooltip-content-container {
         padding: 12px;

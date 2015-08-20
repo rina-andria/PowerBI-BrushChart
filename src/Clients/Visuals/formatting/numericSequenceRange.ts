@@ -179,7 +179,7 @@ module powerbi {
         }
     }
 
-    // Exported for testability
+    /** Note: Exported for testability */
     export module ValueUtil {
         export function hasValue(value: any): boolean {
             return value !== undefined && value !== null;

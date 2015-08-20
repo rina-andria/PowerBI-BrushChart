@@ -31,9 +31,12 @@ module powerbi.visuals {
         sliceWidthRatio?: number;
         animator?: IDonutChartAnimator;
         isScrollable?: boolean;
+        disableGeometricCulling?: boolean;
     }
-
-    /** Used because data points used in D3 pie layouts are placed within a container with pie information */
+    
+    /**
+     * Used because data points used in D3 pie layouts are placed within a container with pie information.
+     */
     export interface DonutArcDescriptor extends D3.Layout.ArcDescriptor {
         data: DonutDataPoint;
     }
@@ -65,9 +68,13 @@ module powerbi.visuals {
     }
 
     interface DonutChartSettings {
-        /** the duration for a long animation displayed after a user interaction with an interactive chart */
+        /**
+         * The duration for a long animation displayed after a user interaction with an interactive chart. 
+         */
         chartRotationAnimationDuration?: number;
-        /** the duration for a short animation displayed after a user interaction with an interactive chart */
+        /**
+         * The duration for a short animation displayed after a user interaction with an interactive chart.
+         */
         legendTransitionAnimationDuration?: number;
     }
 
@@ -99,8 +106,10 @@ module powerbi.visuals {
             d: (d: DonutArcDescriptor) => string;
         };
     }
-
-    /** Renders a donut chart */
+    
+    /**
+     * Renders a donut chart.
+     */
     export class DonutChart implements IVisual, IInteractiveVisual {
         private static ClassName = 'donutChart';
         private static InteractiveLegendClassName = 'donutLegend';
@@ -155,10 +164,13 @@ module powerbi.visuals {
         private legend: ILegend;
         private hasSetData: boolean;
         private isScrollable: boolean;
+        private disableGeometricCulling: boolean;
         private hostService: IVisualHostServices;
         private settings: DonutChartSettings;
-
-        /** Public for testing */
+        
+        /**
+         * Note: Public for testing.
+         */
         public animator: IDonutChartAnimator;
 
         constructor(options?: DonutConstructorOptions) {
@@ -166,13 +178,14 @@ module powerbi.visuals {
                 this.sliceWidthRatio = options.sliceWidthRatio;
                 this.animator = options.animator;
                 this.isScrollable = options.isScrollable ? options.isScrollable : false;
+                this.disableGeometricCulling = options.disableGeometricCulling ? options.disableGeometricCulling : false;
             }
             if (this.sliceWidthRatio == null) {
                 this.sliceWidthRatio = DonutChart.defaultSliceWidthRatio;
             }
         }
 
-        public static converter(dataView: DataView, colors: IDataColorPalette, viewport?: IViewport): DonutData {
+        public static converter(dataView: DataView, colors: IDataColorPalette, viewport?: IViewport, disableGeometricCulling?: boolean): DonutData {
             var converter = new DonutChartConversion.DonutChartConverter(dataView, colors);
             converter.convert();
             var d3PieLayout = d3.layout.pie()
@@ -180,7 +193,7 @@ module powerbi.visuals {
                 .value((d: DonutDataPoint) => {
                     return d.percentage;
                 });
-            var culledDataPoints = viewport ? DonutChart.cullDataByViewport(converter.dataPoints, converter.maxValue, viewport) : converter.dataPoints;
+            var culledDataPoints = (disableGeometricCulling === false && viewport) ? DonutChart.cullDataByViewport(converter.dataPoints, converter.maxValue, viewport) : converter.dataPoints;
             var data: DonutData = {
                 dataPointsToDeprecate: culledDataPoints,
                 dataPoints: d3PieLayout(culledDataPoints),
@@ -280,7 +293,7 @@ module powerbi.visuals {
 
             var dataViews = options.dataViews;
             if (dataViews && dataViews.length > 0 && dataViews[0].categorical) {
-                this.data = DonutChart.converter(dataViews[0], this.colors, this.currentViewport);
+                this.data = DonutChart.converter(dataViews[0], this.colors, this.currentViewport, this.disableGeometricCulling);
                 if (!(this.options.interactivity && this.options.interactivity.isInteractiveLegend))
                     this.renderLegend();
 
@@ -696,8 +709,11 @@ module powerbi.visuals {
             svg.call(drag);
         }
 
-        // purpose: getting the angle (in degrees) of the drag event coordinates.
-        // The angle is calculated against the plane of the center of the donut (meaning, when the center of the donut is at (0,0) coordinates).
+        /**
+         * Get the angle (in degrees) of the drag event coordinates.
+         * The angle is calculated against the plane of the center of the donut
+         * (meaning, when the center of the donut is at (0,0) coordinates).
+         */
         private getAngleFromDragEvent(): number {
             var interactivityState = this.interactivityState;
 
@@ -1043,13 +1059,13 @@ module powerbi.visuals {
             return culledDataPoints;
         }
     }
-
+    
     /**
-    * This class is an interactive legend for the Donut Chart. 
-    * Features:
-    *   it is scrollable indefinitely, using drag gesture
-    *   when you interact with it, it updates the donut chart itself
-    */
+     * This class is an interactive legend for the Donut Chart.
+     * 
+     * Features: It is scrollable indefinitely, using drag gesture
+     * when you interact with it, it updates the donut chart itself.
+     */    
     class DonutChartInteractiveLegend {
 
         private static LegendContainerClassName = 'legend-container';
@@ -1109,8 +1125,7 @@ module powerbi.visuals {
             var currX = initialXOffset;
             this.currentXOffset = initialXOffset;
 
-            /* Given the legend item div, create the item values (category, percentage and measure) on top of it.
-             */
+            // Given the legend item div, create the item values (category, percentage and measure) on top of it.
             var createLegendItem = (itemDiv: JQuery, datum: DonutDataPoint) => {
                 // position the legend item
                 itemDiv
@@ -1292,7 +1307,7 @@ module powerbi.visuals {
             }
         }
 
-        // Update the legend items, allowing for endless rotation
+        /** Update the legend items, allowing for endless rotation */
         private updateLabelBlocks(index: number) {
 
             if (this.currentNumberOfLegendItems > DonutChartInteractiveLegend.MinimumItemsInLegendForCycled) {
@@ -1332,7 +1347,7 @@ module powerbi.visuals {
                 .text(text);
         }
 
-        // this method alters the given span and sets it to the final legen item span style
+        /** This method alters the given span and sets it to the final legen item span style. */
         private static createLegendItemSpan(existingSpan: JQuery, marginLeft: number): JQuery {
             existingSpan
                 .css({
@@ -1345,7 +1360,7 @@ module powerbi.visuals {
             return existingSpan;
         }
 
-        // caclulte entire legend box size according to its building spans
+        /** Caclulte entire legend box size according to its building spans */
         private static legendBoxSize(valueSpanWidth: number, categorySpanWidth: number, precentageSpanWidth: number): number {
             var boxSize = valueSpanWidth > categorySpanWidth ? valueSpanWidth : categorySpanWidth;
             boxSize = boxSize > precentageSpanWidth ? boxSize : precentageSpanWidth;

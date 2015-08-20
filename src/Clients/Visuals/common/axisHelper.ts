@@ -29,34 +29,61 @@
 module powerbi.visuals {
     import ArrayExtensions = jsCommon.ArrayExtensions;
 
-    // default ranges are for when we have a field chosen for the axis, but no values are returned by the query
+    /**
+     * Default ranges are for when we have a field chosen for the axis,
+     * but no values are returned by the query.
+     */
     export var fallBackDomain = [0, 10];
     export var fallbackDateDomain = [new Date(2014, 1, 1).getTime(), new Date(2015, 1, 1).getTime()];
 
     export interface IAxisProperties {
-        /** the D3 Scale object */
+        /** 
+         * The D3 Scale object.
+         */
         scale: D3.Scale.GenericScale<any>;
-        /** the D3 Axis object */
+        /** 
+         * The D3 Axis object.
+         */
         axis: D3.Svg.Axis;
-        /** an array of the tick values to display for this axis */
+        /**
+         * An array of the tick values to display for this axis.
+         */
         values: any[];
-        /** the D3.Selection that the axis should render to */
+        /** 
+         * The D3.Selection that the axis should render to.
+         */
         graphicsContext?: D3.Selection;
-        /** the ValueType of the column used for this axis */
+        /** 
+         * The ValueType of the column used for this axis.
+         */
         axisType: ValueType;
-        /** a formatter with appropriate properties configured for this field */
+        /**
+         * A formatter with appropriate properties configured for this field.
+         */
         formatter: IValueFormatter;
-        /** the axis title label */
+        /**
+         * The axis title label.
+         */
         axisLabel: string;
-        /** cartesian axes are either a category or value axis */
+        /**
+         * Cartesian axes are either a category or value axis.
+         */
         isCategoryAxis: boolean;    
-        /** (optional) the max width for category tick label values. used for ellipsis truncation / label rotation. */
+        /** 
+         * (optional) The max width for category tick label values. used for ellipsis truncation / label rotation.
+         */
         xLabelMaxWidth?: number;
-        /** (optional) the thickness of each category on the axis*/
+        /** 
+         * (optional) The thickness of each category on the axis.
+         */
         categoryThickness?: number;
-        /** (optional) the outer padding in pixels applied to the D3 scale*/
+        /** 
+         * (optional) The outer padding in pixels applied to the D3 scale.
+         */
         outerPadding?: number;
-        /** (optional) whether we are using a default domain */
+        /** 
+         * (optional) Whether we are using a default domain.
+         */
         usingDefaultDomain?: boolean;
     }
 
@@ -68,29 +95,57 @@ module powerbi.visuals {
     }
 
     export interface CreateAxisOptions {
-        /** the dimension length for the axis, in pixels */
+        /**
+         * The dimension length for the axis, in pixels.
+         */
         pixelSpan: number;
-        /** the data domain. [min, max] for a scalar axis, or [1...n] index array for ordinal */
+        /** 
+         * The data domain. [min, max] for a scalar axis, or [1...n] index array for ordinal.
+         */
         dataDomain: number[];
-        /** the DataViewMetadataColumn will be used for dataType and tick value formatting */
+        /** 
+         * The DataViewMetadataColumn will be used for dataType and tick value formatting.
+         */
         metaDataColumn: DataViewMetadataColumn;
-        /** identifies the property for the format string */
+        /**
+         * Identifies the property for the format string.
+         */
         formatStringProp: DataViewObjectPropertyIdentifier;
-        /** outerPadding to be applied to the axis */
+        /** 
+         * outerPadding to be applied to the axis.
+         */
         outerPadding: number; 
-        /** indicates if this is the category axis */
-        isCategoryAxis?: boolean;       
-        /** if true and the dataType is numeric or dateTime, create a linear axis, else create an ordinal axis */        
+        /** 
+         * Indicates if this is the category axis.
+         */
+        isCategoryAxis?: boolean;
+        /**
+         * If true and the dataType is numeric or dateTime,
+         * create a linear axis, else create an ordinal axis.
+         */       
         isScalar?: boolean;
-        /** (optional) the scale is inverted for a vertical axis, and different optimizations are made for tick labels */
+        /**
+         * (optional) The scale is inverted for a vertical axis,
+         * and different optimizations are made for tick labels.
+         */
         isVertical?: boolean;
-        /** (optional) for visuals that do not need zero (e.g. column/bar) use tickInterval */
+        /** 
+         * (optional) For visuals that do not need zero (e.g. column/bar) use tickInterval.
+         */
         useTickIntervalForDisplayUnits?: boolean;
-        /** (optional) combo charts can override the tick count to align y1 and y2 grid lines */
+        /**
+         * (optional) Combo charts can override the tick count to
+         * align y1 and y2 grid lines.
+         */
         forcedTickCount?: number;
-        /** (optional) callback for looking up actual values from indices, used when formatting tick labels */
+        /** 
+         * (optional) Callback for looking up actual values from indices, 
+         * used when formatting tick labels. 
+         */
         getValueFn?: (index: number, type: ValueType) => any;
-        /** (optional) the width/height of each category on the axis */
+        /**
+         * (optional) The width/height of each category on the axis.
+         */
         categoryThickness?: number;
     }
 
@@ -126,13 +181,15 @@ module powerbi.visuals {
             return 8;
         }
 
-        /** Get the best number of ticks based on minimum value, maximum value, measure metadata and max tick count. 
-          * @min - The minimum of the data domain.
-          * @max - The maximum of the data domain.
-          * @valuesMetadata - The measure metadata array.
-          * @maxTickCount - The max count of intervals.
-          * @is100Pct - Whether this is 100 percent chart.
-          */
+        /**
+         * Get the best number of ticks based on minimum value, maximum value,
+         * measure metadata and max tick count.
+         * 
+         * @param min The minimum of the data domain.
+         * @param max The maximum of the data domain.
+         * @param valuesMetadata The measure metadata array.
+         * @param maxTickCount The max count of intervals.
+         */
         export function getBestNumberOfTicks(min: number, max: number, valuesMetadata: DataViewMetadataColumn[], maxTickCount: number, isDateTime?: boolean): number {
             debug.assert(maxTickCount >= 0, "maxTickCount must be greater or equal to zero");
 
@@ -242,15 +299,18 @@ module powerbi.visuals {
             return tickLabels;
         }
 
-        /** Round out very small zero tick values (e.g. -1e-33 becomes 0)
-          * @ticks - array of numbers (from d3.scale.ticks([maxTicks]))
-          * @epsilon - (optional) max ratio of calculated tick interval which we will recognize as zero
-          * e.g.
-          *     ticks = [-2, -1, 1e-10, 3, 4]; epsilon = 1e-5;
-          *     closeZero = 1e-5 * | 2 - 1 | = 1e-5
-          *     // Tick values <= 1e-5 replaced with 0
-          *     return [-2, -1, 0, 3, 4];
-          */
+        /** 
+         * Round out very small zero tick values (e.g. -1e-33 becomes 0).
+         * 
+         * @param ticks Array of numbers (from d3.scale.ticks([maxTicks])).
+         * @param epsilon Max ratio of calculated tick interval which we will recognize as zero.
+         * 
+         * e.g.
+         *     ticks = [-2, -1, 1e-10, 3, 4]; epsilon = 1e-5;
+         *     closeZero = 1e-5 * | 2 - 1 | = 1e-5
+         *     // Tick values <= 1e-5 replaced with 0
+         *     return [-2, -1, 0, 3, 4];
+         */
         function createTrueZeroTickLabel(ticks: number[], epsilon: number = 1e-5): number[]{
             if (!ticks || ticks.length < 2)
                 return ticks;
@@ -522,7 +582,9 @@ module powerbi.visuals {
             return filteredValues;
         }
 
-        /** Gets the ValueType of a category column, defaults to Text if the type is not present. */
+        /**
+         * Gets the ValueType of a category column, defaults to Text if the type is not present.
+         */
         export function getCategoryValueType(metadataColumn: DataViewMetadataColumn, isScalar?: boolean): ValueType {
             if (metadataColumn && columnDataTypeHasValue(metadataColumn.type))
                 return metadataColumn.type;
@@ -536,7 +598,7 @@ module powerbi.visuals {
 
         /**
          * Create a D3 axis including scale. Can be vertical or horizontal, and either datetime, numeric, or text.
-         * @param {CreateAxisOptions} options the properties used to create the axis
+         * @param options The properties used to create the axis.
          */
         export function createAxis(options: CreateAxisOptions): IAxisProperties {
             var pixelSpan = options.pixelSpan,
@@ -761,8 +823,10 @@ module powerbi.visuals {
 
             return formatter;
         }
-
-        // format the linear tick labels or the category labels
+        
+        /**
+         * Format the linear tick labels or the category labels.
+         */
         export function formatAxisTickValues(
             axis: D3.Svg.Axis,
             tickValues: any[],
@@ -817,9 +881,10 @@ module powerbi.visuals {
         }
 
         /**
-         * createValueDomain - creates a [min,max] from your Cartiesian data values
-         * @param {CartesianSeries[]} data the series array of CartesianDataPoints
-         * @param {boolean} includeZero columns and bars includeZero, line and scatter do not.
+         * Creates a [min,max] from your Cartiesian data values.
+         * 
+         * @param data The series array of CartesianDataPoints.
+         * @param includeZero Columns and bars includeZero, line and scatter do not.
          */
         export function createValueDomain(data: CartesianSeries[], includeZero: boolean): number[] {
             debug.assertValue(data, 'data');
@@ -1035,8 +1100,10 @@ module powerbi.visuals {
             }
             return result;
         }
-
-        //set customized domain, but don't change when nothing is set
+        
+        /**
+         * Set customized domain, but don't change when nothing is set
+         */
         export function applyCustomizedDomain(customizedDomain, forcedDomain: any[]): any[] {
             var domain: any[] = [undefined, undefined];
 
@@ -1066,8 +1133,10 @@ module powerbi.visuals {
 
             return domain;
         }
-
-        //combine the forced domain with the actual domain if one of the values was set
+        
+        /**
+         * Combine the forced domain with the actual domain if one of the values was set.
+         */
         export function combineDomain(forcedDomain: any[], domain: any[]): any[] {
             var combinedDomain: any[] = domain ? [domain[0], domain[1]] : [];
             if (forcedDomain && forcedDomain.length === 2) {

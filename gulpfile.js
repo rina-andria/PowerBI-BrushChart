@@ -359,7 +359,7 @@ gulp.task('checkout_gh_pages', function () {
     fs.exists('.docs', function (exists) {
         if (!exists) {
             console.log('cloning the repo/gh-pages into .docs');
-              return run("git clone https://github.com/vtkalek/test_hub --branch gh-pages --single-branch .docs").exec() 
+              return run("git clone https://github.com/Microsoft/PowerBI-visuals --branch gh-pages --single-branch .docs").exec() 
     		 .pipe(gulp.dest('output')); 
         }
         else {

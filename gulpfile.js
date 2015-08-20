@@ -289,7 +289,7 @@ gulp.task("run_tests", function () {
 
 gulp.task("test", function (callback) {
     runSequence(
-        "build",
+        "build_projects",
         "dependencies",
         "copy_dependencies_visuals_tests",
         "run_tests",
@@ -352,8 +352,50 @@ gulp.task('pull_rebase', function () {
 });
 
 
+
+
+
+gulp.task('checkout_gh_pages', function () {
+    fs.exists('.docs', function (exists) {
+        if (!exists) {
+            console.log('cloning the repo/gh-pages into .docs');
+              return run("git clone https://github.com/vtkalek/test_hub --branch gh-pages --single-branch .docs").exec() 
+    		 .pipe(gulp.dest('output')); 
+        }
+        else {
+           return console.log('gh-pages repo exists in .docs folder.');
+        }
+    });
+});
+
+gulp.task('pull_gh_pages', function () {
+    return  run("git -C .docs pull").exec() 
+    		 .pipe(gulp.dest('../output')); 
+});
+
+ gulp.task('copy_docs', function () {
+        return gulp.src(['docs/**/*'])
+          .pipe(gulp.dest('.docs'));
+    });
+
+gulp.task('add_all_gh_pages', function () {
+    return  run('git -C .docs add --all').exec() 
+    		 .pipe(gulp.dest('../output')); 
+});
+
+gulp.task('commit_gh_pages', function () {
+    return  run('git -C .docs commit -m "automatic documentation update" ').exec() 
+    		 .pipe(gulp.dest('../output')); 
+});
+
+gulp.task('push_gh_pages', function () {
+    return  run('git -C .docs push').exec() 
+    		 .pipe(gulp.dest('../output')); 
+});
+
 gulp.task('git_update_gh_pages', function() {
-    runSequence('pull_rebase',"build_projects","combine_internal_d_ts","createdocs",'deploy');
+    runSequence('pull_rebase',"build_projects","combine_internal_d_ts",'checkout_gh_pages', 'pull_gh_pages'
+    	, "createdocs", 'copy_docs','add_all_gh_pages','commit_gh_pages', 'push_gh_pages');
 });
 
 /**

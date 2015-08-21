@@ -206,8 +206,10 @@ module powerbi.visuals {
 
             return labels;
         }
-
-        // Funnel chart uses animation and does not use collision detection
+        
+        /**
+         * Note: Funnel chart uses animation and does not use collision detection.
+         */
         export function drawDefaultLabelsForFunnelChart(data: any[], context: D3.Selection, layout: ILabelLayout, isAnimator: boolean = false, animationDuration?: number): D3.UpdateSelection {
             debug.assertValue(data, 'data could not be null or undefined');
 
@@ -472,9 +474,11 @@ module powerbi.visuals {
                 },
             };
         }
-
-        //valide for stacked column/bar chart and 100% stacked column/bar chart,
-        // that labels that should to be inside the shape aren't bigger then shapes,
+        
+        /**
+         * Valide for stacked column/bar chart and 100% stacked column/bar chart,
+         * that labels that should to be inside the shape aren't bigger then shapes.
+         */
         function validateLabelsSize(d: ColumnChartDataPoint, axisOptions: ColumnAxisOptions, visualWidth?: number): boolean {
             var xScale = axisOptions.xScale;
             var yScale = axisOptions.yScale;

@@ -62,7 +62,7 @@ module powerbi.data {
             return object;
         }
 
-        // Exported for testability
+        /** Note: Exported for testability */
         export function evaluateProperty(
             propertyDescriptor: DataViewObjectPropertyDescriptor,
             propertyDefinition: DataViewObjectPropertyDefinition) {

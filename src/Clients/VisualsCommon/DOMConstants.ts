@@ -27,10 +27,14 @@
 /// <reference path="_references.ts"/>
 
 module jsCommon {
-    /** DOM constants */
+    /**
+     * DOM constants.
+     */
     export module DOMConstants {
 
-        /** Integer codes corresponding to individual keys on the keyboard */
+        /** 
+         * Integer codes corresponding to individual keys on the keyboard.
+         */
         export const escKeyCode = 27;
         export const enterKeyCode = 13;
         export const tabKeyCode = 9;
@@ -55,12 +59,16 @@ module jsCommon {
         export const yKeyCode = 89;
         export const zKeyCode = 90;
 
-        /** DOM Elements */
+        /** 
+         * DOM Elements.
+         */
         export const DocumentBody = 'body';
         export const Anchor = 'a';
         export const EditableTextElements = ':text, textarea';
 
-        /** DOM Attributes and values */
+        /** 
+         * DOM Attributes and values.
+         */
         export const disabledAttributeOrValue = 'disabled';
         export const readonlyAttributeOrValue = 'readonly';
         export const styleAttribute = 'style';
@@ -71,7 +79,9 @@ module jsCommon {
         export const titleAttribute = 'title';
         export const srcAttribute = 'src';
 
-        /** DOM event names */
+        /**
+         * DOM event names.
+         */
         export const contextmenuEventName = 'contextmenu';
         export const blurEventName = 'blur';
         export const keyUpEventName = 'keyup';
@@ -96,7 +106,9 @@ module jsCommon {
         export const loadEventName = 'load';
         export const beforeUnload = 'beforeunload';
         
-        /** Common DOM event combination names */
+        /**
+         * Common DOM event combination names.
+         */
         export const inputAndSelectEventNames = 'input, select';
     }
 }

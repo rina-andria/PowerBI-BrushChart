@@ -55,7 +55,9 @@ $.fn.togglePanelControl = function () {
 };
 
 module jsCommon {
-    /** Represents a promise that may be rejected by its consumer. */    
+    /** 
+     * Represents a promise that may be rejected by its consumer.
+     */    
     export interface IRejectablePromise extends JQueryPromise<void> {
         reject(...args: any[]): void;
     }

@@ -41,7 +41,7 @@ module powerbi {
         /**
          * Initializes an instance of the IVisual.
          *
-         * @param options: Initialization options for the visual.
+         * @param options Initialization options for the visual.
          */
         init(options: VisualInitOptions): void;
 
@@ -56,7 +56,7 @@ module powerbi {
         /** 
          * Notifies the IVisual to resize.
          *
-         * @param finalViewport: This is the viewport that the visual will eventually be resized to.
+         * @param finalViewport This is the viewport that the visual will eventually be resized to.
          */
         onResizing(finalViewport: IViewport): void;
 
@@ -81,11 +81,7 @@ module powerbi {
         /** Gets a value indicating whether the IVisual can be resized to the given viewport. */
         canResizeTo?(viewport: IViewport): boolean;
 
-        /**
-         * Gets the set of objects that the visual is currently displaying.
-         *
-         * @param objectName: Name of the object, as defined in the VisualCapabilities.
-         */
+        /** Gets the set of objects that the visual is currently displaying. */
         enumerateObjectInstances?(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[];
     }
 

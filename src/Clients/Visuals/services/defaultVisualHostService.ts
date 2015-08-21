@@ -101,8 +101,12 @@ module powerbi.visuals {
             visuals.valueFormatter.setLocaleOptions(DefaultVisualHostServices.createLocaleOptions());
             visuals.TooltipManager.setLocalizedStrings(DefaultVisualHostServices.createTooltipLocaleOptions());
         }
-
-        // Public for testability
+        
+        /**
+         * Create locale options.
+         * 
+         * Note: Public for testability.
+         */
         public static createLocaleOptions(): visuals.ValueFormatterLocalizationOptions {
            return {
                 null: defaultLocalizedStrings['NullValue'],

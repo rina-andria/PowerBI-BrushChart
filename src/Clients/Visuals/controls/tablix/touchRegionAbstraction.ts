@@ -74,11 +74,19 @@ module powerbi.visuals.controls.TouchUtils {
     }
 
     export enum SwipeDirection {
-        /** Vertical: swipe gesture moves along the y-axis at an angle within an established threshold*/
+        /**
+         * Swipe gesture moves along the y-axis at an angle within an established threshold.
+         */
         Vertical,
-        /** Horizontal: swipe gesture moves along the x-axis at an angle within an established threshold*/
+        
+        /**
+         * Swipe gesture moves along the x-axis at an angle within an established threshold.
+         */
         Horizontal,
-        /** FreeForm: swipe gesture does not stay within the thresholds of either x or y-axis*/
+        
+        /**
+         * Swipe gesture does not stay within the thresholds of either x or y-axis.
+         */
         FreeForm
     }
 
@@ -90,44 +98,59 @@ module powerbi.visuals.controls.TouchUtils {
     }
 
     /** 
-    *   Interface serves as a way to convert pixel point to any needed unit of
-    *   positioning over two axises such as row/column positioning.
-    */
+     * Interface serves as a way to convert pixel point to any needed unit of
+     * positioning over two axises such as row/column positioning.
+     */
     export interface IPixelToItem {
 
         getPixelToItem(x: number, y: number, dx: number, dy: number, down: boolean): TouchEvent;
     }
 
     /**
-    *   Interface for listening to a simple touch event that's abstracted away
-    *   from any platform specific traits.
-    */
+     * Interface for listening to a simple touch event that's abstracted away
+     * from any platform specific traits.
+     */
     export interface ITouchHandler {
         touchEvent(e: TouchEvent): void;
     }
 
     /** 
-    *   A simple touch event class that's abstracted away from any platform specific traits.
-    */
+     * A simple touch event class that's abstracted away from any platform specific traits.
+     */
     export class TouchEvent {
-        /** _x: x-axis (not neccessarily in pixels (see IPixelToItem)) */
+        /**
+         * X-axis (not neccessarily in pixels (see IPixelToItem)).
+         */
         private _x: number;
-        /** _y: y-axis (not neccessarily in pixels (see IPixelToItem)) */
+        
+        /**
+         * Y-axis (not neccessarily in pixels (see IPixelToItem)).
+         */
         private _y: number;
-        /** _dx: delta of x-axis (not neccessarily in pixels (see IPixelToItem)) */
+        
+        /**
+         * Delta of x-axis (not neccessarily in pixels (see IPixelToItem)).
+         */
         private _dx: number;
-        /** _dy: delta of y-axis (not neccessarily in pixels (see IPixelToItem)) */
+        
+        /**
+         * Delta of y-axis (not neccessarily in pixels (see IPixelToItem)).
+         */
         private _dy: number;
-        /** _isMouseDown: determines if the mouse button is pressed*/
+        
+        /**
+         * Determines if the mouse button is pressed.
+         */
         private _isMouseDown: boolean;
 
-        /** 
-        * @param x: X location of mouse.
-        * @param y: Y location of mouse.
-        * @param isMouseDown: indicates if the mouse button is held down or a finger press on screen.
-        * @param dx: (optional) the change in x of the gesture.
-        * @param dy: (optional) the change in y of the gesture.
-        */
+        /**
+         * @constructor
+         * @param x X Location of mouse.
+         * @param y Y Location of mouse.
+         * @param isMouseDown Indicates if the mouse button is held down or a finger press on screen.
+         * @param dx (optional) The change in x of the gesture.
+         * @param dy (optional) The change in y of the gesture.
+         */
         constructor(x: number, y: number, isMouseDown: boolean, dx?: number, dy?: number) {
             this._x = x;
             this._y = y;
@@ -153,16 +176,19 @@ module powerbi.visuals.controls.TouchUtils {
         }
 
         /**
-        * @return: returns a boolean indicating if the mouse button is held down.
-        */
+         * Returns a boolean indicating if the mouse button is held down.
+         * 
+         * @return: True if the the mouse button is held down,
+         * otherwise false.
+         */
         public get isMouseDown(): boolean {
             return this._isMouseDown;
         }
     }
 
     /**
-    *   This interface defines the datamembers stored for each touch region.
-    */
+     * This interface defines the datamembers stored for each touch region.
+     */
     export interface ITouchHandlerSet {
         handler: ITouchHandler;
         region: Rectangle;
@@ -172,28 +198,47 @@ module powerbi.visuals.controls.TouchUtils {
     }
 
     /** 
-    *   This class "listens" to the TouchEventInterpreter  to recieve touch events and sends it to all 
-    *   "Touch Delegates" with  TouchRegions that contain the mouse event. Prior to sending off the
-    *   event, its position is put in respect to the delegate's TouchRegion and converted to the appropriate
-    *   unit (see IPixelToItem).
-    */
+     * This class "listens" to the TouchEventInterpreter  to recieve touch events and sends it to all 
+     * "Touch Delegates" with  TouchRegions that contain the mouse event. Prior to sending off the
+     * event, its position is put in respect to the delegate's TouchRegion and converted to the appropriate
+     * unit (see IPixelToItem).
+     */
     export class TouchManager {
-        /** _touchList: list of touch regions and their correlating data memebers */
+        /**
+         * List of touch regions and their correlating data memebers.
+         */
         private _touchList: ITouchHandlerSet[];
-        /** _scrollThreshold: boolean to enable thresholds for fixing to an axis when scrolling*/
+        
+        /**
+         * Boolean to enable thresholds for fixing to an axis when scrolling.
+         */
         private _scrollThreshold: boolean;
-        /** _lockThreshold: boolean to enable locking to an axis when gesture is fixed to an axis*/
+        
+        /**
+         * Boolean to enable locking to an axis when gesture is fixed to an axis.
+         */
         private _lockThreshold: boolean;
-        /** _swipeDirection: the current direction of the swipe*/
+        
+        /**
+         * The current direction of the swipe.
+         */
         private _swipeDirection: SwipeDirection;
-        /** _matchingDirectionCount: the count of consecutive events match the current swipe direction*/
+        
+        /**
+         * The count of consecutive events match the current swipe direction.
+         */
         private _matchingDirectionCount: number;
-        /** _lastEvent: the last recieved mouse event*/
+        
+        /**
+         * The last recieved mouse event.
+         */
         private _lastEvent: TouchEvent;
 
         /**
-        * The default behavior is to enable thresholds and lock to axis.
-        */
+         * Default constructor.
+         * 
+         * The default behavior is to enable thresholds and lock to axis.
+         */
         constructor() {
             this._touchList = [];
             this._swipeDirection = SwipeDirection.FreeForm;
@@ -209,11 +254,12 @@ module powerbi.visuals.controls.TouchUtils {
         }
 
         /**
-        * @param region: rectangle indicating the locations of the touch region.
-        * @param handler: handler for recieved touch events.
-        * @param converter: converts from pixels to the wanted item of measure (rows, columns, etc).
-        *                   EXAMPLE: dx -> from # of pixels to the right to # of columns moved to the right
-        */
+         * @param region Rectangle indicating the locations of the touch region.
+         * @param handler Handler for recieved touch events.
+         * @param converter Converts from pixels to the wanted item of measure (rows, columns, etc).
+         *                   
+         * EXAMPLE: dx -> from # of pixels to the right to # of columns moved to the right.
+         */
         public addTouchRegion(region: Rectangle, handler: ITouchHandler, converter: IPixelToItem): void {
             var item: ITouchHandlerSet = <ITouchHandlerSet> {
                 lastPoint: new TouchEvent(0, 0, false),
@@ -226,8 +272,8 @@ module powerbi.visuals.controls.TouchUtils {
         }
 
         /**
-        * Sends a mouse up event to all regions with their last event as a mouse down event.
-        */
+         * Sends a mouse up event to all regions with their last event as a mouse down event.
+         */
         public upAllTouches(): void {
             var eventPoint: TouchEvent;
             var length: number;
@@ -354,9 +400,9 @@ module powerbi.visuals.controls.TouchUtils {
         }
 
         /**
-        * @param e: position of event used to find touched regions
-        * @return: Returns an array of regions that contain the event point.
-        */
+         * @param e Position of event used to find touched regions
+         * @return Array of regions that contain the event point.
+         */
         private _findRegions(e: TouchEvent): ITouchHandlerSet[] {
             var list: ITouchHandlerSet[] = [];
             var length: number;
@@ -372,8 +418,8 @@ module powerbi.visuals.controls.TouchUtils {
         }
 
         /**
-        * @return: Returns an array of regions that contain a mouse down event. (see ITouchHandlerSet.lastPoint)
-        */
+         * @return Array of regions that contain a mouse down event. (see ITouchHandlerSet.lastPoint).
+         */
         private _getActive(): ITouchHandlerSet[] {
             var list: ITouchHandlerSet[] = [];
             var length: number;
@@ -390,23 +436,40 @@ module powerbi.visuals.controls.TouchUtils {
     }
 
     /**
-    *   This class is responsible for establishing connections to handle touch events
-    *   and to interpret those events so they're compatible with the touch abstractions.
-    *
-    *   Touch events with platform specific handles should be done here.
-    */
+     * This class is responsible for establishing connections to handle touch events
+     * and to interpret those events so they're compatible with the touch abstractions.
+     *
+     * Touch events with platform specific handles should be done here.
+     */
     export class TouchEventInterpreter {
-        /** _touchPanel: HTML element that touch events are drawn from. */
+        /**
+         * HTML element that touch events are drawn from.
+         */
         private _touchPanel: HTMLElement;
-        /** _allowMouseDrag: boolean enabling mouse drag. */
+        
+        /**
+         * Boolean enabling mouse drag.
+         */
         private _allowMouseDrag: boolean;
-        /** _manager: touch events are interpreted and passed on this manager. */
+        
+        /**
+         * Touch events are interpreted and passed on this manager.
+         */
         private _manager: TouchManager;
-        /** _scale: see TablixLayoutManager */
+        
+        /**
+         * @see TablixLayoutManager. 
+         */
         private _scale: number;
-        /** _touchReferencePoint: used for mouse location when a secondary div is used along side the primary with this one being the primary. */
+        
+        /**
+         * Used for mouse location when a secondary div is used along side the primary with this one being the primary.
+         */
         private _touchReferencePoint: HTMLElement;
-        /** Rectangle containing the targeted Div */
+        
+        /** 
+         * Rectangle containing the targeted Div.
+         */
         private _rect: ClientRect;
 
         private _documentMouseMoveWrapper: any;

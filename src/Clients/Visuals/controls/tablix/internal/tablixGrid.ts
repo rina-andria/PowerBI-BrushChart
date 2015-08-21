@@ -35,16 +35,18 @@ module powerbi.visuals.controls.internal {
         onReset(cell: TablixCell);
     }
 
-    /** Internal interface to abstract the tablix row/column
-      */
+    /** 
+     * Internal interface to abstract the tablix row/column.
+     */
     export interface ITablixGridItem {
         calculateSize(): void;
         resize(size: number): void;
         fixSize(): void;
-
+        
         /**
-          In case the parent column/row header size is bigger than the sum of the children, the size of the last item is adjusted to compensate the difference 
-          */
+         * In case the parent column/row header size is bigger than the sum of the children,
+         * the size of the last item is adjusted to compensate the difference.
+         */
         setAligningContextualWidth(size: number): void;
         getAligningContextualWidth(): number;
 

@@ -26,7 +26,9 @@
 
 /// <reference path="../_references.ts"/>
 
-// IMPORTANT: This chart is not currently enabled in the PBI system and is under development.
+/**
+ * IMPORTANT: This chart is not currently enabled in the PBI system and is under development.
+ */
 module powerbi.visuals {
 
     export interface IDataDotChartConfiguration {
@@ -56,14 +58,15 @@ module powerbi.visuals {
         interactivityService: IInteractivityService;
     }
 
-    /* The data dot chart shows a set of circles with the data value inside them. 
-     * - The circles are regularly spaced similar to column charts.
-     * - The radius of all dots is the same across the chart.
-     * - This is most often combined with a column chart to create the 'chicken pox' chart.
-     * - If any of the data values do not fit within the circles, then the data values are hidden
-     *   and the y axis for the dots is displayed instead.
-     * - This chart only supports a single series of data.
-     * - This chart does not display a legend.
+    /**
+     * The data dot chart shows a set of circles with the data value inside them.
+     * The circles are regularly spaced similar to column charts.
+     * The radius of all dots is the same across the chart.
+     * This is most often combined with a column chart to create the 'chicken pox' chart.
+     * If any of the data values do not fit within the circles, then the data values are hidden
+     * and the y axis for the dots is displayed instead.
+     * This chart only supports a single series of data.
+     * This chart does not display a legend.
      */
     export class DataDotChart implements ICartesianVisual, IInteractiveVisual {
         public static formatStringProp: DataViewObjectPropertyIdentifier = { objectName: 'general', propertyName: 'formatString' };

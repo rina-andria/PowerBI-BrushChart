@@ -36,7 +36,8 @@ module powerbi.visuals {
         visualType2: string;
     }
 
-    /** This module only supplies the capabilities for comboCharts.
+    /**
+     * This module only supplies the capabilities for comboCharts.
      * Implementation is in cartesianChart and the various ICartesianVisual implementations.
      */
     export module ComboChart {

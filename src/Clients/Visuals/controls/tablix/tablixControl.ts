@@ -46,13 +46,16 @@ module powerbi.visuals.controls {
     }
 
     export enum TablixLayoutKind {
-
-        // The default layout is based on DOM measurements and used on the canvas.
+        /**
+         * The default layout is based on DOM measurements and used on the canvas.
+         */
         Canvas,
-
-        // The DashboardTile layout must not rely on any kind of DOM measurements
-        // since the tiles are created when the dashboard is not visible and the
-        // visual is not rendered; thus no measurements are available.
+        
+        /**
+         * The DashboardTile layout must not rely on any kind of DOM measurements
+         * since the tiles are created when the dashboard is not visible and the
+         * visual is not rendered; thus no measurements are available.
+         */
         DashboardTile,
     }
 

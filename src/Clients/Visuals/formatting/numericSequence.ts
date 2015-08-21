@@ -181,12 +181,13 @@ module powerbi {
             return result;
         }
 
-        /** Calculates the sequence of int numbers which are mapped to the multiples of the units grid. 
-          * @min - The minimum of the range.
-          * @max - The maximum of the range.
-          * @maxCount - The max count of intervals.
-          * @steps - array of intervals.
-          */
+        /** 
+         * Calculates the sequence of int numbers which are mapped to the multiples of the units grid. 
+         * @min - The minimum of the range.
+         * @max - The maximum of the range.
+         * @maxCount - The max count of intervals.
+         * @steps - array of intervals.
+         */
         public static calculateUnits(min: number, max: number, maxCount: number, steps: number[]): NumericSequence {
             // Initialization actions
             maxCount = Double.ensureInRange(maxCount, NumericSequence.MIN_COUNT, NumericSequence.MAX_COUNT);

@@ -35,8 +35,16 @@ module powerbi.visuals {
 
     export interface MinervaVisualFeatureSwitches {
         heatMap?: boolean;
-        dataDotChartEnabled?: boolean;  //This feature switch enables the data-dot & column combo charts
-        devToolsEnabled?: boolean; // To show or not the custom visualizations created
+        
+        /**
+         * This feature switch enables the data-dot & column combo charts.
+         */
+        dataDotChartEnabled?: boolean;
+        
+        /**
+         * To show or not the custom visualizations created.
+         */
+        devToolsEnabled?: boolean;
     }
 
     export interface SmallViewPortProperties {
@@ -52,8 +60,10 @@ module powerbi.visuals {
             public constructor() {
                 this._plugins = <any>powerbi.visuals.plugins;
             }
-
-            /** Gets metadata for all registered. */
+            
+            /**
+             * Gets metadata for all registered.
+             */
             public getVisuals(): IVisualPlugin[] {
                 var registry = this._plugins,
                     names: string[] = Object.keys(registry);
@@ -209,8 +219,10 @@ module powerbi.visuals {
                 return super.getPlugin(type);
             }
         }
-
-        // This plug-in service is used when displaying visuals on the dashboard
+        
+        /**
+         * This plug-in service is used when displaying visuals on the dashboard.
+         */
         export class DashboardPluginService extends VisualPluginService {
             private featureSwitches: MinervaVisualFeatureSwitches;
             private visualPlugins: jsCommon.IStringDictionary<IVisualPlugin>;
@@ -276,7 +288,10 @@ module powerbi.visuals {
                 createPlugin(this.visualPlugins, powerbi.visuals.plugins.lineStackedColumnComboChart, () => new CartesianChart({ chartType: CartesianChartType.LineStackedColumnCombo, cartesianSmallViewPortProperties: this.smallViewPortProperties.CartesianSmallViewPortProperties }));
                 createPlugin(this.visualPlugins, powerbi.visuals.plugins.scatterChart, () => new CartesianChart({ chartType: CartesianChartType.Scatter, cartesianSmallViewPortProperties: this.smallViewPortProperties.CartesianSmallViewPortProperties }));
                 createPlugin(this.visualPlugins, powerbi.visuals.plugins.gauge, () => new Gauge({ chartType: Gauge, gaugeSmallViewPortProperties: this.smallViewPortProperties.GaugeSmallViewPortProperties }));
-                createPlugin(this.visualPlugins, powerbi.visuals.plugins.funnel,() => new FunnelChart({ animator: null, funnelSmallViewPortProperties: this.smallViewPortProperties.FunnelSmallViewPortProperties }));
+                createPlugin(this.visualPlugins, powerbi.visuals.plugins.funnel, () => new FunnelChart({ animator: null, funnelSmallViewPortProperties: this.smallViewPortProperties.FunnelSmallViewPortProperties }));
+                createPlugin(this.visualPlugins, powerbi.visuals.plugins.donutChart, () => new DonutChart({ disableGeometricCulling: true }));
+                createPlugin(this.visualPlugins, powerbi.visuals.plugins.pieChart, () => new DonutChart({ sliceWidthRatio: 0, disableGeometricCulling: true }));
+
             }
 
             public getPlugin(type: string): IVisualPlugin {

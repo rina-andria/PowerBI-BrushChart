@@ -287,9 +287,14 @@ module powerbi.visuals {
             export function deflateBy(rect: IRect,padding: number): IRect {
                 return {left: rect.left + padding,top: rect.top + padding, width:rect.width - padding - padding, height:rect.height - padding - padding};
             }
-
-            // @return the closest point on the rect to the (x,y) point given.
-            // in case the (x,y) given is inside the rect, (x,y) will be returned. otherwise, a point on a border will be returned.
+            
+            /**
+             * Get closest point.
+             * 
+             * @return the closest point on the rect to the (x,y) point given.
+             * In case the (x,y) given is inside the rect, (x,y) will be returned.
+             * Otherwise, a point on a border will be returned.
+             */
             export function getClosestPoint(rect: IRect, x: number, y: number): IPoint {
                 return {
                     x: Math.min(Math.max(rect.left, x), rect.left + rect.width),

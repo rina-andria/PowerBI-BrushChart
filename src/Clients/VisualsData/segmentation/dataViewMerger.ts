@@ -29,26 +29,31 @@
 module powerbi.data.segmentation {
 
     export interface DataViewTableSegment extends DataViewTable {
-        /* Index of the last item that had a merge flag in the underlying data.
-           We assume merge flags are not random but adjacent to each other. */
+        /** 
+         * Index of the last item that had a merge flag in the underlying data.
+         * We assume merge flags are not random but adjacent to each other. 
+         */
         lastMergeIndex?: number;
     }
 
     export interface DataViewTreeSegmentNode extends DataViewTreeNode {
-        /* Indicates whether the node is a duplicate of a node from a
-            previous segment. */
+        /** Indicates whether the node is a duplicate of a node from a previous segment. */
         isMerge?: boolean;
     }
 
     export interface DataViewCategoricalSegment extends DataViewCategorical {
-        /* Index of the last item that had a merge flag in the underlying data.
-            We assume merge flags are not random but adjacent to each other. */
+        /** 
+         * Index of the last item that had a merge flag in the underlying data.
+         * We assume merge flags are not random but adjacent to each other. 
+         */
         lastMergeIndex?: number;
     }
 
     export interface DataViewMatrixSegmentNode extends DataViewMatrixNode {
-        /* Index of the last item that had a merge flag in the underlying data.
-            We assume merge flags are not random but adjacent to each other. */
+        /**
+         * Index of the last item that had a merge flag in the underlying data.
+         * We assume merge flags are not random but adjacent to each other. 
+         */
         isMerge?: boolean;
     }
 
@@ -80,7 +85,7 @@ module powerbi.data.segmentation {
                 mergeTreeNodes(source.matrix.rows.root, segment.matrix.rows.root, false /*allowDifferentStructure*/);
         }
 
-        // Public for testability
+        /** Note: Public for testability */
         export function mergeTables(source: DataViewTable, segment: DataViewTableSegment): void {
             debug.assertValue(source, 'source');
             debug.assertValue(segment, 'segment');
@@ -91,7 +96,11 @@ module powerbi.data.segmentation {
             merge(source.rows, segment.rows, segment.lastMergeIndex + 1);
         }
 
-        // Public for testability
+        /**
+         * Merge categories values and identities
+         * 
+         * Note: Public for testability 
+         */
         export function mergeCategorical(source: DataViewCategorical, segment: DataViewCategoricalSegment): void {
             debug.assertValue(source, 'source');
             debug.assertValue(segment, 'segment');
@@ -152,9 +161,11 @@ module powerbi.data.segmentation {
             }
         }
 
-        // Merges the segment array starting at the specified index into the source array 
-        // and returns the segment slice that wasn't merged.
-        // The segment array is spliced up to specified index in the process.
+        /**
+         * Merges the segment array starting at the specified index into the source array 
+         * and returns the segment slice that wasn't merged.
+         * The segment array is spliced up to specified index in the process.
+         */
         function merge(source: any[], segment: any[], index?: number): any[] {
             if (index >= segment.length)
                 return segment;
@@ -168,7 +179,7 @@ module powerbi.data.segmentation {
             return result;
         }
 
-        // Public for testability
+        /** Note: Public for testability */
         export function mergeTreeNodes(sourceRoot: DataViewTreeNode, segmentRoot: DataViewTreeNode, allowDifferentStructure: boolean): void {
             debug.assertValue(sourceRoot, 'sourceRoot');
             debug.assertValue(segmentRoot, 'segmentRoot');

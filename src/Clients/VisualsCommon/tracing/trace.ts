@@ -65,13 +65,17 @@ module jsCommon {
         var defaultListener = new ConsoleTracer();
         var listeners = new Array<ITraceListener>(defaultListener);
 
-        /** Trace a warning. Please ensure that no PII is being logged.*/
+        /**
+         * Trace a warning. Please ensure that no PII is being logged.
+         */
         export function warning(text: string, requestId?: string): void {
             debug.assertValue(text, 'text');
             logTraceInternal(new TraceItem(text, TraceType.Warning, requestId));
         }
 
-        /** Trace an error. Please ensure that no PII is being logged.*/
+        /** 
+         * Trace an error. Please ensure that no PII is being logged.
+         */
         export function error(text: string, includeStackTrace?: boolean, requestId?: string): void {
             debug.assertValue(text, 'text');
             if (includeStackTrace)
@@ -79,7 +83,9 @@ module jsCommon {
             logTraceInternal(new TraceItem(text, TraceType.Error, requestId));
         }
 
-        /** Trace an information. Please ensure that no PII is being logged.*/
+        /** 
+         * Trace an information. Please ensure that no PII is being logged.
+         */
         export function verbose(text: string, requestId?: string): void {
             debug.assertValue(text, 'text');
             logTraceInternal(new TraceItem(text, TraceType.Verbose, requestId));
@@ -117,7 +123,9 @@ module jsCommon {
             return result;
         }
 
-        /** used for unit-test only */
+        /** 
+         * Note: Used for unit-test only. 
+         */
         export function disableDefaultListener(): void {
             removeListener(defaultListener);
         }

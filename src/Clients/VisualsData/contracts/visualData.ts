@@ -51,9 +51,10 @@ module powerbi {
         /** A verbose display unit system that will only respect the formatting defined in the model. Suitable for explore mode single-value cards. */
         Verbose,
 
-        /** A display unit system that uses units such as K, M, bn if we have at least one of those units (e.g. 0.9M is not valid as it's less than 1 million).
-        *   Suitable for dashboard tile cards
-        */
+        /**
+         * A display unit system that uses units such as K, M, bn if we have at least one of those units (e.g. 0.9M is not valid as it's less than 1 million).
+         * Suitable for dashboard tile cards
+         */
         WholeUnits,
     }
 }

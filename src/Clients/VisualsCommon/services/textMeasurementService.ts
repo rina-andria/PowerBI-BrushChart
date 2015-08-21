@@ -58,7 +58,9 @@ module powerbi {
         var svgTextElement: D3.Selection;
         var canvasCtx: CanvasContext;
 
-        /** Idempotent function for adding the elements to the DOM. */
+        /**
+         * Idempotent function for adding the elements to the DOM. 
+         */
         function ensureDOM(): void {
             if (spanElement)
                 return;
@@ -78,8 +80,8 @@ module powerbi {
         }
 
         /**
-         * This method measures the width of the text with the given SVG text properties
-         * @param {ITextMeasurementProperties} textProperties - The text properties to use for text measurement
+         * This method measures the width of the text with the given SVG text properties.
+         * @param textProperties The text properties to use for text measurement.
          */
         export function measureSvgTextWidth(textProperties: TextProperties): number {
             ensureDOM();
@@ -89,8 +91,8 @@ module powerbi {
         }
 
         /**
-         * This method measures the height of the text with the given SVG text properties
-         * @param {ITextMeasurementProperties} textProperties - The text properties to use for text measurement
+         * This method measures the height of the text with the given SVG text properties.
+         * @param textProperties The text properties to use for text measurement.
          */
         export function measureSvgTextHeight(textProperties: TextProperties): number {
             ensureDOM();
@@ -138,7 +140,7 @@ module powerbi {
 
         /**
          * This method measures the width of the svgElement.
-         * @param {SVGTextElement} element - The SVGTextElement to be measured.
+         * @param svgElement The SVGTextElement to be measured.
          */
         export function measureSvgTextElementWidth(svgElement: SVGTextElement): number {
             return measureSvgTextWidth(getSvgMeasurementProperties(svgElement));
@@ -146,7 +148,7 @@ module powerbi {
 
         /**
          * This method fetches the text measurement properties of the given DOM element.
-         * @param {JQuery} element - The selector for the DOM Element.
+         * @param element The selector for the DOM Element.
          */
         export function getMeasurementProperties(element: JQuery): TextProperties {
             return {
@@ -161,7 +163,7 @@ module powerbi {
 
         /**
          * This method fetches the text measurement properties of the given SVG text element.
-         * @param {SVGTextElement} element - The SVGTextElement to be measured.
+         * @param svgElement The SVGTextElement to be measured.
          */
         export function getSvgMeasurementProperties(svgElement: SVGTextElement): TextProperties {
             var style = window.getComputedStyle(svgElement, null);
@@ -176,8 +178,8 @@ module powerbi {
         }
 
         /**
-         * This method returns the width of a div element
-         * @param {JQuery} element: The div element
+         * This method returns the width of a div element.
+         * @param element The div element.
          */
         export function getDivElementWidth(element: JQuery): string {
             debug.assert(element.is('div'), 'Given element is not a div type. Cannot get width');
@@ -185,9 +187,9 @@ module powerbi {
         }
 
         /**
-        * Compares labels text size to the available size and renders ellipses when the available size is smaller
-        * @param {ITextMeasurementProperties} textProperties - The text properties (including text content) to use for text measurement
-        * @param maxWidth - the maximum width available for rendering the text
+         * Compares labels text size to the available size and renders ellipses when the available size is smaller.
+         * @param textProperties The text properties (including text content) to use for text measurement.
+         * @param maxWidth The maximum width available for rendering the text.
         */
         export function getTailoredTextOrDefault(properties: TextProperties, maxWidth: number): string {
             ensureDOM();
@@ -244,9 +246,9 @@ module powerbi {
         }
 
         /**
-        * Compares labels text size to the available size and renders ellipses when the available size is smaller
-        * @param textElement - the SVGTextElement containing the text to render
-        * @param maxWidth - the maximum width available for rendering the text
+         * Compares labels text size to the available size and renders ellipses when the available size is smaller.
+         * @param textElement The SVGTextElement containing the text to render.
+         * @param maxWidth The maximum width available for rendering the text.
         */
         export function svgEllipsis(textElement: SVGTextElement, maxWidth: number): void {
             var properties = getSvgMeasurementProperties(textElement);

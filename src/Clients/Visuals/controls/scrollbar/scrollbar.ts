@@ -131,7 +131,7 @@ module powerbi.visuals.controls {
         }
     }
 
-    // Scrollbar base class
+    /** Scrollbar base class */
     export class Scrollbar {
         public static DefaultScrollbarWidth = "15px"; // protected
         private static ScrollbarBackgroundFirstTimeMousedownHoldDelay = 500;
@@ -635,7 +635,7 @@ module powerbi.visuals.controls {
         }
     }
 
-    // Horizontal Scrollbar
+    /** Horizontal Scrollbar */
     export class HorizontalScrollbar extends Scrollbar {
         constructor(parentElement: HTMLElement) {
             super(parentElement);
@@ -738,7 +738,7 @@ module powerbi.visuals.controls {
         }
     }
 
-    // Vertical Scrollbar
+    /** Vertical Scrollbar */
     export class VerticalScrollbar extends Scrollbar {
         constructor(parentElement: HTMLElement) {
             super(parentElement);

@@ -41,10 +41,11 @@ module powerbi.data {
             return ArrayExtensions.emptyToNull(extractor.keys);
         }
 
-        /** Recognizes expressions of the form:
-          * 1) Equals(ColRef, Constant)
-          * 2) And(Equals(ColRef1, Constant1), Equals(ColRef2, Constant2))
-          */
+        /**
+         * Recognizes expressions of the form:
+         * 1) Equals(ColRef, Constant)
+         * 2) And(Equals(ColRef1, Constant1), Equals(ColRef2, Constant2))
+         */
         class KeyExtractorImpl extends DefaultSQExprVisitor<void> {
             public keys: SQExpr[] = [];
             public malformed: boolean;

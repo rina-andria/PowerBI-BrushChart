@@ -27,10 +27,11 @@
 /// <reference path="../../../_references.ts"/>
 
 module powerbi.visuals.controls.internal {
-
-    /** This class is used for layouts that don't or cannot
-        rely on DOM measurements.  Instead they compute all required
-        widths and heights and store it in this structure. */
+    /**
+     * This class is used for layouts that don't or cannot
+     * rely on DOM measurements.  Instead they compute all required
+     * widths and heights and store it in this structure.
+     */
     export class SizeComputationManager {
 
         // Unfortunately since we are doing manual layout, we need to hardcode some layout properties here.
@@ -243,8 +244,8 @@ module powerbi.visuals.controls.internal {
         }
 
         /**
-        *   Implementing classes must override this to send dimentions to TablixControl
-        **/
+         * Implementing classes must override this to send dimentions to TablixControl.
+         */
         public _sendDimensionsToControl(): void { //extending class overrides this
             debug.assertFail("PureVirtualMethod: DimensionLayoutManager._sendDimensionsToControl");
         }
@@ -850,8 +851,8 @@ module powerbi.visuals.controls.internal {
         }
 
         /**
-        *   Sends column related data (pixel size, column count, etc) to TablixControl
-        **/
+         * Sends column related data (pixel size, column count, etc) to TablixControl.
+         */
         public _sendDimensionsToControl(): void {
             var gridContextualWidth: number = this.getGridContextualWidth();
             var widthToFill: number = this.getActualContextualWidth(gridContextualWidth);
@@ -1046,8 +1047,8 @@ module powerbi.visuals.controls.internal {
         }
 
         /**
-        *   Sends row related data (pixel size, column count, etc) to TablixControl
-        **/
+         * Sends row related data (pixel size, column count, etc) to TablixControl.
+         */
         public _sendDimensionsToControl(): void {
             var gridContextualWidth: number = this.getGridContextualWidth();
             var widthToFill: number = this.getActualContextualWidth(gridContextualWidth);
@@ -1267,10 +1268,12 @@ module powerbi.visuals.controls.internal {
         }
 
         /**
-        * This call makes room for parent header cells where neccessary. Since HTML cells that span vertically displace other rows,
-        * room has to be made for spanning headers that leave an exiting row to enter the new row that it starts from and removed when
-        * returning to an entering row.
-        **/
+         * This call makes room for parent header cells where neccessary.
+         * Since HTML cells that span vertically displace other rows,
+         * room has to be made for spanning headers that leave an exiting 
+         * row to enter the new row that it starts from and removed when
+         * returning to an entering row.
+         */
         private alignRowHeaderCells(item: any, currentRow: TablixRow): void {
             var index = currentRow.getRowHeaderLeafIndex();
 

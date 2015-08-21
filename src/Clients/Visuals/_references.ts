@@ -167,12 +167,6 @@
 
 /// <reference path="visuals/donutChart.ts"/>
 
-/// <reference path="capabilities/sunburstChart.capabilities.ts"/>
-
-/// <reference path="capabilities/bingNews.capabilities.ts"/>
-
-/// <reference path="capabilities/partitionMap.capabilities.ts"/>
-
 /// <reference path="capabilities/webChart.capabilities.ts"/>
 
 /// <reference path="plugins.ts"/>

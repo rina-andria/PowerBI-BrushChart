@@ -220,7 +220,7 @@ module powerbi.data {
         Measure,
     }
 
-    // Exported for testability
+    /** Note: Exported for testability */
     export function defaultAggregateForDataType(type: ValueType): QueryAggregateFunction {
         if (type.integer || type.numeric)
             return QueryAggregateFunction.Sum;
@@ -228,7 +228,7 @@ module powerbi.data {
         return QueryAggregateFunction.Count;
     }
 
-    // Exported for testability
+    /** Note: Exported for testability */
     export function defaultAggregateToQueryAggregateFunction(aggregate: ConceptualDefaultAggregate): QueryAggregateFunction {
         switch (aggregate) {
             case ConceptualDefaultAggregate.Average:

@@ -65,28 +65,38 @@ module powerbi.visuals {
             this.tableDataView = tableDataView;
             this.formatter = formatter;
         }
-
-        /** Returns the depth of a hierarchy. */
+        
+        /**
+         * Returns the depth of a hierarchy.
+         */
         public getDepth(hierarchy: any): number {
             return 1;
         }
-
-        /** Returns the leaf count of a hierarchy. */
+        
+        /**
+         * Returns the leaf count of a hierarchy.
+         */
         public getLeafCount(hierarchy: any): number {
             return hierarchy.length;
         }
-
-        /** Returns the leaf member of a hierarchy at a specified index. */
+        
+        /**
+         * Returns the leaf member of a hierarchy at a specified index.
+         */
         public getLeafAt(hierarchy: any, index: number): any {
             return hierarchy[index];
         }
-
-        /** Returns the specified hierarchy member parent. */
+        
+        /**
+         * Returns the specified hierarchy member parent.
+         */
         public getParent(item: any): any {
             return null;
         }
-
-        /** Returns the index of the hierarchy member relative to its parent. */
+        
+        /**
+         * Returns the index of the hierarchy member relative to its parent.
+         */
         public getIndex(item: any): number {
             if (!item)
                 return -1;
@@ -108,8 +118,10 @@ module powerbi.visuals {
         private getColumnIndex(item: any): number {
             return TableHierarchyNavigator.getIndex(this.tableDataView.columns, item);
         }
-
-        /** Checks whether a hierarchy member is a leaf. */
+        
+        /**
+         * Checks whether a hierarchy member is a leaf.
+         */
         public isLeaf(item: any): boolean {
             return true;
         }
@@ -121,33 +133,45 @@ module powerbi.visuals {
         public isColumnHierarchyLeaf(cornerItem: any): boolean {
             return true;
         }
-
-        /** Checks whether a hierarchy member is the last item within its parent. */
+        
+        /**
+         * Checks whether a hierarchy member is the last item within its parent.
+         */
         public isLastItem(item: any, items: any): boolean {
             return false;
         }
-
-        /** Gets the children members of a hierarchy member. */
+        
+        /**
+         * Gets the children members of a hierarchy member.
+         */
         public getChildren(item: any): any {
             return null;
         }
-
-        /** Gets the members count in a specified collection. */
+        
+        /**
+         * Gets the members count in a specified collection.
+         */
         public getCount(items: any): number {
             return items.length;
         }
-
-        /** Gets the member at the specified index. */
+        
+        /**
+         * Gets the member at the specified index.
+         */
         public getAt(items: any, index: number): any {
             return items[index];
         }
-
-        /** Gets the hierarchy member level. */
+        
+        /**
+         * Gets the hierarchy member level.
+         */
         public getLevel(item: any): number {
             return 0;
         }
-
-        /** Returns the intersection between a row and a column item. */
+        
+        /**
+         * Returns the intersection between a row and a column item.
+         */
         public getIntersection(rowItem: any, columnItem: DataViewMetadataColumn): TableCell {
             var value: any;
             var isTotal: boolean = false;
@@ -175,8 +199,10 @@ module powerbi.visuals {
                 showUrl: UrlHelper.isValidUrl(columnItem, formattedValue)
             };
         }
-
-        /** Returns the corner cell between a row and a column level. */
+        
+        /**
+         * Returns the corner cell between a row and a column level. 
+         */
         public getCorner(rowLevel: number, columnLevel: number): any {
             return null;
         }
@@ -238,8 +264,10 @@ module powerbi.visuals {
         onBindRowHeader? (item: any): void;
         onColumnHeaderClick? (queryName: string): void;
     }
-
-    // Public for testability
+    
+    /**
+     * Note: Public for testability.
+     */
     export class TableBinder implements controls.ITablixBinder {
 
         private static columnHeaderClassName = 'bi-table-column-header';
@@ -260,8 +288,10 @@ module powerbi.visuals {
 
         public onEndRenderingSession(): void {
         }
-
-        // Row Header
+        
+        /**
+         * Row Header.
+         */
         public bindRowHeader(item: any, cell: controls.ITablixCell): void {
             this.ensureHeight(item, cell);
             if (this.options.onBindRowHeader)
@@ -270,8 +300,10 @@ module powerbi.visuals {
 
         public unbindRowHeader(item: any, cell: controls.ITablixCell): void {
         }
-
-        // Column Header
+        
+        /**
+         * Column Header.
+         */
         public bindColumnHeader(item: DataViewMetadataColumn, cell: controls.ITablixCell): void {
 
             var classNames = TableBinder.columnHeaderClassName;
@@ -298,8 +330,10 @@ module powerbi.visuals {
                 cell.extension.unregisterClickHandler();
             }
         }
-
-        // Body Cell
+        
+        /**
+         * Body Cell.
+         */
         public bindBodyCell(item: TableCell, cell: controls.ITablixCell): void {
             if (item.showUrl)
                 controls.internal.TablixUtils.appendATagToBodyCell(item.value, cell);
@@ -320,8 +354,10 @@ module powerbi.visuals {
             cell.extension.clearContainerStyle();
             cell.extension.contentHost.textContent = '';
         }
-
-        // Corner Cell
+        
+        /**
+         * Corner Cell.
+         */
         public bindCornerCell(item: any, cell: controls.ITablixCell): void {
         }
 
@@ -343,8 +379,10 @@ module powerbi.visuals {
         public unbindEmptySpaceFooterCell(cell: controls.ITablixCell): void {
             // Not needed for Table
         }
-
-        // Measurement Helper
+        
+        /**
+         * Measurement Helper.
+         */
         public getHeaderLabel(item: DataViewMetadataColumn): string {
             return item.displayName;
         }
@@ -437,8 +475,10 @@ module powerbi.visuals {
             this.lastAllowHeaderResize = true;
             this.waitingForSort = false;
         }
-
-        /*Public for testability*/
+        
+        /**
+         * Note: Public for testability.
+         */
         public static converter(table: DataViewTable): DataViewVisualTable {
             debug.assertValue(table, 'table');
             debug.assertValue(table.rows, 'table.rows');
@@ -630,8 +670,10 @@ module powerbi.visuals {
             this.waitingForSort = true;
             this.hostServices.onCustomSort(args);
         }
-
-        /* Public for testability */
+        
+        /**
+         * Note: Public for testability.
+         */
         public needsMoreData(item: any): boolean {
             if (this.waitingForData || !this.dataView.metadata || !this.dataView.metadata.segment)
                 return false;

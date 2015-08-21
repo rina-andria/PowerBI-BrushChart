@@ -109,12 +109,12 @@ module powerbi.visuals {
             }
         }
 
-        // For tests only
+        /** Note: For tests only */
         public isTooltipComponentVisible(): boolean {
             return this.isTooltipVisible;
         }
 
-        // For tests only
+        /** Note: For tests only */
         public setTestScreenSize(width: number, height: number) {
             this.customScreenWidth = width;
             this.customScreenHeight = height;

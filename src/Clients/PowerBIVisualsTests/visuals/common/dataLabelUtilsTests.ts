@@ -658,7 +658,7 @@ module powerbitests {
         });
 
         it('Hide labels validation', (done) => {
-            element = powerbitests.helpers.testDom('120', '100');
+            element = powerbitests.helpers.testDom('120', '120');
 
             v.init({
                 element: element,

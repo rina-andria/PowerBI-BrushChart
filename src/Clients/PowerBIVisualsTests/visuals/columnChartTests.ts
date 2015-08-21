@@ -3540,7 +3540,7 @@ module powerbitests {
                     expect(+$('.column')[1].attributes.getNamedItem('width').value).toBeCloseTo(12, 0);
                 }
                 else {
-                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(179, 0);
+                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(178, 0);
                     expect(+$('.column')[1].attributes.getNamedItem('width').value).toBeCloseTo(48, 0);
                 }
                 done();
@@ -3584,12 +3584,12 @@ module powerbitests {
                 expect($('.columnChart')).toBeInDOM();
                 if (scalarSetting) {
                     expect($('.column').length).toBe(4);
-                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(363, 0);
+                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(361, 0);
                     expect(+$('.column')[1].attributes.getNamedItem('width').value).toBeCloseTo(48, 0);
                 }
                 else {
                     expect($('.column').length).toBe(6);
-                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(179, 0);
+                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(178, 0);
                     expect(+$('.column')[1].attributes.getNamedItem('width').value).toBeCloseTo(48, 0);
                 }
                 done();
@@ -4339,7 +4339,7 @@ module powerbitests {
                 expect($('.columnChart')).toBeInDOM();
 
                 // Data should be spliced down to a smaller set that will fit inside the view
-                expect($('.column').length).toBe(13);
+                expect($('.column').length).toBe(12);
 
                 // The max value in the view is ...
                 expect($('.columnChart .axisGraphicsContext .y.axis .tick').find('text').last().text()).toBe('25');
@@ -8891,7 +8891,7 @@ module powerbitests {
                 expect(transform.y).toBe('0');
                 expect(transform.x).toBeLessThan(element.width());
                 expect($('.brush').attr('transform')).toBe('translate(22,90)');
-                expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0)).toBe(13);
+                expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0)).toBe(9);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
                 done();
             }, DefaultWaitForRender);
@@ -10019,9 +10019,10 @@ module powerbitests {
                 }
             };
 
+            // initial size is 500x500
             v.onDataChanged({ dataViews: [dataView] });
             if (chartType === 'barChart' || chartType === 'hundredPercentStackedBarChart' || chartType === 'clusteredBarChart') {
-                v.onResizing({ height: 500, width: 75 });
+                v.onResizing({ height: 500, width: 85 });
             }
             else {
                 v.onResizing({ height: 500, width: 200 });
@@ -10039,7 +10040,7 @@ module powerbitests {
                     case 'clusteredBarChart':
                     case 'columnChart':
                     case 'clusteredColumnChart':
-                        expect(labels.length).toBe(2);                   
+                        expect(labels.length).toBe(2);
                         break;
                 }
 

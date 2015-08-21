@@ -385,7 +385,7 @@ module powerbitests {
 
             setTimeout(() => {
                 var yTranslate = parseFloat($(".axisGraphicsContext .x.axis").attr("transform").split(",")[1].replace("(", ""));
-                var xTranslate = parseFloat($(".axisGraphicsContext .y.axis").attr("transform").split(",")[0].split("(")[1]);
+                var xTranslate = parseFloat($(".axisGraphicsContext").attr("transform").split(",")[0].split("(")[1]);
 
                 visualBuilder.onDataChanged({
                     dataViews: [
@@ -396,7 +396,7 @@ module powerbitests {
 
                 setTimeout(() => {
                     var newYTranslate = parseFloat($(".axisGraphicsContext .x.axis").attr("transform").split(",")[1].replace("(", ""));
-                    var newXTranslate = parseFloat($(".axisGraphicsContext .y.axis").attr("transform").split(",")[0].split("(")[1]);
+                    var newXTranslate = parseFloat($(".axisGraphicsContext").attr("transform").split(",")[0].split("(")[1]);
                     expect(yTranslate).toBeGreaterThan(newYTranslate);
                     expect(newXTranslate).toBeGreaterThan(xTranslate);
                     done();
@@ -1329,7 +1329,7 @@ module powerbitests {
             return DataViewTransform.createValueColumns(this.categoricalValues);
         }
 
-        public build() {
+        public build(): powerbi.DataView {
             return {
                 metadata: this.metadata,
                 categorical: {
@@ -1368,13 +1368,12 @@ module powerbitests {
             }
         }
 
-        function build(dataViewBuilder: DataViewBuilder) {
+        function build(dataViewBuilder: DataViewBuilder): powerbi.DataView {
             dataViewBuilder.update();
-
             return dataViewBuilder.build();
         }
 
-        export function buildDataViewDefault(isGeneral = false) {
+        export function buildDataViewDefault(isGeneral = false): powerbi.DataView {
             var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
 
             setGeneral(dataViewBuilder, isGeneral);
@@ -1395,7 +1394,7 @@ module powerbitests {
             return build(dataViewBuilder);
         }
         
-        export function buildDataViewCustom(objects, values: any[], identities: any[] = undefined) {
+        export function buildDataViewCustom(objects, values: any[], identities: any[] = undefined): powerbi.DataView {
             var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
 
             dataViewBuilder.objects = objects;
@@ -1414,7 +1413,7 @@ module powerbitests {
             return build(dataViewBuilder);
         }
 
-        export function buildDataViewCustomSingleColumn(objects, values: any[]) {
+        export function buildDataViewCustomSingleColumn(objects, values: any[]): powerbi.DataView {
             var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
 
             dataViewBuilder.objects = objects;
@@ -1428,7 +1427,7 @@ module powerbitests {
             return build(dataViewBuilder);
         }
 
-        export function buildDataViewCustomWithIdentities(values: any[]) {
+        export function buildDataViewCustomWithIdentities(values: any[]): powerbi.DataView {
             var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
 
             dataViewBuilder.columns = columns;
@@ -1444,7 +1443,7 @@ module powerbitests {
             return build(dataViewBuilder);
         }
 
-        export function buildDataViewInAnotherDomainOneValue(objects: any = undefined) {
+        export function buildDataViewInAnotherDomainOneValue(objects: any = undefined): powerbi.DataView {
             var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
 
             dataViewBuilder.objects = objects;
@@ -1460,7 +1459,7 @@ module powerbitests {
             return build(dataViewBuilder);
         }
 
-        export function buildDataViewEmpty() {
+        export function buildDataViewEmpty(): powerbi.DataView {
             var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
 
             dataViewBuilder.columns = columns;
@@ -1470,7 +1469,7 @@ module powerbitests {
             return build(dataViewBuilder);
         }
 
-        export function buildDataViewInAnotherDomain(isGeneral = false, objects: any = undefined) {
+        export function buildDataViewInAnotherDomain(isGeneral = false, objects: any = undefined): powerbi.DataView {
             var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
 
             dataViewBuilder.objects = objects;
@@ -1484,23 +1483,20 @@ module powerbitests {
             return build(dataViewBuilder);
         }
 
-        export function buildDataViewSuperLongLabels(isGeneral = false) {
-            var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
+        export function buildDataViewSuperLongLabels(isGeneral = false): powerbi.DataView {
+            // must share the same values as the general dataView, only category labels should change.
+            var dataView: powerbi.DataView = buildDataViewDefault(isGeneral);
 
-            setGeneral(dataViewBuilder, isGeneral);
-
-            dataViewBuilder.columns = columns;
-            dataViewBuilder.values = [[100, 200, 700], [1000, 2000, 7000], [1000000, 2000000, 7000000]];
-            dataViewBuilder.categoriesValues = [
+            dataView.categorical.categories[0].values = [
                 "This is a pretty long label I think",
                 "This is a pretty long label I thought",
                 "This is a pretty long label I should think"
             ];
 
-            return build(dataViewBuilder);
+            return dataView;
         }
 
-        export function buildDataViewManyCategories(isGeneral = false) {
+        export function buildDataViewManyCategories(isGeneral = false): powerbi.DataView {
             var dataViewBuilder: DataViewBuilder = new DataViewBuilder();
 
             setGeneral(dataViewBuilder, isGeneral);

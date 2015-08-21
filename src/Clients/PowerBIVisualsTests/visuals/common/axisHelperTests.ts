@@ -720,14 +720,13 @@ module powerbitests {
 
     class AxisHelperTickLabelBuilder {
         private xAxisProperties: powerbi.visuals.IAxisProperties;
-
         private y1AxisProperties: powerbi.visuals.IAxisProperties;
-
         private y2AxisProperties: powerbi.visuals.IAxisProperties;
+        private axes: powerbi.visuals.CartesianAxisProperties;
 
         private viewPort: powerbi.IViewport = {
-            width: 10,
-            height: 20
+            width: 200,
+            height: 125
         };
 
         private textProperties: powerbi.TextProperties = {
@@ -735,10 +734,17 @@ module powerbitests {
             fontSize: "16"
         };
 
-        constructor() {
-            this.xAxisProperties = this.buildAxisOptions([87, 78]);
+        constructor(viewport?: powerbi.IViewport, xValues?: any[]) {
+            this.xAxisProperties = this.buildAxisOptions(xValues || ['Oregon','Washington','California','Mississippi']);
             this.y1AxisProperties = this.buildAxisOptions([20, 30, 50]);
             this.y2AxisProperties = this.buildAxisOptions([2000, 3000, 5000]);
+            this.axes = {
+                x: this.xAxisProperties,
+                y1: this.y1AxisProperties,
+                y2: this.y2AxisProperties,
+            };
+            if (viewport)
+                this.viewPort = viewport;
         }
 
         public buildAxisOptions(values: any[]): powerbi.visuals.IAxisProperties {
@@ -765,14 +771,12 @@ module powerbitests {
 
             var tickCount = AxisHelper.getTickLabelMargins(
                 this.viewPort,
-                20,
+                this.viewPort.width * 0.3,
                 powerbi.TextMeasurementService.measureSvgTextWidth,
-                this.xAxisProperties,
-                this.y1AxisProperties,
+                this.axes,
                 rotateX,
-                77,
+                this.viewPort.height * 0.2,
                 this.textProperties,
-                this.y2AxisProperties,
                 undefined,
                 showOnRight,
                 renderXAxis,
@@ -788,33 +792,86 @@ module powerbitests {
             new AxisHelperTickLabelBuilder();
 
         it("Check that margins are calculatde correctly when you render 2 axes", () => {
-            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, false, true, true, true);
+            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(false, false, true, true, true);
 
-            expect(tickCount.xMax).toBe(7);
+            expect(tickCount.xMax).toBe(10);
             expect(tickCount.yLeft).toBe(12);
             expect(tickCount.yRight).toBe(24);
         });
 
         it("Check that margins are calculated correctly when you hide all axes", () => {
-            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true);
+            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(false);
 
             expect(tickCount.xMax).toBe(0);
             expect(tickCount.yLeft).toBe(0);
             expect(tickCount.yRight).toBe(0);
         });
 
-        it("Disable the secondary axis", () => {
-            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, false, true, true, false);
+        it("No rotate, xOverflowLeft", () => {
+            var localTickLabelBuilder = new AxisHelperTickLabelBuilder(undefined, ['CrazyOutdoorDuneBuggiesWithFluxCapacitors', 'Cars', 'Trucks', 'Boats', 'RVs']);
+            var tickCount = localTickLabelBuilder.buildTickLabelMargins(false, false, true, true, false);
 
-            expect(tickCount.xMax).toBe(7);
+            expect(tickCount.xMax).toBe(10);
+            expect(tickCount.yLeft).toBe(25);
+            expect(tickCount.yRight).toBe(0);
+        });
+
+        it("Disable the secondary axis", () => {
+            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(false, false, true, true, false);
+
+            expect(tickCount.xMax).toBe(10);
             expect(tickCount.yLeft).toBe(12);
             expect(tickCount.yRight).toBe(0);
+        });
+
+        it("Disable the secondary axis, xOverflowLeft", () => {
+            var localTickLabelBuilder = new AxisHelperTickLabelBuilder(undefined, ['CrazyOutdoorDuneBuggiesWithFluxCapacitors', 'Cars', 'Trucks', 'Boats', 'RVs']);
+            var tickCount = localTickLabelBuilder.buildTickLabelMargins(true, false, true, true, false);
+
+            expect(tickCount.xMax).toBe(25);
+            expect(tickCount.yLeft).toBe(25);
+            expect(tickCount.yRight).toBe(0);
+        });
+
+        it("Disable both Y axes, xOverflowLeft", () => {
+            var localTickLabelBuilder = new AxisHelperTickLabelBuilder(undefined, ['CrazyOutdoorDuneBuggiesWithFluxCapacitors', 'Cars', 'Trucks', 'Boats', 'RVs']);
+            var tickCount = localTickLabelBuilder.buildTickLabelMargins(true, false, true, false, false);
+
+            expect(tickCount.xMax).toBe(25);
+            expect(tickCount.yLeft).toBe(25);
+            expect(tickCount.yRight).toBe(0);
+        });
+
+        it("Disable the secondary axis, xOverflowRight", () => {
+            var localTickLabelBuilder = new AxisHelperTickLabelBuilder(undefined, ['Cars', 'Trucks', 'Boats', 'RVs', 'CrazyOutdoorDuneBuggies']);
+            var tickCount = localTickLabelBuilder.buildTickLabelMargins(false, false, true, true, false);
+
+            expect(tickCount.xMax).toBe(10);
+            expect(tickCount.yLeft).toBe(12);
+            expect(tickCount.yRight).toBe(12);
+        });
+
+        it("Disable both Y axes, xOverflowRight", () => {
+            var localTickLabelBuilder = new AxisHelperTickLabelBuilder(undefined, ['Cars', 'Trucks', 'Boats', 'RVs', 'CrazyOutdoorDuneBuggies']);
+            var tickCount = localTickLabelBuilder.buildTickLabelMargins(false, false, true, false, false);
+
+            expect(tickCount.xMax).toBe(10);
+            expect(tickCount.yLeft).toBe(0);
+            expect(tickCount.yRight).toBe(12);
+        });
+
+        it("Switch the y-axes", () => {
+            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(false, true, true, true, true);
+
+            expect(tickCount.xMax).toBe(10);
+            expect(tickCount.yLeft).toBe(24);
+            expect(tickCount.yRight).toBe(12);
         });
 
         it("Switch the y-axes, and disable the secondary axis", () => {
             var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, true, true, true, false);
 
-            expect(tickCount.xMax).toBe(7);
+            expect(tickCount.xMax).toBe(25);
             expect(tickCount.yLeft).toBe(0);
             expect(tickCount.yRight).toBe(12);
         });

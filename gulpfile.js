@@ -38,12 +38,15 @@ var minifyCSS = require("gulp-minify-css");
 var typedoc = require("gulp-typedoc");
 var jasmineBrowser = require('gulp-jasmine-browser');
 var spritesmith = require('gulp.spritesmith');
-var deploy      = require('gulp-gh-pages');
+var deploy = require('gulp-gh-pages');
 var git = require('gulp-git');
 var run = require('gulp-run');
 var tslint = require('gulp-tslint');
 var download = require("gulp-download");
+var unzip = require("gulp-unzip");
 var fs = require("fs");
+var os = require("os");
+var exec = require('child_process').exec;
 
 var jsUglifyOptions = {
     compress: {
@@ -233,8 +236,12 @@ gulp.task("build_projects", function (callback) {
         callback);
 });
 
-/** Download dependencies */
-gulp.task('dependencies', function (callback) {
+/** 
+ * Download dependencies. 
+ */
+
+/** Download 'jasmine-jquery.js' */
+gulp.task('jasmine-dependency', function (callback) {
     fs.exists('src/Clients/Externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js', function (exists) {
         if (!exists) {
             console.log('Jasmine test dependency missing. Downloading dependency.');
@@ -249,6 +256,61 @@ gulp.task('dependencies', function (callback) {
     });
 });
 
+/** Download phantomjs */
+gulp.task('phantomjs-dependency', function (callback) {
+    var zipUrl = "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.0.0-windows.zip";
+    var phantomExe = "phantomjs.exe";
+    var jasmineBrowserDir = "./node_modules/gulp-jasmine-browser/lib/";
+
+    // Download phantomjs only for Windows OS.
+    if (os.type().search("Windows") !== -1) {
+        onPhantomjsExist(jasmineBrowserDir, function (exists, version) {
+            if (!exists) {
+                console.log('Phantomjs missing. Downloading dependency.');
+                download(zipUrl)
+                        .pipe(unzip({
+                            filter: function (entry) {
+                                if (entry.path.search(phantomExe) !== -1) {
+                                    entry.path = phantomExe;
+                                    return true;
+                                }
+                            }}))
+                        .pipe(gulp.dest(jasmineBrowserDir))
+                        .on("end", callback);
+            } else {
+                logIfExists(version);
+                callback();
+            }
+        });
+    } else {
+        onPhantomjsExist(jasmineBrowserDir, function (exists, version) {
+            if (exists) {
+                logIfExists(version);
+            } else {
+                console.log("Automatic installation does not allowed for current OS [" + os.type() + "]. Please install Phantomjs manually. (https://bitbucket.org/ariya/phantomjs)");
+            }
+        });
+        callback();
+    }
+
+    function logIfExists(version) {
+        console.log("Phantomjs has already exist. [Version: " + version + "]");
+    }
+
+    function onPhantomjsExist(path, callback) {
+        exec("phantomjs -v", {cwd: path}, function (error, stdout) {
+            if (error !== null) {
+                callback(false, null);
+            } else if (stdout !== null) {
+                callback(true, stdout.substring(0, 5));
+            }
+        });
+    }
+});
+
+/**
+ * Build projects.
+ */
 gulp.task("build", function (callback) {
     runSequence(
         "tslint",
@@ -290,10 +352,11 @@ gulp.task("run_tests", function () {
 gulp.task("test", function (callback) {
     runSequence(
         "build_projects",
-        "dependencies",
+        "jasmine-dependency",
+        "phantomjs-dependency",
         "copy_dependencies_visuals_tests",
         "run_tests",
-        callback);
+         callback);
 });
 
 /**
@@ -350,10 +413,6 @@ gulp.task('pull_rebase', function () {
         if (err) throw err;
     });
 });
-
-
-
-
 
 gulp.task('checkout_gh_pages', function () {
     fs.exists('.docs', function (exists) {

@@ -37,8 +37,14 @@ To build the library and run the sample application you will need:
 
 In order to run unit tests you will also need to do the following:
 
-1. Install [PhantomJS](http://phantomjs.org/) (PhantomJS is a headless WebKit scriptable with a JavaScript API. It has fast and native support for various web standards: DOM handling, CSS selector, JSON, Canvas, and SVG.)
- * Make sure it's running from command line typing 'phantomjs'. If it's not then you need to update your system PATH variable and add the path to phantomjs.exe file.
+Install [PhantomJS](http://phantomjs.org/) (PhantomJS is a headless WebKit scriptable with a JavaScript API. It has fast and native support for various web standards: DOM handling, CSS selector, JSON, Canvas, and SVG.).
+
+For Windows OS you can install PhantomJS using this command:
+
+```
+gulp phantomjs-dependency
+```
+As result, local version of the PhantomJS will be downloaded and installed into the project. For other OS you have to install PhantomJS manually.
 
 ### Build Power BI visuals
 

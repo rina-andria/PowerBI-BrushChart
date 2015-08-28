@@ -412,12 +412,9 @@ module powerbitests {
 
             var tooltipInfo = TooltipBuilder.createTooltipInfo(
                 null,
-                dataView.categorical.categories,
+                dataView.categorical,
                 'abc',
-                dataView.categorical.values,
-                123.321,
-                [{ value: 123.321, metadata: dataView.categorical.values[0] }],
-                0);
+                123.321);
 
             expect(tooltipInfo).toEqual([
                 { displayName: 'cat', value: 'abc' },
@@ -464,12 +461,9 @@ module powerbitests {
 
             var tooltipInfo = TooltipBuilder.createTooltipInfo(
                 null,
-                dataView.categorical.categories,
+                dataView.categorical,
                 'abc',
-                dataView.categorical.values,
-                123.321,
-                [{ value: 123.321, metadata: dataView.categorical.values[0] }],
-                0);
+                123.321);
 
             expect(tooltipInfo).toEqual([
                 { displayName: 'cat', value: 'abc' },
@@ -511,9 +505,8 @@ module powerbitests {
 
             var tooltipInfo = TooltipBuilder.createTooltipInfo(
                 null,
-                dataView.categorical.categories,
+                dataView.categorical,
                 'abc',
-                dataView.categorical.values,
                 123.321);
 
             expect(tooltipInfo).toEqual([

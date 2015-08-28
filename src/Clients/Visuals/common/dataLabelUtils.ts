@@ -126,12 +126,12 @@ module powerbi.visuals {
             selector: '.line-label',
         };
         
-        export function getDefaultLabelSettings(show: boolean = false, labelColor?: string): VisualDataLabelsSettings {
+        export function getDefaultLabelSettings(show: boolean = false, labelColor?: string, labelPrecision: number = defaultLabelPrecision): VisualDataLabelsSettings {
             return {
                 show: show,
                 position: PointLabelPosition.Above,
                 displayUnits: 0,
-                precision: defaultLabelPrecision,
+                precision: labelPrecision,
                 labelColor: labelColor || defaultLabelColor,
                 formatterOptions: null,
             };
@@ -603,7 +603,7 @@ module powerbi.visuals {
                     if (labelSettings.show) {
                         var measureFormatter = measureFormattersCache.getOrCreate(d.data.labelFormatString, labelSettings, value2);
                         return labelSettings.showCategory
-                            ? getLabelFormattedText(getLabelFormattedText(d.data.label, minAvailableSpace) + " " + measureFormatter.format(d.data.measure), spaceAvaliableForLabels)
+                            ? getLabelFormattedText(getLabelFormattedText(d.data.label, minAvailableSpace) + " (" + measureFormatter.format(d.data.measure) + ")", spaceAvaliableForLabels)
                             : getLabelFormattedText(d.data.measure, minAvailableSpace,/* format */ null, measureFormatter);
                     }
                     // show only category label
@@ -641,7 +641,7 @@ module powerbi.visuals {
             var halfRangeBandPlusDelta = axisOptions.xScale.rangeBand() / 2 + innerTextHeightDelta;
             var pixelSpan = axisOptions.verticalRange / 2;
             var formatString = valueFormatter.getFormatString(data.valuesMetadata[0], funnelChartProps.general.formatString);
-            var textMeasurer: (textProperties) => number = TextMeasurementService.measureSvgTextWidth;
+            var textMeasurer: ITextAsSVGMeasurer = TextMeasurementService.measureSvgTextWidth;
 
             var value2: number = null;
             if (labelSettings.displayUnits === 0) {
@@ -687,7 +687,7 @@ module powerbi.visuals {
 
                         // Try to honor the position, but if the label doesn't fit where specified, then swap the position.
                         var labelPosition = labelSettings.position;
-                        if (labelPosition === powerbi.labelPosition.outsideEnd && outsideAvailableSpace < textLength)
+                        if ((labelPosition === powerbi.labelPosition.outsideEnd && outsideAvailableSpace < textLength) || d.value === 0 )
                             labelPosition = powerbi.labelPosition.insideCenter;
                         else if (labelPosition === powerbi.labelPosition.insideCenter && insideAvailableSpace < textLength) {
                             labelPosition = powerbi.labelPosition.outsideEnd;
@@ -697,8 +697,8 @@ module powerbi.visuals {
                             case powerbi.labelPosition.outsideEnd:
                                 return marginLeft + pixelSpan + (barWidth / 2) + textMinimumPadding + (textLength / 2);
                             default:
-                                // Inside position, change color to white
-                                d.labelFill = defaultInsideLabelColor;
+                                // Inside position, change color to white unless value is 0
+                                d.labelFill = d.value !== 0 ? defaultInsideLabelColor : d.labelFill;
                                 return marginLeft + pixelSpan;
                         }
                     },
@@ -806,6 +806,7 @@ module powerbi.visuals {
 
         function getOptionsForLabelFormatter(labelSetting: VisualDataLabelsSettings, formatString: string, value2?: number): ValueFormatterOptions {
             return {
+                displayUnitSystemType:DisplayUnitSystemType.DataLabels,
                 format: formatString,
                 precision: labelSetting.precision,
                 value: labelSetting.displayUnits,

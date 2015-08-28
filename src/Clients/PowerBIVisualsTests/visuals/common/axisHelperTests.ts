@@ -747,6 +747,14 @@ module powerbitests {
                 this.viewPort = viewport;
         }
 
+        public getFontSize(): number {
+            return parseInt(this.textProperties.fontSize, 10);
+        }
+
+        public setXValues(values: any[]) {
+            this.xAxisProperties.values = values;
+        }
+
         public buildAxisOptions(values: any[]): powerbi.visuals.IAxisProperties {
             var axisProperties: powerbi.visuals.IAxisProperties = {
                 scale: undefined,
@@ -764,17 +772,21 @@ module powerbitests {
 
         public buildTickLabelMargins(
             rotateX: boolean = false,
+            wordBreak: boolean = false,
             showOnRight: boolean = false,
             renderXAxis: boolean = false,
             renderYAxes: boolean = false,
             renderY2Axis: boolean = false) {
 
+            this.xAxisProperties.willLabelsFit = !rotateX;
+            this.xAxisProperties.willLabelsWordBreak = wordBreak;
+
             var tickCount = AxisHelper.getTickLabelMargins(
                 this.viewPort,
                 this.viewPort.width * 0.3,
                 powerbi.TextMeasurementService.measureSvgTextWidth,
+                powerbi.TextMeasurementService.estimateSvgTextHeight,
                 this.axes,
-                rotateX,
                 this.viewPort.height * 0.2,
                 this.textProperties,
                 undefined,
@@ -795,8 +807,8 @@ module powerbitests {
             var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(false, false, true, true, true);
 
             expect(tickCount.xMax).toBe(10);
-            expect(tickCount.yLeft).toBe(12);
-            expect(tickCount.yRight).toBe(24);
+            expect(powerbitests.helpers.isInRange(tickCount.yLeft, 11, 12)).toBe(true);
+            expect(powerbitests.helpers.isInRange(tickCount.yRight, 22, 24)).toBe(true);
         });
 
         it("Check that margins are calculated correctly when you hide all axes", () => {
@@ -820,7 +832,7 @@ module powerbitests {
             var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(false, false, true, true, false);
 
             expect(tickCount.xMax).toBe(10);
-            expect(tickCount.yLeft).toBe(12);
+            expect(powerbitests.helpers.isInRange(tickCount.yLeft, 11, 12)).toBe(true);
             expect(tickCount.yRight).toBe(0);
         });
 
@@ -869,11 +881,20 @@ module powerbitests {
         });
 
         it("Switch the y-axes, and disable the secondary axis", () => {
-            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, true, true, true, false);
+            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, false, true, true, true, false);
 
             expect(tickCount.xMax).toBe(25);
             expect(tickCount.yLeft).toBe(0);
-            expect(tickCount.yRight).toBe(12);
+            // 11 for Mac OS and 12 for Windows
+            expect(powerbitests.helpers.isInRange(tickCount.yRight, 11, 12)).toBe(true);
+        });
+
+        it('Check xMax margin for word breaking is based on number of text lines shown', () => {
+            axisHelperTickLabelBuilder.setXValues(['IPO', '83742 (Jun-15) %', 'Q4']);
+            let tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, true, true, true, true, false);
+
+            let xMaxLineHeight = tickCount.xMax >= 3 * axisHelperTickLabelBuilder.getFontSize();
+            expect(xMaxLineHeight).toBeTruthy();
         });
     });
 

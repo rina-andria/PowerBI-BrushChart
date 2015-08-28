@@ -235,17 +235,21 @@ module powerbi.visuals {
 
                 for (var i = 0, ilen = categoryValues.length; i < ilen; i++) {
                     var measureName = values[0].source.queryName;
-                    var identity = category.identity
-                        ? SelectionId.createWithIdAndMeasure(category.identity[i], measureName)
-                        : SelectionId.createWithMeasure(measureName);
+
+                    let dataMap: SelectorForColumn = {};
+                    if (category.identity)
+                        dataMap[category.source.queryName] = category.identity[i];
+
+                    let identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, measureName);
+
                     var value = d3.sum(values.map(d => d.values[i]));
                     var formattedCategoryValue = valueFormatter.format(categoryValues[i], categorySourceFormatString);
-                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, formattedCategoryValue, categorical.values, value, null, 0);
+                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, formattedCategoryValue, value, null, null, 0, i);
 
                     if (hasHighlights) {
                         var highlight = d3.sum(values.map(d => d.highlights[i]));
                         if (highlight !== 0) {
-                            tooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, formattedCategoryValue, categorical.values, value, null, 0, highlight);
+                            tooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, formattedCategoryValue, value, null, null, 0, i, highlight);
                         }
                     }
 
@@ -271,7 +275,7 @@ module powerbi.visuals {
                         }
 
                         var highlightedValue = highlight !== 0 ? highlight : undefined;
-                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, formattedCategoryValue, categorical.values, value, null, 0, highlightedValue);
+                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, formattedCategoryValue, value, null, null, 0, i, highlightedValue);
 
                         slices.push({
                             label: formattedCategoryValue,
@@ -295,7 +299,7 @@ module powerbi.visuals {
                     var identity = SelectionId.createWithMeasure(valueColumn.source.queryName);
                     var categoryValue: any = valueMetaData[i].displayName;
                     var valueIndex: number = categorical.categories ? null : i;
-                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, valueIndex);
+                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, valueIndex, i);
 
                     // Same color for all bars
                     var color = colorHelper.getColorForMeasure(valueColumn.source.objects, '');
@@ -303,7 +307,7 @@ module powerbi.visuals {
                     if (hasHighlights) {
                         var highlight = d3.sum(values.map(d => d.highlights[i]));
                         if (highlight !== 0) {
-                            tooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, 0, highlight);
+                            tooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, 0, i, highlight);
                         }
                     }
 
@@ -325,7 +329,7 @@ module powerbi.visuals {
                             highlightsOverflow = true;
                         }
                         var highlightedValue = highlight !== 0 ? highlight : undefined;
-                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, 0, highlightedValue);
+                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, 0, i, highlightedValue);
 
                         slices.push({
                             label: valueMetaData[i].displayName,
@@ -513,7 +517,7 @@ module powerbi.visuals {
 
         private getMaxLeftMargin(labels: string[], properties: TextProperties): number {
             var max = 0;
-            var textMeasurer: (textProperties) => number = TextMeasurementService.measureSvgTextWidth;
+            var textMeasurer: ITextAsSVGMeasurer = TextMeasurementService.measureSvgTextWidth;
             for (var i = 0, len = labels.length; i < len; i++) {
                 properties.text = labels[i];
                 max = Math.max(max, textMeasurer(properties));

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     // I support a categorical (ordinal) X with measure Y for a single series
     export var dataDotChartCapabilities: VisualCapabilities = {

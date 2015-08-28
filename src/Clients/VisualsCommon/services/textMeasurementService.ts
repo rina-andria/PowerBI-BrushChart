@@ -259,5 +259,41 @@ module powerbi {
                 textElement.textContent = tailoredText;
             }
         }
+
+        /**
+         * Word break textContent of <text> SVG element into <tspan>s
+         * Each tspan will be the height of a single line of text
+         * @param textElement - the SVGTextElement containing the text to wrap
+         * @param maxWidth - the maximum width available
+         * @param maxHeight - the maximum height available (defaults to single line)
+         * @param linePadding - (optional) padding to add to line height
+        */
+        export function wordBreak(textElement: SVGTextElement, maxWidth: number, maxHeight: number, linePadding: number = 0): void {
+            let properties = getSvgMeasurementProperties(textElement);
+            let height = estimateSvgTextHeight(properties) + linePadding;
+            let maxNumLines = Math.max(1, Math.floor(maxHeight / height));
+            let node = d3.select(textElement);
+            
+            // Save y of parent textElement to apply as first tspan dy
+            let firstDY = node.attr('y');
+
+            // Store and clear text content
+            let labelText = textElement.textContent;
+            textElement.textContent = null;
+
+            // Append a tspan for each word broken section
+            let words = jsCommon.WordBreaker.splitByWidth(labelText, properties, measureSvgTextWidth, maxWidth, maxNumLines);
+            for (let i = 0, ilen = words.length; i < ilen; i++) {
+                properties.text = words[i];
+                node
+                    .append('tspan')
+                    .attr({
+                        'x': 0,
+                        'dy': i === 0 ? firstDY : height,
+                    })
+                    // Truncate
+                    .text(getTailoredTextOrDefault(properties, maxWidth));
+            }
+        }
     }
 }

@@ -104,6 +104,114 @@ module powerbitests {
         });
     });
 
+            describe("enumerateObjectInstances", () => {
+                var v: powerbi.IVisual, element: JQuery;
+
+                var dataViewMetadata: powerbi.DataViewMetadata = {
+                    columns: [{ displayName: 'col1', isMeasure: true, objects: { 'general': { formatString: '#0' } } }],
+                    groups: [],
+                    measures: [0],
+                    objects: {
+                        labels: {
+                            color: { solid: { color: '#222222'}},
+                            labelPrecision: 3,
+                            labelDisplayUnits: 1000
+                        }
+                    }
+                };
+
+            beforeEach(() => {
+                element = powerbitests.helpers.testDom('500', '500');
+                v = powerbi.visuals.visualPluginFactory.create().getPlugin('card').create();
+
+                v.init({
+                    element: element,
+                    host: powerbitests.mocks.createVisualHostServices(),
+                    style: powerbi.visuals.visualStyles.create(),
+                    viewport: {
+                        height: element.height(),
+                        width: element.width()
+                    },
+                    animation: { transitionImmediate: true }
+                });
+            });
+
+            it("verify default values", () => {
+                v.onDataChanged({ dataViews: [] });
+
+                verifyLabels();
+                verifyTitle();
+            });
+
+            it("changed data", () => {
+                //var dataView = powerbi.visuals.visualPluginFactory.createMinerva({}).getPlugin("card").create();
+
+                v.onDataChanged({
+                    dataViews: [{
+                        metadata: dataViewMetadata,
+                        single: {
+                            value: 20
+                        }
+                    }]
+                });
+
+                verifyLabels('#222222', 3, 1000);
+            });
+
+                it("changed title", () => {
+                    var metadata: powerbi.DataViewMetadata = {
+                        columns: [{ displayName: 'col1', isMeasure: true, objects: { 'general': { formatString: '#0' } } }],
+                        groups: [],
+                        measures: [0],
+                        objects: {
+                            cardTitle: {
+                                show: false
+                            }
+                        }
+                    };
+
+                    v.onDataChanged({
+                        dataViews: [{
+                            metadata: metadata,
+                            single: {
+                                value: 0
+                            }
+                        }]
+                    });
+
+                    var objects = v.enumerateObjectInstances({ objectName: "cardTitle" });
+                    expect(objects.length).toBe(1);
+                    expect(objects[0].properties["show"]).toBeDefined();
+                    expect(objects[0].properties["show"]).toBe(false); 
+
+                });
+
+            function verifyTitle(){
+                var objects = v.enumerateObjectInstances({ objectName: "cardTitle" });
+                expect(objects.length).toBe(1);
+                expect(objects[0].properties["show"]).toBeDefined(); 
+                expect(objects[0].properties["show"]).toBe(true); 
+            }
+            
+            function verifyLabels(color?: string, precision?: number, displayUnits?: number) {
+                var objects = v.enumerateObjectInstances({ objectName: "labels" });
+                var defaultLabelSettings = powerbi.visuals.dataLabelUtils.getDefaultLabelSettings();
+
+                expect(objects.length).toBe(1);
+                expect(objects[0].properties).toBeDefined();
+
+                // Default values
+                color = color ? color : Card.DefaultStyle.value.color;
+                precision = precision ? precision : 0;
+                displayUnits = displayUnits ? displayUnits : defaultLabelSettings.displayUnits;
+
+                var properties = objects[0].properties;
+                expect(properties["color"]).toBe(color);
+                expect(properties["labelPrecision"]).toBe(precision);
+                expect(properties["labelDisplayUnits"]).toBe(displayUnits);
+            }
+        });
+
     describe("Card DOM tests", () => {
         var v: Card, element: JQuery;
         var dataViewMetadata: powerbi.DataViewMetadata = {
@@ -117,9 +225,9 @@ module powerbitests {
             createCard();
         });
 
-        function createCard(displayUnitSystemType?: powerbi.DisplayUnitSystemType): void {
+        function createCard(displayUnitSystemType?: powerbi.DisplayUnitSystemType, isScrollable?: boolean): void {
             element = powerbitests.helpers.testDom('200', '300');
-            v = <Card> new Card({ displayUnitSystemType: displayUnitSystemType});
+            v = <Card> new Card({ displayUnitSystemType: displayUnitSystemType, isScrollable: isScrollable});
 
             v.init({
                 element: element,
@@ -129,7 +237,8 @@ module powerbitests {
                     height: element.height(),
                     width: element.width()
                 },
-                animation: { transitionImmediate: true}
+                animation: { transitionImmediate: true },
+                isScrollable: isScrollable
             });
         }
 
@@ -371,6 +480,163 @@ module powerbitests {
                 var transform = SVGUtil.parseTranslateTransform($('.mainText').first().attr('transform'));
                 expect(transform.x).toBe('125');
                 expect($('.mainText').first().attr('text-anchor')).toBe('middle');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('card label on', (done) => {
+
+            createCard(null, true);
+            var metadata: powerbi.DataViewMetadata = {
+                columns: [{ displayName: 'col1', isMeasure: true, objects: { 'general': { formatString: '#0' } } }],
+                groups: [],
+                measures: [0],
+                objects: {
+                    cardTitle: {
+                        show: true
+                    }
+                }
+            };
+
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: metadata,
+                    single: {
+                        value: '7191394482447.7'
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.label')[0]).toBeDefined();
+                expect($('.label')[0].textContent).toBe('col1');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('card label off', (done) => {
+
+            createCard(null, true);
+            var metadata: powerbi.DataViewMetadata = {
+                columns: [{ displayName: 'col1', isMeasure: true, objects: { 'general': { formatString: '#0' } } }],
+                groups: [],
+                measures: [0],
+                objects: {
+                    cardTitle: {
+                        show: false
+                    }
+                }
+            };
+
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: metadata,
+                    single: {
+                        value: '7191394482447.7'
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.label')[0]).toBeUndefined();
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('change color', (done) => {
+            createCard(null, true);
+            var metadata: powerbi.DataViewMetadata = {
+                columns: [{ displayName: 'col1', isMeasure: true, objects: { 'general': { formatString: '#0' } } }],
+                groups: [],
+                measures: [0],
+                objects: {
+                    labels: {
+                        color: { solid: { color: '#222222' } },
+                        labelPrecision: 3,
+                        labelDisplayUnits: 1000
+                    },
+                    cardTitle: {
+                        show: true
+                    }
+                }
+            };
+
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: metadata,
+                    single: {
+                        value: '7191394482447.7'
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.card .value').css('fill')).toBe('#222222');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('change precision', (done) => {
+            createCard(null, true);
+
+            var metadata: powerbi.DataViewMetadata = {
+                columns: [{ displayName: 'col1', isMeasure: true, objects: { 'general': { formatString: '#0' } } }],
+                groups: [],
+                measures: [0],
+                objects: {
+                    labels: {
+                        labelPrecision: 3,
+                        labelDisplayUnits: 1000
+                    },
+                    cardTitle: {
+                        show: true
+                    }
+                }
+            };
+
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: metadata,
+                    single: {
+                        value: '7'
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.card .value')[0].textContent).toBe('0.007K');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('change display unit', (done) => {
+            createCard(null, true);
+
+            var metadata: powerbi.DataViewMetadata = {
+                columns: [{ displayName: 'col1', isMeasure: true, objects: { 'general': { formatString: '#0' } } }],
+                groups: [],
+                measures: [0],
+                objects: {
+                    labels: {
+                        labelDisplayUnits: 1000
+                    },
+                    cardTitle: {
+                        show: true
+                    }
+                }
+            };
+
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: metadata,
+                    single: {
+                        value: '2500'
+                    }
+                }]
+            });
+
+            setTimeout(() => {
+                expect($('.card .value')[0].textContent).toBe('3K');
                 done();
             }, DefaultWaitForRender);
         });

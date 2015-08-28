@@ -33,6 +33,7 @@
 /// <reference path="sampleDataViews/RichtextData.ts"/>
 /// <reference path="sampleDataViews/SalesByCountryData.ts"/>
 /// <reference path="sampleDataViews/SalesByDayOfWeekData.ts"/>
+/// <reference path="sampleDataViews/SimpleFunnelData.ts"/>
 /// <reference path="sampleDataViews/SimpleGaugeData.ts"/>
 /// <reference path="sampleDataViews/SimpleMatrixData.ts"/>
 /// <reference path="sampleDataViews/SimpleTableData.ts"/>

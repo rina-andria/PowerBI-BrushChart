@@ -65,6 +65,8 @@ module powerbi.visuals {
         legendObjectProperties?: DataViewObject;
         maxValue?: number;
         visibleGeometryCulled?: boolean;
+        defaultDataPointColor?: string;
+        showAllDataPoints?: boolean;
     }
 
     interface DonutChartSettings {
@@ -167,7 +169,7 @@ module powerbi.visuals {
         private disableGeometricCulling: boolean;
         private hostService: IVisualHostServices;
         private settings: DonutChartSettings;
-        
+		
         /**
          * Note: Public for testing.
          */
@@ -185,8 +187,8 @@ module powerbi.visuals {
             }
         }
 
-        public static converter(dataView: DataView, colors: IDataColorPalette, viewport?: IViewport, disableGeometricCulling?: boolean): DonutData {
-            var converter = new DonutChartConversion.DonutChartConverter(dataView, colors);
+        public static converter(dataView: DataView, colors: IDataColorPalette, defaultDataPointColor?: string, viewport?: IViewport, disableGeometricCulling?: boolean): DonutData {
+            var converter = new DonutChartConversion.DonutChartConverter(dataView, colors, defaultDataPointColor);
             converter.convert();
             var d3PieLayout = d3.layout.pie()
                 .sort(null)
@@ -293,7 +295,21 @@ module powerbi.visuals {
 
             var dataViews = options.dataViews;
             if (dataViews && dataViews.length > 0 && dataViews[0].categorical) {
-                this.data = DonutChart.converter(dataViews[0], this.colors, this.currentViewport, this.disableGeometricCulling);
+                var dataViewMetadata = dataViews[0].metadata;
+                var showAllDataPoints = undefined;
+                var defaultDataPointColor = undefined;
+                if (dataViewMetadata) {
+                    var objects: DataViewObjects = dataViewMetadata.objects;
+
+                    if (objects) {
+                        showAllDataPoints = DataViewObjects.getValue<boolean>(objects, donutChartProps.dataPoint.showAllDataPoints);
+                        defaultDataPointColor = DataViewObjects.getFillColor(objects, donutChartProps.dataPoint.defaultColor);
+                    }
+                }
+
+                this.data = DonutChart.converter(dataViews[0], this.colors, defaultDataPointColor, this.currentViewport, this.disableGeometricCulling);
+                this.data.showAllDataPoints = showAllDataPoints;
+                this.data.defaultDataPointColor = defaultDataPointColor;
                 if (!(this.options.interactivity && this.options.interactivity.isInteractiveLegend))
                     this.renderLegend();
 
@@ -385,6 +401,21 @@ module powerbi.visuals {
             if (!data)
                 return;
             var instances: VisualObjectInstance[] = [];
+
+            instances.push({
+                objectName: 'dataPoint',
+                selector: null,
+                properties: {
+                    defaultColor: { solid: { color: data.defaultDataPointColor || this.colors.getColorByIndex(0).value } }
+                },
+            },
+            {
+                objectName: 'dataPoint',
+                selector: null,
+                properties: {
+                    showAllDataPoints: !!data.showAllDataPoints
+                },
+            });
 
             var dataPoints = data.dataPointsToEnumerate;
             var dataPointsLength = dataPoints.length;
@@ -550,14 +581,14 @@ module powerbi.visuals {
                         layout: layout,
                         radius: this.radius,
                         sliceWidthRatio: this.sliceWidthRatio,
-                        viewport: viewport,
+                        viewport: viewport
                     };
                     result = this.animator.animate(animationOptions);
                     shapes = result.shapes;
                     highlightShapes = result.highlightShapes;
                 }
                 if (suppressAnimations || result.failed) {
-                    shapes = DonutChart.drawDefaultShapes(this.svg, data, layout, this.colors, this.radius);
+                    shapes = DonutChart.drawDefaultShapes(this.svg, data, layout, this.colors, this.radius, this.data.defaultDataPointColor);
                     highlightShapes = DonutChart.drawDefaultHighlightShapes(this.svg, data, layout, this.colors, this.radius);
                     DonutChart.drawDefaultCategoryLabels(this.mainGraphicsContext, data, layout, this.sliceWidthRatio, this.radius, this.currentViewport);
                 }
@@ -1423,13 +1454,13 @@ module powerbi.visuals {
             public legendObjectProperties: DataViewObject;
             public maxValue: number;
 
-            public constructor(dataView: DataView, colors: IDataColorPalette) {
+            public constructor(dataView: DataView, colors: IDataColorPalette, defaultDataPointColor?: string) {
                 var dataViewCategorical = dataView.categorical;
                 this.dataViewCategorical = dataViewCategorical;
                 this.dataViewMetadata = dataView.metadata;
 
                 this.seriesCount = dataViewCategorical.values ? dataViewCategorical.values.length : 0;
-                this.colorHelper = new ColorHelper(colors, donutChartProps.dataPoint.fill);
+                this.colorHelper = new ColorHelper(colors, donutChartProps.dataPoint.fill, defaultDataPointColor);
                 this.maxValue = 0;
 
                 if (dataViewCategorical.categories && dataViewCategorical.categories.length > 0) {
@@ -1542,7 +1573,7 @@ module powerbi.visuals {
                     valueIndex = point.seriesIndex !== undefined ? point.seriesIndex : valueIndex;
                     var valuesMetadata = categorical.values[valueIndex].source;
                     var highlightedValue: number = this.hasHighlights && point.highlight.value !== 0 ? point.highlight.measure : undefined;
-                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, valueIndex, highlightedValue);
+                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, valueIndex, i, highlightedValue);
 
                     this.dataPoints.push({
                         identity: point.identity,
@@ -1607,9 +1638,16 @@ module powerbi.visuals {
                         var nonHighlight = seriesData.values[categoryIndex] || 0;
                         var highlight = this.hasHighlights ? seriesData.highlights[categoryIndex] || 0 : 0;
 
-                        var identity: SelectionId = this.isMultiMeasure
-                            ? SelectionId.createWithIdAndMeasure(this.categoryIdentities[categoryIndex], seriesData.source.queryName)
-                            : SelectionId.createWithIds(this.categoryIdentities[categoryIndex], seriesData.identity);
+                        let dataMap: SelectorForColumn = {};
+                        let measure: string = null;
+                        dataMap[dataViewCategorical.categories[0].source.queryName] = this.categoryIdentities[categoryIndex];
+
+                        if (this.isMultiMeasure)
+                            measure = seriesData.source.queryName;
+                        else if (seriesData.identity)
+                            dataMap[seriesData.source.queryName] = seriesData.identity;
+
+                        var identity: SelectionId = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, measure);
 
                         var dataPoint: ConvertedDataPoint = {
                             identity: identity,

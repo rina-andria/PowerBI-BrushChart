@@ -28,6 +28,7 @@
 
 module powerbi.visuals {
     import ArrayExtensions = jsCommon.ArrayExtensions;
+    import ITextAsSVGMeasurer = powerbi.ITextAsSVGMeasurer;
 
     /**
      * Default ranges are for when we have a field chosen for the axis,
@@ -85,6 +86,10 @@ module powerbi.visuals {
          * (optional) Whether we are using a default domain.
          */
         usingDefaultDomain?: boolean;
+        /** (optional) do default d3 axis labels fit? */
+        willLabelsFit?: boolean;
+        /** (optional) word break axis labels */
+        willLabelsWordBreak?: boolean;
     }
 
     export interface IMargin {
@@ -188,6 +193,7 @@ module powerbi.visuals {
          * @param max The maximum of the data domain.
          * @param valuesMetadata The measure metadata array.
          * @param maxTickCount The max count of intervals.
+         * @param isDateTime - flag to show single tick when min is equal to max.
          */
         export function getBestNumberOfTicks(min: number, max: number, valuesMetadata: DataViewMetadataColumn[], maxTickCount: number, isDateTime?: boolean): number {
             debug.assert(maxTickCount >= 0, "maxTickCount must be greater or equal to zero");
@@ -371,16 +377,17 @@ module powerbi.visuals {
                 bottom: 40,
                 left: 30
             };
-        }        
+        }
 
         // TODO: Put the parameters into one object
         export function getTickLabelMargins(
             viewport: IViewport,
             yMarginLimit: number,
-            textMeasurer: (textProperties) => number,
+            textWidthMeasurer: ITextAsSVGMeasurer,
+            textHeightMeasurer: ITextAsSVGMeasurer,
             axes: CartesianAxisProperties,
-            rotateX: boolean,
             bottomMarginLimit: number,
+            maxHeight: number,
             properties: TextProperties,
             scrollbarVisible?: boolean,
             showOnRight?: boolean,
@@ -394,7 +401,8 @@ module powerbi.visuals {
             var y2AxisProperties: IAxisProperties = axes.y2;
 
             debug.assertValue(viewport, 'viewport');
-            debug.assertValue(textMeasurer, 'textMeasurer');
+            debug.assertValue(textWidthMeasurer, 'textWidthMeasurer');
+            debug.assertValue(textHeightMeasurer, 'textHeightMeasurer');
             debug.assertValue(xAxisProperties, 'xAxis');
             debug.assertValue(y1AxisProperties, 'yAxis');
 
@@ -427,7 +435,7 @@ module powerbi.visuals {
                 if (renderYAxes) {
                     for (var i = 0, len = y1Labels.length; i < len; i++) {
                         properties.text = y1Labels[i];
-                        maxWidthY1 = Math.max(maxWidthY1, textMeasurer(properties));
+                        maxWidthY1 = Math.max(maxWidthY1, textWidthMeasurer(properties));
                     }
                 }
 
@@ -435,16 +443,23 @@ module powerbi.visuals {
                     var y2Labels = y2AxisProperties.values;
                     for (var i = 0, len = y2Labels.length; i < len; i++) {
                         properties.text = y2Labels[i];
-                        maxWidthY2 = Math.max(maxWidthY2, textMeasurer(properties));
+                        maxWidthY2 = Math.max(maxWidthY2, textWidthMeasurer(properties));
                     }
                 }
 
+                let textHeight = textHeightMeasurer(properties);
+                let maxNumLines = Math.floor(maxHeight / textHeight);
                 if (renderXAxis && xLabels.length > 0) {
                     for (var i = 0, len = xLabels.length; i < len; i++) {
                         var height: number;
                         properties.text = xLabels[i];
-                        var size = textMeasurer(properties);
-                        if (rotateX) {
+                        var size = textWidthMeasurer(properties);
+                        if (xAxisProperties.willLabelsWordBreak && isOrdinal(xAxisProperties.axisType)) {
+                            // Split label and count rows
+                            let wordBreaks = jsCommon.WordBreaker.splitByWidth(properties.text, properties, textWidthMeasurer, xAxisProperties.xLabelMaxWidth, maxNumLines);
+                            height = wordBreaks.length * textHeight;
+                        }
+                        else if (!xAxisProperties.willLabelsFit) {
                             height = size * rotation.sine;
                             size = size * rotation.cosine;
                         }
@@ -455,12 +470,13 @@ module powerbi.visuals {
                         // Account for wide X label (Note: no right overflow when rotated)
                         var overflow = 0;
                         if (i === 0) {
-                            if (rotateX)
+                            if (!xAxisProperties.willLabelsFit /*rotated text*/)
                                 overflow = size - labelOffset - xLabelOuterPadding;
                             else
                                 overflow = (size / 2) - labelOffset - xLabelOuterPadding;
                             leftOverflow = Math.max(leftOverflow, overflow);
-                        } else if (i === len - 1 && !rotateX) {
+                        } else if (i === len - 1 && xAxisProperties.willLabelsFit) {
+                            // if we are rotating text (!willLabelsFit) there won't be any right overflow
                             overflow = (size / 2) - labelOffset - xLabelOuterPadding;
                             rightOverflow = Math.max(rightOverflow, overflow);
                         }
@@ -677,7 +693,7 @@ module powerbi.visuals {
                 xLabelMaxWidth = Math.max(1, categoryThickness - CartesianChart.TickLabelPadding * 2);
             }
             else {
-                // When there are 0 or 1 ticks, then xLabelMaxWidth = pixelSpan       
+                // When there are 0 or 1 ticks, then xLabelMaxWidth = pixelSpan
                 // When there is > 1 ticks then we need to +1 so that their widths don't overlap
                 // Example: 2 ticks are drawn at 33.33% and 66.66%, their width needs to be 33.33% so they don't overlap.
                 var labelAreaCount = tickValues.length > 1 ? tickValues.length + 1 : tickValues.length;
@@ -913,7 +929,7 @@ module powerbi.visuals {
         }
 
         export module LabelLayoutStrategy {
-            export function willRotate(
+            export function willLabelsFit(
                 axisProperties: IAxisProperties,
                 availableWidth: number,
                 textMeasurer: ITextAsSVGMeasurer,
@@ -927,9 +943,29 @@ module powerbi.visuals {
                     ? axisProperties.xLabelMaxWidth
                     : availableWidth / labels.length;
 
-                return labels.some(d => {
+                return !labels.some(d => {
                     properties.text = d;
                     return textMeasurer(properties) > labelMaxWidth;
+                });
+            }
+
+            export function willLabelsWordBreak(
+                axisProperties: IAxisProperties,
+                availableWidth: number,
+                textWidthMeasurer: ITextAsSVGMeasurer,
+                properties: TextProperties) {
+                let labels = axisProperties.values;
+                let labelMaxWidth = axisProperties.xLabelMaxWidth !== undefined
+                    ? axisProperties.xLabelMaxWidth
+                    : availableWidth / labels.length;
+
+                if (labels.length === 0)
+                    return false;
+
+                // If no break character and exceeds max width, word breaking will not work, return false
+                return !labels.some(label => {
+                    properties.text = label;
+                    return !jsCommon.WordBreaker.hasBreakers(label) && textWidthMeasurer(properties) > labelMaxWidth;
                 });
             }
 
@@ -951,7 +987,6 @@ module powerbi.visuals {
 
             export function rotate(
                 text: D3.Selection,
-                availableWidth: number,
                 maxBottomMargin: number,
                 svgEllipsis: (textElement: SVGTextElement, maxWidth: number) => void,
                 needRotate: boolean,
@@ -964,7 +999,7 @@ module powerbi.visuals {
                 var defaultRotation: any;
 
                 if (scrollbarVisible) 
-                    defaultRotation = DefaultRotationWithScrollbar;               
+                    defaultRotation = DefaultRotationWithScrollbar;
                 else
                     defaultRotation = DefaultRotation;  
 
@@ -988,13 +1023,14 @@ module powerbi.visuals {
                         if (!scrollbarVisible)
                             allowedLengthProjectedOnXAxis -= LeftPadding;
 
+                        // Truncate if scrollbar is visible or rotatedLength exceeds allowedLength
                         var allowedLength = allowedLengthProjectedOnXAxis / defaultRotation.cosine;
-                        if (needEllipsis || (allowedLength < rotatedLength)) {
+                        if (scrollbarVisible || needEllipsis || (allowedLength < rotatedLength)) {
                             svgEllipsis(text[0][0], Math.min(allowedLength, rotatedLength));
                         }
+
                         text.style('text-anchor', 'end')
-                            .attr(
-                            {
+                            .attr({
                                 'dx': '-0.5em',
                                 'dy': defaultRotation.dy,
                                 'transform': defaultRotation.transform
@@ -1008,6 +1044,29 @@ module powerbi.visuals {
                                 'transform': 'rotate(0)'
                             });
                     }
+                });
+            }
+
+            export function wordBreak(
+                text: D3.Selection,
+                axisProperties: IAxisProperties,
+                maxHeight: number
+            ) {
+                let allowedLength = axisProperties.xLabelMaxWidth;
+
+                text.each(function () {
+                    let node = d3.select(this);
+
+                    // Reset style of text node
+                    node
+                        .style('text-anchor', 'middle')
+                        .attr({
+                            'dx': '0em',
+                            'dy': '1em',
+                            'transform': 'rotate(0)'
+                        });
+
+                    TextMeasurementService.wordBreak(this, allowedLength, maxHeight);
                 });
             }
 

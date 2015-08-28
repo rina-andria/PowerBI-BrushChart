@@ -45,6 +45,7 @@ module powerbi {
         isGeographic(fieldRefName: string): boolean;
         isGeocodable(fieldRefName: string): boolean;
         getFieldType(fieldName: string): string;
+        isGeoshapable(fieldRefName: string): boolean;
     }
 
     export function createGeoTaggingAnalyzerService(getLocalized: (string) => string): IGeoTaggingAnalyzerService {
@@ -186,6 +187,15 @@ module powerbi {
                 this.isCounty(fieldRefName) ||
                 this.isStateOrProvince(fieldRefName) ||
                 this.isPlace(fieldRefName) ||
+                this.isPostalCode(fieldRefName) ||
+                this.isTerritory(fieldRefName);
+        }
+
+        public isGeoshapable(fieldRefName: string): boolean {
+            return this.isCity(fieldRefName) ||
+                this.isCountry(fieldRefName) ||
+                this.isCounty(fieldRefName) ||
+                this.isStateOrProvince(fieldRefName) ||
                 this.isPostalCode(fieldRefName) ||
                 this.isTerritory(fieldRefName);
         }

@@ -429,9 +429,9 @@ module powerbitests.performanceTestsHelpers {
         switch (visualsType) {
             case "donutChart":
             case "pieChart":
-                return 55;
+                return 100;
             default:
-                return 3;
+                return 5;
         }
     }
 

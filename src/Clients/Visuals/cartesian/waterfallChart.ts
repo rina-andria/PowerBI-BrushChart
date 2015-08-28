@@ -54,9 +54,7 @@ module powerbi.visuals {
         key: string;
     }
 
-    export interface WaterfallChartConstructorOptions {
-        isScrollable: boolean;
-        interactivityService: IInteractivityService;
+    export interface WaterfallChartConstructorOptions extends CartesianVisualConstructorOptions {
     }
 
     export interface WaterfallChartSentimentColors {
@@ -208,8 +206,17 @@ module powerbi.visuals {
                     for (var categoryIndex = 0, catLen = column.values.length; categoryIndex < catLen; categoryIndex++) {
                         var category = categoryValues[categoryIndex];
                         var value = column.values[categoryIndex] || 0;
-                        var identity = categoryIdentities ? SelectionId.createWithId(categoryIdentities[categoryIndex], /* highlight */ false) : SelectionId.createNull();
-                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categories, category, values, value);
+
+                        var identity: SelectionId;
+                        if (categoryIdentities) {
+                            let dataMap: SelectorForColumn = {};
+                            dataMap[categoryMetadata.queryName] = categoryIdentities[categoryIndex];
+                            identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, null);
+                        } else {
+                            identity = SelectionId.createNull();
+                        }
+
+                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, dataView.categorical, category, value);
                         var color = value > 0 ? increaseColor : decreaseColor;
 
                         dataPoints.push({
@@ -248,7 +255,7 @@ module powerbi.visuals {
                     selected: false,
                     highlight: false,
                     key: totalIdentity.getKey(),
-                    tooltipInfo: TooltipBuilder.createTooltipInfo(formatStringProp, categories, totalLabel, values, pos),
+                    tooltipInfo: TooltipBuilder.createTooltipInfo(formatStringProp, dataView.categorical, totalLabel, pos),
                     labelFill: dataLabelSettings.labelColor,
                     labelFormatString: labelFormatString,
                 });

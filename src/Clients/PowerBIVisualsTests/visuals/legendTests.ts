@@ -32,6 +32,7 @@ import LegendIcon = powerbi.visuals.LegendIcon;
 import LegendPosition = powerbi.visuals.LegendPosition;
 import IInteractivityService = powerbi.visuals.IInteractivityService;
 import IVisualHostServices = powerbi.IVisualHostServices;
+import Helpers = powerbitests.helpers;
 
     describe("DOM validation",() => {
     var element: JQuery;
@@ -174,7 +175,14 @@ import IVisualHostServices = powerbi.IVisualHostServices;
         legend.changeOrientation(LegendPosition.Right);
         legend.drawLegend({ dataPoints: legendData, title: 'This is a super long title and should be truncated by now' }, viewport);
         powerbi.visuals.SVGUtil.flushAllD3Transitions();
-        expect($('.legendTitle').text()).toEqual('This is a super long title...');
+        // 2 different possible values
+        // 'This is a super long title...' in Windows
+        // 'This is a super long title ...' in Mac OS
+        // So check start part of the text, tail part and length
+        var text = $('.legendTitle').text();
+        expect(text.substr(0, 26)).toEqual('This is a super long title');
+        expect(text.substr(text.length - 3, 3)).toEqual('...');
+        expect(Helpers.isInRange(text.length, 29, 30)).toBe(true);
     });
 
     it('legend no title',() => {

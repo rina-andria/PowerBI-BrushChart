@@ -679,6 +679,71 @@ module powerbitests {
             }
         });
 
+        describe("selection", () => {
+            var visualBuilder: WaterfallVisualBuilder;
+            var dataBuilder: WaterfallDataBuilder;
+            var v: powerbi.IVisual;
+
+            beforeEach(() => {
+                visualBuilder = new WaterfallVisualBuilder();
+                dataBuilder = new WaterfallDataBuilder();
+                v = visualBuilder.build();
+            });
+
+            it('should select right data', (done) => {
+                var dataView = dataBuilder.build();
+
+                v.onDataChanged({ dataViews: [dataView] });
+
+                var dataMap = {};
+                var data = dataBuilder.categoryIdentities[0];
+                dataMap[dataBuilder.categoryColumn.queryName] = data;
+
+                setTimeout(() => {
+                    var rects = getRects();
+                    spyOn(visualBuilder.host, 'onSelect').and.callThrough();
+                    (<any>rects.first()).d3Click(0, 0);
+
+                    expect(visualBuilder.host.onSelect).toHaveBeenCalledWith(
+                        {
+                            data: [
+                                {
+                                    data: [data]
+                                }
+                            ],
+                            data2: [
+                                {
+                                    dataMap: dataMap
+                                }
+                            ]
+                        });
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it('should clear chart on clearCatcher click', (done) => {
+                var dataView = dataBuilder.build();
+
+                v.onDataChanged({ dataViews: [dataView] });
+
+                setTimeout(() => {
+                    var rects = getRects();
+                    spyOn(visualBuilder.host, 'onSelect').and.callThrough();
+                    (<any>rects.first()).d3Click(0, 0);
+
+                    var clearCatcher = $('.clearCatcher');
+                    (<any>$(clearCatcher[1])).d3Click(0, 0); 
+
+                    expect(visualBuilder.host.onSelect).toHaveBeenCalledWith(
+                        {
+                            data: []
+                        });
+
+                    done();
+                });
+            });
+        });
+
         describe("basic DOM", () => {
             var v: powerbi.IVisual;
 
@@ -777,7 +842,7 @@ module powerbitests {
     });
 
     class WaterfallDataBuilder {
-        private _categoryColumn: powerbi.DataViewMetadataColumn = { displayName: "year", type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) };
+        private _categoryColumn: powerbi.DataViewMetadataColumn = { displayName: "year", type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text), queryName: "Year.Year" };
         public get categoryColumn(): powerbi.DataViewMetadataColumn { return this._categoryColumn; }
 
         private _categoryValues: any[] = [2015, 2016, 2017, 2018, 2019, 2020];
@@ -895,7 +960,7 @@ module powerbitests {
                 host: this._host,
                 style: this._style,
                 viewport: this._viewport,
-                interactivity: { isInteractiveLegend: false },
+                interactivity: { isInteractiveLegend: false, selection: true },
                 animation: { transitionImmediate: true },
                 svg: this._svg,
                 cartesianHost: this._cartesianHost

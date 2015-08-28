@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export var animatedTextObjectDescs: data.DataViewObjectDescriptors = {
         general: {

@@ -181,6 +181,15 @@ module powerbi.visuals {
                     },
                 },
             },
+            fillPoint: {
+                displayName: data.createDisplayNameGetter('Visual_FillPoint'),
+                properties: {
+                    show: {
+                        displayName: data.createDisplayNameGetter('Visual_Fill'),
+                        type: { bool: true }
+                    },
+                },
+            },
         },
 
         dataViewMappings: [{
@@ -211,6 +220,9 @@ module powerbi.visuals {
         sorting: {
             custom: {},
         },
+        drilldown: {
+            roles: ['Category']
+        },
     };
 
     export var scatterChartProps = {
@@ -220,6 +232,9 @@ module powerbi.visuals {
         dataPoint: {
             defaultColor: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'defaultColor' },
             fill: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'fill' },
+        },
+        fillPoint: {
+            show: <DataViewObjectPropertyIdentifier>{ objectName: 'fillPoint', propertyName: 'show' },
         },
     };
 }

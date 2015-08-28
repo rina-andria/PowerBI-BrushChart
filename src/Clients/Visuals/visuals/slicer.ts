@@ -38,6 +38,7 @@ module powerbi.visuals {
         value: string;
         mouseOver: boolean;
         mouseOut: boolean;
+        isSelectAllDataPoint?: boolean;
     }
 
     export interface SlicerSettings {
@@ -75,6 +76,7 @@ module powerbi.visuals {
         private interactivityService: IInteractivityService;
         private hostServices: IVisualHostServices;
         private static clearTextKey = 'Slicer_Clear';
+        private static selectAllTextKey = 'Slicer_SelectAll';
         private waitingForData: boolean;
 
         private static Container: ClassAndSelector = {
@@ -133,17 +135,47 @@ module powerbi.visuals {
             },
         };
 
-        public static converter(dataView: DataView): SlicerData {
+        public static converter(dataView: DataView, localizedSelectAllText: string, interactivityService: IInteractivityService): SlicerData {
             var slicerData: SlicerData;
             if (dataView) {
+                var isInvertedSelectionMode = false;
+                var objects = dataView.metadata ? <any> dataView.metadata.objects : undefined;
+                var propertyValue;
                 var dataViewCategorical = dataView.categorical;
+                if (objects && objects.general) {
+                    var identityFields = dataViewCategorical.categories[0].identityFields;
+                    if (!identityFields)
+                        return;
+                    propertyValue = <powerbi.data.SemanticFilter>objects.general.filter;
+                    var scopeIds = powerbi.data.SQExprConverter.asScopeIdsContainer(propertyValue, identityFields);
+                    isInvertedSelectionMode = scopeIds.isNot;
+                }
+
+                // The selection state is read from the Interactivity service in case of SelectAll or Clear when query doesn't update the visual
+                else if (interactivityService != null) {
+                    isInvertedSelectionMode = interactivityService.isSelectionModeInverted();
+                }
+
                 if (dataViewCategorical && dataViewCategorical.categories && dataViewCategorical.categories.length > 0) {
                     var categories = dataViewCategorical.categories[0];
                     var categoryValuesLen = categories && categories.values ? categories.values.length : 0;
                     var slicerDataPoints: SlicerDataPoint[] = [];
 
+                    var categoryValue: string = localizedSelectAllText;
+                    var identity = SelectionId.createWithMeasure(categoryValue);
+
+                    slicerDataPoints.push({
+                        value: categoryValue,
+                        mouseOver: false,
+                        mouseOut: true,
+                        identity: identity,
+                        selected: isInvertedSelectionMode,
+                        isSelectAllDataPoint: true
+                    });                    
+                                     
                     // Pass over the values to see if there's a positive or negative selection
                     var hasSelection: boolean = undefined;
+
                     for (var idx = 0; idx < categoryValuesLen; idx++) {
                         var selected = WebInteractivityService.isSelected(slicerProps.selectedPropertyIdentifier, categories, idx);
                         if (selected !== undefined) {
@@ -154,9 +186,26 @@ module powerbi.visuals {
 
                     for (var idx = 0; idx < categoryValuesLen; idx++) {
                         var categoryIdentity = categories.identity ? categories.identity[idx] : null;
-                        var selectedCategory = WebInteractivityService.isSelected(slicerProps.selectedPropertyIdentifier, categories, idx);
-                        if (selectedCategory === undefined && hasSelection !== undefined) {
-                            selectedCategory = !hasSelection;
+                        var categoryIsSelected = WebInteractivityService.isSelected(slicerProps.selectedPropertyIdentifier, categories, idx);
+
+                        if (hasSelection !== undefined) {
+                            // If the visual is in InvertedSelectionMode, all the categories should be selected by default unless they are not selected
+                            // If the visual is not in InvertedSelectionMode, we set all the categories to be false except the selected category                         
+                            if (isInvertedSelectionMode) {
+                                if (categories.objects === undefined)
+                                    categoryIsSelected = undefined;
+
+                                if (categoryIsSelected !== undefined) {
+                                    categoryIsSelected = hasSelection;
+                                }
+                                else if (categoryIsSelected === undefined)
+                                    categoryIsSelected = !hasSelection;
+                            }                            
+                            else {
+                                if (categoryIsSelected === undefined) {
+                                    categoryIsSelected = !hasSelection;
+                                }
+                            }
                         }
 
                         slicerDataPoints.push({
@@ -164,9 +213,10 @@ module powerbi.visuals {
                             mouseOver: false,
                             mouseOut: true,
                             identity: SelectionId.createWithId(categoryIdentity),
-                            selected: selectedCategory
+                            selected: categoryIsSelected
                         });
                     }
+
                     slicerData = {
                         categorySourceName: categories.source.displayName,
                         formatString: valueFormatter.getFormatString(categories.source, slicerProps.formatString),
@@ -183,7 +233,7 @@ module powerbi.visuals {
             this.interactivityService = VisualInteractivityFactory.buildInteractivityService(options);
             this.hostServices = options.host;
             this.settings = Slicer.DefaultStyleProperties;
-
+                       
             this.initContainer();
         }
 
@@ -224,7 +274,8 @@ module powerbi.visuals {
         }
 
         private updateInternal(resetScrollbarPosition: boolean = false) {
-            var data = this.slicerData = Slicer.converter(this.dataView);
+            var localizedSelectAllText = this.hostServices.getLocalizedString(Slicer.selectAllTextKey);
+            var data = this.slicerData = Slicer.converter(this.dataView, localizedSelectAllText, this.interactivityService);
             if (!data) {
                 this.listView.empty();
                 return;
@@ -282,15 +333,15 @@ module powerbi.visuals {
             };
 
             var rowUpdate = (rowSelection: D3.Selection) => {
-                var formatString;
-                if (this.slicerData) {
-                    this.slicerHeader.select(Slicer.HeaderText.selector).text(this.slicerData.categorySourceName);
-                    formatString = this.slicerData.formatString;
-                }
+                var data = this.slicerData;
+                if (!data)
+                    return;
 
+                this.slicerHeader.select(Slicer.HeaderText.selector).text(data.categorySourceName);
+                var formatString = data.formatString;
                 var slicerText = rowSelection.selectAll(Slicer.LabelText.selector);
                 slicerText.text((d: SlicerDataPoint) => valueFormatter.format(d.value, formatString));
-                if (this.interactivityService && this.slicerData && this.slicerBody) {
+                if (this.interactivityService && data && this.slicerBody) {
                     var slicerBody = this.slicerBody.attr('width', this.currentViewport.width);
                     var slicerItemContainers = slicerBody.selectAll(Slicer.ItemContainer.selector);
                     var slicerItemLabels = slicerBody.selectAll(Slicer.LabelText.selector);
@@ -298,11 +349,12 @@ module powerbi.visuals {
                     var slicerClear = this.slicerHeader.select(Slicer.Clear.selector);
 
                     var behaviorOptions: SlicerBehaviorOptions = {
-                        datapoints: this.slicerData.slicerDataPoints,
+                        datapoints: data.slicerDataPoints,
                         slicerItemContainers: slicerItemContainers,
                         slicerItemLabels: slicerItemLabels,
                         slicerItemInputs: slicerItemInputs,
                         slicerClear: slicerClear,
+                        isInvertedSelectionMode: data.slicerDataPoints && data.slicerDataPoints.length > 0 && data.slicerDataPoints[0].selected,
                     };
 
                     this.interactivityService.apply(this, behaviorOptions);

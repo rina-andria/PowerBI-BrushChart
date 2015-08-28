@@ -285,13 +285,13 @@ module powerbi {
             return true;
         }
 
-        export function conforms(value: number, range: NumberRange): boolean {
+        export function conforms(value: number, range: NumberRange, ignoreMin?: boolean): boolean {
             debug.assertValue(value, 'value');
 
             if (!range)
                 return value === 0;
 
-            if (range.min !== undefined && range.min > value)
+            if (!ignoreMin && range.min !== undefined && range.min > value)
                 return false;
 
             if (range.max !== undefined && range.max < value)

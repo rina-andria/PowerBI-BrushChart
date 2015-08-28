@@ -1494,27 +1494,38 @@ module powerbitests {
                         v.onDataChanged({
                             dataViews: [dataView]
                         });
+
                         setTimeout(() => {
                             expect($('.legendItem')).toBeInDOM();
-                            //set title
-                            var testTitle = 'Test Title';
-                            dataView.metadata.objects = { legend: { show: true, position: 'Right', showTitle: true, titleText: testTitle } };
+
+                            dataView.metadata.objects = { legend: { show: true, position: 'TopCenter', showTitle: true } };
                             v.onDataChanged({
                                 dataViews: [dataView]
                             });
                             setTimeout(() => {
+                                expect($('#legendGroup').attr('transform')).toBeDefined();
 
-                                expect($('.legendItem')).toBeInDOM();
-                                expect($('.legendTitle').text()).toBe(testTitle);
-
-                                //hide legend
-                                dataView.metadata.objects = { legend: { show: false, position: 'Right' } };
+                                //set title
+                                var testTitle = 'Test Title';
+                                dataView.metadata.objects = { legend: { show: true, position: 'Right', showTitle: true, titleText: testTitle } };
                                 v.onDataChanged({
                                     dataViews: [dataView]
                                 });
                                 setTimeout(() => {
-                                    expect($('.legendItem')).not.toBeInDOM();
-                                    done();
+
+                                    expect($('.legendItem')).toBeInDOM();
+                                    expect($('.legendTitle').text()).toBe(testTitle);
+                                    expect($('#legendGroup').attr('transform')).not.toBeDefined();
+
+                                    //hide legend
+                                    dataView.metadata.objects = { legend: { show: false, position: 'Right' } };
+                                    v.onDataChanged({
+                                        dataViews: [dataView]
+                                    });
+                                    setTimeout(() => {
+                                        expect($('.legendItem')).not.toBeInDOM();
+                                        done();
+                                    }, DefaultWaitForRender);
                                 }, DefaultWaitForRender);
                             }, DefaultWaitForRender);
                         }, DefaultWaitForRender);
@@ -1901,7 +1912,12 @@ module powerbitests {
                     {
                         data: [
                             {
-                        data: [categoryIdentities[0]]
+                                data: [categoryIdentities[0]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'select0': categoryIdentities[0] }
                             }
                         ]
                     });
@@ -1923,6 +1939,11 @@ module powerbitests {
                             {
                                 data: [categoryIdentities[0], seriesIdentities[0]]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'select0': categoryIdentities[0], 'select1': seriesIdentities[0] }
+                            }
                         ]
                     });
 
@@ -1942,6 +1963,11 @@ module powerbitests {
                         data: [
                             {
                                 data: [categoryIdentities[1], seriesIdentities[2]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'select0': categoryIdentities[1], 'select1': seriesIdentities[2] }
                             }
                         ]
                     });
@@ -2016,7 +2042,12 @@ module powerbitests {
                     {
                         data: [
                             {
-                        data: [identities[1]]
+                                data: [identities[1]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'select0': identities[1] }
                             }
                         ]
                     });
@@ -2210,7 +2241,12 @@ module powerbitests {
                     {
                         data: [
                             {
-                        data: [categoryIdentities[0]]
+                                data: [categoryIdentities[0]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'select0': categoryIdentities[0] }
                             }
                         ]
                     });
@@ -2300,6 +2336,11 @@ module powerbitests {
                         data: [
                             {
                                 data: [categoryIdentities[0], seriesIdentities[0]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: { 'select0': categoryIdentities[0], 'select1': seriesIdentities[0] }
                             }
                         ]
                     });
@@ -2607,11 +2648,11 @@ module powerbitests {
 
             var metadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'Continent', properties: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
-                    { displayName: 'Year', properties: { "Series": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
-                    { displayName: null, groupName: '2004', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
-                    { displayName: null, groupName: '2008', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
-                    { displayName: null, groupName: '2012', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }
+                    { queryName: 'selectA', displayName: 'Continent', properties: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                    { queryName: 'selectB', displayName: 'Year', properties: { "Series": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+                    { queryName: 'selectC', displayName: null, groupName: '2004', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+                    { queryName: 'selectD', displayName: null, groupName: '2008', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
+                    { queryName: 'selectE', displayName: null, groupName: '2012', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }
                 ]
             };
             var categoryIdentities = [
@@ -3066,6 +3107,112 @@ module powerbitests {
 
             expect(node1.color).toEqual(dataPointColors[0]);
             expect(node2.color).toEqual(dataPointColors[1]);
+        });
+
+        it("treemap gradient color test - validate tool tip", () => {
+            var dataPointColors = ["#d9f2fb", "#ff557f", "#b1eab7"];
+            var objectDefinitions: powerbi.DataViewObjects[] = [
+                { dataPoint: { fill: { solid: { color: dataPointColors[0] } } } },
+                { dataPoint: { fill: { solid: { color: dataPointColors[1] } } } },
+                { dataPoint: { fill: { solid: { color: dataPointColors[2] } } } }
+            ];
+
+            var dataViewGradientMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    { displayName: 'col1' },
+                    { displayName: 'col2', isMeasure: true },
+                    { displayName: 'col3', roles: { 'Gradient': true } }
+                ]
+            };
+
+            var dataView: DataView = {
+                metadata: dataViewGradientMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewGradientMetadata.columns[0],
+                        values: ['Front end', 'Back end'],
+                        objects: objectDefinitions,
+                        identity: [
+                            mocks.dataViewScopeIdentity('f'),
+                            mocks.dataViewScopeIdentity('b'),
+                        ]
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewGradientMetadata.columns[1],
+                            values: [110, 120]
+                        }, {
+                            source: dataViewGradientMetadata.columns[2],
+                            values: [210, 220]
+                        }])
+                }
+            };
+
+            var dataLabelSettings = powerbi.visuals.dataLabelUtils.getDefaultLabelSettings();
+            var colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
+            var rootNode = Treemap.converter(dataView, colors, dataLabelSettings, null, viewport, null).root;
+            var node1: TreemapNode = <TreemapNode>rootNode.children[0].children[0];
+            var node2: TreemapNode = <TreemapNode>rootNode.children[0].children[1];
+            var node3: TreemapNode = <TreemapNode>rootNode.children[1].children[0];
+            var node4: TreemapNode = <TreemapNode>rootNode.children[1].children[1];
+
+            expect(node1.tooltipInfo).toEqual([{ displayName: 'col1', value: 'Front end' }, { displayName: 'col2', value: '110' }, { displayName: 'col3', value: '210' }]);
+            expect(node2.tooltipInfo).toEqual([{ displayName: 'col1', value: 'Front end' }, { displayName: 'col3', value: '210' }]);
+            expect(node3.tooltipInfo).toEqual([{ displayName: 'col1', value: 'Back end' }, { displayName: 'col2', value: '120' }, { displayName: 'col3', value: '220' }]);
+            expect(node4.tooltipInfo).toEqual([{ displayName: 'col1', value: 'Back end' }, { displayName: 'col3', value: '220' }]);
+        });
+
+        it("treemap Gradient and Y have the index - validate tool tip", () => {
+            var dataPointColors = ["#d9f2fb", "#ff557f", "#b1eab7"];
+            var objectDefinitions: powerbi.DataViewObjects[] = [
+                { dataPoint: { fill: { solid: { color: dataPointColors[0] } } } },
+                { dataPoint: { fill: { solid: { color: dataPointColors[1] } } } },
+                { dataPoint: { fill: { solid: { color: dataPointColors[2] } } } }
+            ];
+
+            var dataViewGradientMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    { displayName: 'col1' },
+                    { displayName: 'col2', isMeasure: true, roles: { 'Y': true, 'Gradient': true } },
+                    { displayName: 'col3', isMeasure: true }
+                ]
+            };
+
+            var dataView: DataView = {
+                metadata: dataViewGradientMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewGradientMetadata.columns[0],
+                        values: ['Front end', 'Back end'],
+                        objects: objectDefinitions,
+                        identity: [
+                            mocks.dataViewScopeIdentity('f'),
+                            mocks.dataViewScopeIdentity('b'),
+                        ]
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewGradientMetadata.columns[1],
+                            values: [110, 120],
+                            highlights: [60, 60]
+                        }, {
+                            source: dataViewGradientMetadata.columns[2],
+                            values: [210, 220],
+                            highlights: [140, 200]
+                        }])
+                }
+            };
+
+            var dataLabelSettings = powerbi.visuals.dataLabelUtils.getDefaultLabelSettings();
+            var colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
+            var rootNode = Treemap.converter(dataView, colors, dataLabelSettings, null, viewport, null).root;
+            var node1: TreemapNode = <TreemapNode>rootNode.children[0];
+            var node2: TreemapNode = <TreemapNode>rootNode.children[1];
+
+            expect(node1.color).toEqual(dataPointColors[0]);
+            expect(node2.color).toEqual(dataPointColors[1]);
+            expect(node1.tooltipInfo).toEqual([{ displayName: 'col1', value: 'Front end' }, { displayName: 'col2', value: '110' }]);
+            expect(node2.tooltipInfo).toEqual([{ displayName: 'col1', value: 'Back end' }, { displayName: 'col2', value: '120' }]);
         });
     });
 }

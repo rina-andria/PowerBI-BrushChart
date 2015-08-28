@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export var funnelChartCapabilities: VisualCapabilities = {
         dataRoles: [
@@ -126,6 +128,9 @@ module powerbi.visuals {
         supportsHighlight: true,
         sorting: {
             default: {},
+        },
+        drilldown: {
+            roles: ['Category']
         },
     };
 

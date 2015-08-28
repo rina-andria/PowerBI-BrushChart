@@ -29,7 +29,7 @@
 module powerbi.data {
 
     /** Represents a simplified table aggregate/column/column aggregate reference within a SQ. */
-    export interface SQFieldDef {
+    export interface SQFieldDef { // TODO: Deprecate this interface
         schema: string;
         entity: string;
         column?: string;

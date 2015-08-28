@@ -27,9 +27,7 @@
 /// <reference path="../_references.ts"/>
 
 module powerbi.visuals {
-    export interface ScatterChartConstructorOptions {
-        interactivityService: IInteractivityService;
-        animator?: IAnimator;
+    export interface ScatterChartConstructorOptions extends CartesianVisualConstructorOptions {
     }
 
     export interface ScatterChartDataPoint extends SelectableDataPoint, TooltipEnabledDataPoint, LabelEnabledDataPoint {
@@ -37,7 +35,7 @@ module powerbi.visuals {
         y: any;
         size: any;
         radius: RadiusData;
-        fill: string;
+        fill: string;        
         category: string;
     }
 
@@ -64,6 +62,7 @@ module powerbi.visuals {
         defaultDataPointColor?: string;
         showAllDataPoints?: boolean;
         hasDynamicSeries?: boolean;
+        fillPoint?: boolean;
     }
 
     interface ScatterChartMeasureMetadata {
@@ -123,7 +122,7 @@ module powerbi.visuals {
         private interactivityService: IInteractivityService;
         private categoryAxisProperties: DataViewObject;
         private valueAxisProperties: DataViewObject;
-        private animator: IAnimator;
+        private animator: IGenericAnimator;
 
         constructor(options: ScatterChartConstructorOptions) {
             if (options) {
@@ -183,6 +182,7 @@ module powerbi.visuals {
             var dvSource = dataValues.source;
             var scatterMetadata = ScatterChart.getMetadata(grouped, dvSource);
             var dataLabelsSettings = dataLabelUtils.getDefaultPointLabelSettings();
+            var fillPoint = false;
 
             if (dataViewMetadata && dataViewMetadata.objects) {
                 var objects = dataViewMetadata.objects;
@@ -198,6 +198,8 @@ module powerbi.visuals {
                         dataLabelsSettings.labelColor = (<Fill>labelsObj['color']).solid.color;
                     }
                 }
+
+                fillPoint = DataViewObjects.getValue(objects, scatterChartProps.fillPoint.show, fillPoint);
             }
 
             var dataPoints = ScatterChart.createDataPoints(
@@ -253,6 +255,7 @@ module powerbi.visuals {
                 defaultDataPointColor: defaultDataPointColor,
                 hasDynamicSeries: hasDynamicSeries,
                 showAllDataPoints: showAllDataPoints,
+                fillPoint: fillPoint,
             };
         }
 
@@ -357,7 +360,7 @@ module powerbi.visuals {
                         seriesData.push({ value: measureSize.values[categoryIdx], metadata: measureSize });
                     }
 
-                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categories, categoryValue, null, null, seriesData);
+                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, null, categoryValue, null, categories, seriesData);
 
                     var dataPoint: ScatterChartDataPoint = {
                         x: xVal,
@@ -565,6 +568,19 @@ module powerbi.visuals {
                     return (this.data)
                         ? dataLabelUtils.enumerateCategoryLabels(this.data.dataLabelsSettings, true)
                         : dataLabelUtils.enumerateCategoryLabels(null, true);
+                case 'fillPoint':
+                    var sizeRange = this.data.sizeRange;
+                    // Check if the card should be shown or not
+                    if (sizeRange && sizeRange.min)
+                        return [];
+
+                    return [{
+                        objectName: 'fillPoint',
+                        selector: null,
+                        properties: {
+                            show: this.data.fillPoint,
+                        },
+                    }];
             }
         }
 
@@ -744,7 +760,8 @@ module powerbi.visuals {
             var duration = AnimatorCommon.GetAnimationDuration(this.animator, suppressAnimations);
             var xScale = this.xAxisProperties.scale;
             var yScale = this.yAxisProperties.scale;
-
+            var shouldEnableFill = (!sizeRange || !sizeRange.min) && this.data.fillPoint;
+            
             var markers = this.mainGraphicsContext.selectAll(ScatterChart.DotClasses.selector).data(scatterData, (d: ScatterChartDataPoint) => d.identity.getKey());
 
             markers.enter().append(ScatterChart.ScatterChartCircleTagName)
@@ -756,7 +773,7 @@ module powerbi.visuals {
                     'stroke-width': '1px',
                     'stroke': (d: ScatterChartDataPoint) => d.fill,
                     'fill': (d: ScatterChartDataPoint) => d.fill,
-                    'fill-opacity': (d: ScatterChartDataPoint) => d.size != null ? ScatterChart.getBubbleOpacity(d, hasSelection) : 0,
+                    'fill-opacity': (d: ScatterChartDataPoint) => (d.size != null || shouldEnableFill) ? ScatterChart.getBubbleOpacity(d, hasSelection) : 0,
                 })
                 .transition()
                 .duration(duration)

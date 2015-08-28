@@ -27,19 +27,19 @@
 /// <reference path="../../_references.ts"/>
 
 module powerbitests {
-    import Animator = powerbi.visuals.Animator;
+    import BaseAnimator = powerbi.visuals.BaseAnimator;
     import IAnimatorOptions = powerbi.visuals.IAnimatorOptions;
     import AnimatorCommon = powerbi.visuals.AnimatorCommon;
 
     describe("Animator tests", () => {
         it("default animation duration", () => {
-            var animator = new Animator();
+            var animator = new BaseAnimator();
             expect(animator.getDuration()).toBe(AnimatorCommon.MinervaAnimationDuration);
         });
 
         it("override default animation duration", () => {
             var duration = 500;
-            var animator = new Animator(<IAnimatorOptions>{
+            var animator = new BaseAnimator(<IAnimatorOptions>{
                 duration: duration
             });
             expect(animator.getDuration()).toBe(duration);
@@ -78,7 +78,7 @@ module powerbitests {
                 var defaultDuration: number = 333;
 
                 beforeEach(() => {
-                    animator = new Animator(<IAnimatorOptions>{
+                    animator = new BaseAnimator(<IAnimatorOptions>{
                         duration: defaultDuration
                     });
                 });

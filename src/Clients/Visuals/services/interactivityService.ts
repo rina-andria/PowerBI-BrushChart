@@ -29,14 +29,14 @@
 module powerbi.visuals {
     import ArrayExtensions = jsCommon.ArrayExtensions;
     import SemanticFilter = powerbi.data.SemanticFilter;
-    
+
     /**
      * Factory method to create an IInteractivityService instance.
      */
     export function createInteractivityService(hostServices: IVisualHostServices): IInteractivityService {
         return new WebInteractivityService(hostServices);
     }
-    
+
     /**
      * Creates a clear an svg rect to catch clear clicks.
      */
@@ -55,7 +55,7 @@ module powerbi.visuals {
     export interface IInteractiveVisual {
         accept(visitor: InteractivityVisitor, options: any): void;
     }
-    
+
     /**
      * Responsible for managing interactivity between the hosting visual and its peers.
      */
@@ -69,6 +69,9 @@ module powerbi.visuals {
 
         /** Checks whether there is at least one item selected */
         hasSelection(): boolean;
+
+        /** Checks whether the selection mode is inverted or normal */
+        isSelectionModeInverted?(): boolean;
     }
 
     export class WebInteractivityService implements IInteractivityService {
@@ -80,6 +83,7 @@ module powerbi.visuals {
 
         // Selection state
         private selectedIds: SelectionId[] = [];
+        private isInvertedSelectionMode: boolean;
         private behavior: any;
         private secondBehavior: any;
 
@@ -96,7 +100,7 @@ module powerbi.visuals {
 
             this.hostService = hostServices;
         }
-        
+
         /**
          * Sets the selected state of all selectable data points to false and invokes the behavior's select command.
          */
@@ -106,7 +110,7 @@ module powerbi.visuals {
             this.sendSelectionToLegend();
             this.sendSelectionToSecondVisual();
         }
-        
+
         /**
          * Checks whether there is at least one item selected.
          */
@@ -117,11 +121,15 @@ module powerbi.visuals {
         private legendHasSelection(): boolean {
             return dataHasSelection(this.selectableLegendDataPoints);
         }
-        
+
+        public isSelectionModeInverted(): boolean {
+            return this.isInvertedSelectionMode;
+        }
+
         /**
          * Marks a data point as selected and syncs selection with the host.
          */
-        public select(d: SelectableDataPoint, multiselect?: boolean) {
+        public select(d: SelectableDataPoint, multiselect?: boolean): void {
             if (multiselect === undefined)
                 multiselect = d3.event.ctrlKey;
 
@@ -183,7 +191,7 @@ module powerbi.visuals {
 
             if (this.selectedIds.length > 0) {
                 // Set the property if there is any selection
-                var filter = powerbi.data.Selector.filterFromSelector(this.selectedIds.map((value: SelectionId) => value.getSelector()), false);
+                var filter = powerbi.data.Selector.filterFromSelector(this.selectedIds.map((value: SelectionId) => value.getSelector()), this.isInvertedSelectionMode);
                 properties[filterPropertyIdentifier.propertyName] = filter;
             }
 
@@ -206,7 +214,7 @@ module powerbi.visuals {
                 };
 
                 var data2: SelectorsByColumn[] = this.selectedIds.filter((value: SelectionId) => value.getSelectorsByColumn() && value.hasIdentity()).map((value: SelectionId) => value.getSelectorsByColumn());
-                
+
                 if (data2 && data2.length > 0)
                     selectArgs.data2 = data2;
 
@@ -354,6 +362,84 @@ module powerbi.visuals {
             if (!foundMatchingId && selectedIds.length > 0) {
                 this.clearSelectionInternal();
                 this.sendSelectionToHost(filterPropertyId);
+            }
+        }
+
+        private toggleSelectAll(): void {
+            this.clearSelection();
+            this.isInvertedSelectionMode = !this.isInvertedSelectionMode;
+            this.syncSlicerSelectionState();
+        }
+
+        private selectSlicerItem(d: SelectableDataPoint): void {
+            var selected = d.selected;
+            var id = d.identity;
+            var isInvertedSelectionMode = this.isInvertedSelectionMode;
+
+            // the current datapoint state has to be inverted
+            d.selected = !selected;
+
+            if (isInvertedSelectionMode && selected || !isInvertedSelectionMode && !selected) {
+                this.selectedIds.push(id);
+            }
+            else {
+                this.removeId(id);
+            }
+        }
+
+        private syncSelectedIds(): void {
+            var selectableDataPoints = this.selectableDataPoints;
+            // During initial initialization we need to read the selection state set by the visual
+            var isInvertedSelectionMode = selectableDataPoints[0].selected;
+            var selectedIds = this.selectedIds;
+
+            // If there are selectableDataPoints and the current state of the InteractivityService doesn't have anything selected, look for selected values in the data
+            // If the isInvertedSelectionMode is true, selectedIds array will contain the items that are not selected
+            if (isInvertedSelectionMode) {
+                for (var dataPoint of selectableDataPoints) {
+                    if (!dataPoint.selected) {
+                        selectedIds.push(dataPoint.identity);
+                    }
+                }
+            }
+            else {
+                for (var dataPoint of selectableDataPoints) {
+                    if (dataPoint.selected) {
+                        selectedIds.push(dataPoint.identity);
+                    }
+                }
+            }
+           
+            this.selectedIds = selectedIds;
+        }
+
+        private syncSlicerSelectionState(): void {
+            var selectedIds = this.selectedIds;
+            var selectableDataPoints = this.selectableDataPoints;
+            if (!selectableDataPoints)
+                return;
+
+            this.syncSelectedIds();
+
+            if (this.isInvertedSelectionMode && selectedIds) {
+                if (selectedIds.length === 0) {
+                    for (var dataPoint of selectableDataPoints) {
+                        dataPoint.selected = true;
+                    }
+                }
+                else {
+                    for (var dataPoint of selectableDataPoints) {
+                        if (selectedIds.some((value: SelectionId) => value.includes(dataPoint.identity))) {
+                            if (dataPoint.selected) {
+                                dataPoint.selected = false;
+                            }
+                        }
+                        else if (!dataPoint.selected) {
+                            dataPoint.selected = true;
+                        }
+
+                    }
+                }
             }
         }
 
@@ -587,7 +673,7 @@ module powerbi.visuals {
 
             selection.on('click', (d: SelectableDataPoint, i: number) => {
                 this.select(d);
-                behavior.select(this.hasSelection(), selection);
+                behavior.select(this.hasSelection(), options);
                 this.sendSelectionToHost();
                 this.sendSelectionToLegend();
             });
@@ -598,7 +684,7 @@ module powerbi.visuals {
             });
 
             this.sendSelectionToVisual = () => {
-                behavior.select(this.hasSelection(), options.dataPointsSelection);
+                behavior.select(this.hasSelection(), options);
             };
         }
 
@@ -645,12 +731,14 @@ module powerbi.visuals {
             }
 
             var filterPropertyId = slicerProps.filterPropertyIdentifier;
-            this.selectableDataPoints = options.datapoints;
-            this.initAndSyncSelectionState(filterPropertyId);
+            var dataPoints = this.selectableDataPoints = options.datapoints;
             var slicers = options.slicerItemContainers;
             var slicerItemLabels = options.slicerItemLabels;
             var slicerItemInputs = options.slicerItemInputs;
             var slicerClear = options.slicerClear;
+            this.isInvertedSelectionMode = options.isInvertedSelectionMode;
+
+            this.syncSlicerSelectionState();
 
             slicers.on("mouseover", (d: SlicerDataPoint) => {
                 d.mouseOver = true;
@@ -664,20 +752,38 @@ module powerbi.visuals {
                 behavior.mouseInteractions(slicerItemLabels);
             });
 
-            slicerItemLabels.on("click", (d: SelectableDataPoint) => {
-                this.select(d, this.hasSelection());
-                behavior.select(slicerItemLabels);
+            slicerItemLabels.on("click", (d: SlicerDataPoint) => {
+                if (d.isSelectAllDataPoint) {
+                    if (!d.selected) {
+                        this.toggleSelectAll();
+                        behavior.selectInputs(slicerItemInputs, d);
+                        behavior.selectLabels(slicerItemLabels);
+                    }
+                    else {
+                        this.clearSelection();
+                        this.isInvertedSelectionMode = false;
+                        behavior.selectInputs(slicerItemInputs, d);
+                    }
+                }
+                else {
+                    this.selectSlicerItem(d);
+                    behavior.selectLabels(slicerItemLabels);
+                }
                 this.sendSelectionToHost(filterPropertyId);
             });
 
             slicerClear.on("click", (d: SelectableDataPoint) => {
                 this.clearSelection();
+                this.isInvertedSelectionMode = false;
                 behavior.clearSlicers(slicerItemLabels, slicerItemInputs);
                 this.sendSelectionToHost(filterPropertyId);
             });
 
             this.sendSelectionToVisual = () => {
-                behavior.select(slicerItemLabels);
+                behavior.selectLabels(slicerItemLabels);
+                // This is needed for rendering the selectAll in partially selected state
+                var isPartiallySelected = this.isInvertedSelectionMode && this.selectedIds && this.selectedIds.length > 0;
+                behavior.updateSelectAll(slicerItemInputs, dataPoints[0], isPartiallySelected);
             };
 
             // Always update the Slicer as it's fully repainting
@@ -853,7 +959,7 @@ module powerbi.visuals {
             };
         }
     };
-    
+
     /**
      * A service for the mobile client to enable & route interactions.
      */
@@ -964,6 +1070,11 @@ module powerbi.visuals {
          * Checks whether there is at least one item selected.
          */
         public hasSelection(): boolean {
+            // No mobile interactions declared.
+            return false;
+        }
+
+        public isSelectionModeInverted(): boolean {
             // No mobile interactions declared.
             return false;
         }

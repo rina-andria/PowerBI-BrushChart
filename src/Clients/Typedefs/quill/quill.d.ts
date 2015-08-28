@@ -6,6 +6,7 @@ declare module quill {
         on(event: string, listener: Function);
         off(event: string, listener: Function);
         removeAllListeners(event?: string);
+        emit(event: string, ...args: any[]);
     }
 
     interface Range {
@@ -13,7 +14,17 @@ declare module quill {
         end: number;
     }
 
+    interface QuillEvents {
+        FORMAT_INIT: string;
+        MODULE_INIT: string;
+        POST_EVENT: string;
+        PRE_EVENT: string;
+        SELECTION_CHANGE: string;
+        TEXT_CHANGE: string;
+    }
+
     interface Quill extends EventEmitter2 {
+        container: HTMLElement;
         root: HTMLElement;
         getText(start?: number, end?: number): string;
         getLength(): number;
@@ -70,6 +81,7 @@ declare module quill {
     interface QuillStatic {
         new (container: any): Quill;
         new (container: any, configs: any): Quill;
+        events: QuillEvents;
     }
 
     interface Delta {

@@ -30,6 +30,8 @@
 @import "../../PowerBI/styles/mixins.less";
 @import "../../PowerBI/styles/constants.less";
 @import (optional) "bingNews.less";
+@import (optional) "bingSocialTweets.less";
+@import (optional) "bingSocialNews.less";
 @import (optional) "webChart.less";
 @import (optional) "partitionMap.less";
 @import (optional) "sunburstChart.less";
@@ -58,7 +60,12 @@
             .sprite(@slicer-checkbox-selected);
             opacity: 1;
         }
-     }
+
+        input.partiallySelected + span::before {
+            .sprite(@slicer-partially-selected);
+            opacity: 1;
+        }
+    }
     .slicerHeader {
         border-bottom-color: @neutralLightColor;
         border-bottom-width: 1px;
@@ -1084,6 +1091,62 @@ div.ql-toolbar {
         vertical-align: middle;
     }
 
+    .toolbar-url-input {
+        display: inline-block;
+        vertical-align: middle;
+
+        .ql-link div {
+            height: 100%;
+        }
+
+        .ql-link-tooltip {
+            display: none;
+
+            top: 0 !important;
+            left: 0 !important;
+            position: relative;
+            margin: 0 3px;
+            padding: 0px;
+            line-height: 100%;
+            vertical-align: middle;
+            border: none;
+            background-color: inherit;
+
+            input {
+                color: @neutralPrimaryColor;
+            }
+
+            a {
+                margin: 0 3px;
+                color: @secondaryChromeFontColor;
+
+                &:hover {
+                    color: @highlightColor;
+                }
+            }
+
+            .bar {
+                font-size: 18px;
+                color: @secondaryChromeFontColor;
+            }
+
+            .change {
+                display: none;
+            }
+        }
+
+        .ql-link-tooltip.editing {
+            .bar {
+                display: none;
+            }
+        }
+
+        .ql-link.ql-active + .ql-link-tooltip,
+        .ql-link-tooltip.editing {
+            display: inline-block;
+        }
+    }
+
     .ql-format-button:hover {
         background: @themePrimaryColor;
         color: @neutralPrimaryColor;
@@ -1164,6 +1227,18 @@ div.ql-toolbar {
 
     .ql-format-button.ql-underline:hover {
         .sprite(@underline-text-black);
+    }
+
+    .ql-format-button.ql-link {
+        .sprite(@insert-link-white);
+    }
+
+    .ql-format-button.ql-link.ql-active {
+        .sprite(@insert-link-black);
+    }
+
+    .ql-format-button.ql-link:hover {
+        .sprite(@insert-link-black);
     }
 }
 

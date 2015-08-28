@@ -38,7 +38,11 @@ module powerbi.visuals {
         Bottom,
         Right,
         Left,
-        None,
+        None,   
+        TopCenter,
+        BottomCenter,
+        RightCenter,
+        LeftCenter,          
     }
 
     export interface LegendPosition2D {
@@ -169,6 +173,7 @@ module powerbi.visuals {
         private viewport: IViewport;
         private parentViewport: IViewport;
         private svg: D3.Selection;
+        private group: D3.Selection;
         private clearCatcher: D3.Selection;
         private element: JQuery;
         private interactivityService: IInteractivityService;
@@ -178,6 +183,8 @@ module powerbi.visuals {
         private isScrollable: boolean;
 
         private lastCalculatedWidth = 0;
+        private visibleLegendWidth = 0;
+        private visibleLegendHeight = 0;
 
         private static LegendIconRadius = 5;
         private static MaxTextLength = 60;
@@ -235,10 +242,11 @@ module powerbi.visuals {
             interactivityService: IInteractivityService,
             isScrollable: boolean) {
 
-            this.svg = d3.select(element.get(0)).insert('svg', ':first-child');
+            this.svg = d3.select(element.get(0)).insert('svg', ':first-child');          
             this.svg.style('display', 'inherit');
             this.svg.classed('legend', true);
             this.clearCatcher = appendClearCatcher(this.svg);
+            this.group = this.svg.append('g').attr('id', 'legendGroup');
             this.interactivityService = interactivityService;
             this.isScrollable = isScrollable;
             this.element = element;
@@ -262,10 +270,11 @@ module powerbi.visuals {
              */
                 .style('max-width', '100%');
 
+            var isBottom = orientation === LegendPosition.Bottom || orientation === LegendPosition.BottomCenter;            
             this.svg.style({
                 'float': this.getFloat(),
-                'position': orientation === LegendPosition.Bottom ? 'absolute' : '',
-                'bottom': orientation === LegendPosition.Bottom ? '0px' : '',
+                'position': isBottom ? 'absolute' : '',
+                'bottom': isBottom ? '0px' : '',
             });
         }
 
@@ -273,10 +282,14 @@ module powerbi.visuals {
             switch (this.orientation) {
                 case LegendPosition.Top:
                 case LegendPosition.Bottom:
+                case LegendPosition.TopCenter:
+                case LegendPosition.BottomCenter:
                     this.viewport = { height: SVGLegend.TopLegendHeight, width: 0 };
                     return;
                 case LegendPosition.Right:
                 case LegendPosition.Left:
+                case LegendPosition.RightCenter:
+                case LegendPosition.LeftCenter:
                     var width = this.lastCalculatedWidth ? this.lastCalculatedWidth : this.parentViewport.width * SVGLegend.LegendMaxWidthFactor;
                     this.viewport = { height: 0, width: width };
                     return;
@@ -289,8 +302,10 @@ module powerbi.visuals {
         private getFloat(): string {
             switch (this.orientation) {
                 case LegendPosition.Right:
+                case LegendPosition.RightCenter:
                     return 'right';
                 case LegendPosition.Left:
+                case LegendPosition.LeftCenter:
                     return 'left';
                 default: return '';
             }
@@ -349,7 +364,25 @@ module powerbi.visuals {
             var titleLayout = layout.title;
             var titleData = titleLayout ? [titleLayout] : [];
 
-            var legendTitle = this.svg
+            var group = this.group;
+
+            //transform the wrapping group if position is centered           
+            if (this.isCentered(this.orientation)) {
+                var centerOffset = 0;
+                if (this.isTopOrBottom(this.orientation)) {
+                    centerOffset = Math.max(0, (this.parentViewport.width - this.visibleLegendWidth) / 2);                  
+                    group.attr('transform', SVGUtil.translate(centerOffset,0));
+                }
+                else {
+                    centerOffset = Math.max((this.parentViewport.height - this.visibleLegendHeight) / 2);
+                    group.attr('transform', SVGUtil.translate(0,centerOffset));
+                }
+            }
+            else {
+                group.attr('transform', null);
+            }
+
+            var legendTitle = group
                 .selectAll(SVGLegend.LegendTitle.selector)
                 .data(titleData);
 
@@ -372,7 +405,7 @@ module powerbi.visuals {
 
             var dataPointsLayout = layout.dataPoints;
 
-            var legendItems = this.svg
+            var legendItems = group
                 .selectAll(SVGLegend.LegendItem.selector)
                 .data(dataPointsLayout, (d: LegendDataPoint) => d.label + d.color);
 
@@ -653,6 +686,8 @@ module powerbi.visuals {
                 }
             }
 
+            this.visibleLegendWidth = totalSpaceOccupiedThusFar;
+
             this.updateNavigationArrowLayout(navigationArrows, dataPointsLength, dataPoints.length);
 
             return dataPoints;
@@ -739,6 +774,8 @@ module powerbi.visuals {
                 this.viewport.width = this.lastCalculatedWidth;
             }
 
+            this.visibleLegendHeight = totalSpaceOccupiedThusFar;
+
             navigationArrows.forEach(d => d.x = this.lastCalculatedWidth / 2);
             this.updateNavigationArrowLayout(navigationArrows, dataPointsLength, dataPoints.length);
 
@@ -746,7 +783,7 @@ module powerbi.visuals {
         }
 
         private drawNavigationArrows(layout: NavigationArrow[]) {
-            var arrows = this.svg.selectAll(SVGLegend.NavigationArrow.selector)
+            var arrows = this.group.selectAll(SVGLegend.NavigationArrow.selector)
                 .data(layout);
 
             arrows
@@ -775,7 +812,21 @@ module powerbi.visuals {
         private isTopOrBottom(orientation: LegendPosition) {
             switch (orientation) {
                 case LegendPosition.Top:
-                case LegendPosition.Bottom:
+                case LegendPosition.Bottom:     
+                case LegendPosition.BottomCenter:     
+                case LegendPosition.TopCenter:                                   
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private isCentered(orientation: LegendPosition): boolean {
+            switch (orientation) {
+                case LegendPosition.BottomCenter:
+                case LegendPosition.LeftCenter:
+                case LegendPosition.RightCenter:
+                case LegendPosition.TopCenter:
                     return true;
                 default:
                     return false;

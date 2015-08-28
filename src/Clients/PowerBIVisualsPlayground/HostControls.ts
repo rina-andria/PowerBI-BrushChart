@@ -26,6 +26,10 @@
 
 /// <reference path="_references.ts"/>
 
+interface JQuery {
+    resizable(options: any): JQuery;
+}
+
 module powerbi.visuals {
     
     import SampleData = powerbi.visuals.sampleData.SampleData;
@@ -44,6 +48,12 @@ module powerbi.visuals {
         private animationDurationElement: JQuery;
         
         private viewport: IViewport;
+        private container: JQuery;
+
+        private minWidth: number = 200;
+        private maxWidth: number = 1000;
+        private minHeight: number = 100;
+        private maxHeight: number = 600;
 
         constructor(parent: JQuery) {
             parent.find('#randomize').on('click', () => this.randomize());
@@ -56,10 +66,42 @@ module powerbi.visuals {
             this.animationDurationElement = parent.find('input[name=animation_duration]').first();
             this.animationDurationElement.on('change', () => this.onChangeDuration());
         }
+
+        public setElement(container: JQuery): void {
+            this.container = container;
+
+            this.container.resizable({
+                minWidth: this.minWidth,
+                maxWidth: this.maxWidth,
+                minHeight: this.minHeight,
+                maxHeight: this.maxHeight,
+
+                resize: (event, ui) => this.onResize(ui.size)
+            });
+
+            this.onResize({
+                height: this.container.height(),
+                width: this.container.width()
+            });
+        }
         
-        public setVisual(visualElement: IVisual, viewport: IViewport): void {
+        public setVisual(visualElement: IVisual): void {
             this.visualElement = visualElement;
-            this.viewport = viewport;
+        }
+
+        private onResize(size: IViewport): void {
+            this.viewport = {
+                height: size.height - 5,
+                width: size.width - 5,
+            };
+
+            if (this.visualElement) {
+                this.visualElement.onResizing(this.viewport);
+            }
+        }
+
+        public getViewport(): IViewport {
+            return this.viewport;
         }
 
         private randomize(): void {
@@ -97,11 +139,11 @@ module powerbi.visuals {
         public onPluginChange(pluginName: string): void {
             this.dataViewsSelect.empty();
 
-            var dataViews = SampleData.getSamplesByPluginName(pluginName);
-            var defaultDataView;
+            let dataViews = SampleData.getSamplesByPluginName(pluginName);
+            let defaultDataView;
 
             dataViews.forEach((item, i) => {
-                var option: JQuery = $('<option>');
+                let option: JQuery = $('<option>');
 
                 option.val(item.getName());
                 option.text(item.getDisplayName());

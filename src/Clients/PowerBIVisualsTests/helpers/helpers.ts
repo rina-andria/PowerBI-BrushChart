@@ -189,4 +189,15 @@ module powerbitests.helpers {
 
         return date;
     }
+
+    /** 
+    Checks if value is in the given range 
+    @val Value to check
+    @min Min value of range
+    @max Max value of range
+    @returns True, if value falls in range. False, otherwise
+    **/
+    export function isInRange(val: number, min: number, max: number): Boolean {
+        return min <= val && val <= max;
+    }
 }

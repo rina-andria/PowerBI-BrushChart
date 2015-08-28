@@ -303,11 +303,11 @@ module powerbi.visuals {
                         var highlightedValue = hasHighlights && highlight !== 0 ? highlight : undefined;
                         var categorical = dataView.categorical;
                         var valueIndex: number = i;
-                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, nodeName, categorical.values, value, null, valueIndex);
+                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, nodeName, value, null, null, valueIndex , i);
                         var highlightedTooltipInfo: TooltipDataItem[];
 
                         if (highlightedValue !== undefined) {
-                            highlightedTooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, nodeName, categorical.values, value, null, valueIndex, highlightedValue);
+                            highlightedTooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, nodeName, value, null, null, valueIndex, i, highlightedValue);
                         }
 
                         var node: TreemapNode = {
@@ -343,7 +343,17 @@ module powerbi.visuals {
 
                     for (var i = 0, ilen = values.length; i < ilen; i++) {
                         var categoryIdentity = categoryColumn.identity ? categoryColumn.identity[i] : undefined;
-                        var identity = categoryIdentity ? SelectionId.createWithId(categoryIdentity) : SelectionId.createNull();
+
+                        var identity: SelectionId;
+                        if (categoryIdentity) {
+                            let dataMap: SelectorForColumn = {};
+                            dataMap[categoryColumn.source.queryName] = categoryIdentity;
+                            identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, null);
+                        }
+                        else {
+                            identity = SelectionId.createNull();
+                        }
+
                         var key = identity.getKey();
 
                         var objects = categoryColumn.objects && categoryColumn.objects[i];
@@ -354,11 +364,11 @@ module powerbi.visuals {
                         var value = values[i][0];
                         var highlightedValue = hasHighlights && highlights ? highlights[i][0] : undefined;
                         var categorical = dataView.categorical;
-                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value);
+                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value);
                         var highlightedTooltipInfo: TooltipDataItem[];
 
                         if (highlightedValue !== undefined) {
-                            highlightedTooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, 0, highlightedValue);
+                            highlightedTooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, 0, i, highlightedValue);
                         }
 
                         var node: TreemapNode = {
@@ -424,18 +434,23 @@ module powerbi.visuals {
                                     childName = valueColumn.source.groupName;
                                 }
 
-                                var childIdentity: SelectionId = SelectionId.createWithIdsAndMeasure(
-                                    categoryIdentity,
-                                    hasDynamicSeries ? valueColumn.identity : undefined,
-                                    isMultiSeries ? valueColumn.source.queryName : undefined);
+                                var childIdentity: SelectionId;
+                                let dataMap: SelectorForColumn = {};
+                                dataMap[categoryColumn.source.queryName] = categoryIdentity;
+
+                                if (hasDynamicSeries && categorical.values && categorical.values.source && categorical.values.source.queryName) {
+                                    dataMap[categorical.values.source.queryName] = valueColumn.identity;
+                                }
+
+                                childIdentity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, isMultiSeries ? valueColumn.source.queryName : undefined);
 
                                 var highlightedValue = hasHighlights && highlight !== 0 ? highlight : undefined;
                                 var categorical = dataView.categorical;
-                                var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, j);
+                                var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, j, i);
                                 var highlightedTooltipInfo: TooltipDataItem[];
 
                                 if (highlightedValue !== undefined) {
-                                    highlightedTooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, j, highlightedValue);
+                                    highlightedTooltipInfo = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, j, i, highlightedValue);
                                 }
 
                                 var childNode: TreemapNode = {

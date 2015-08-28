@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export var donutChartCapabilities: VisualCapabilities = {
         dataRoles: [
@@ -74,6 +76,14 @@ module powerbi.visuals {
             dataPoint: {
                 displayName: data.createDisplayNameGetter('Visual_DataPoint'),
                 properties: {
+                    defaultColor: {
+                        displayName: data.createDisplayNameGetter('Visual_DefaultColor'),
+                        type: { fill: { solid: { color: true } } }
+                    },
+                    showAllDataPoints: {
+                        displayName: data.createDisplayNameGetter('Visual_DataPoint_Show_All'),
+                        type: { bool: true }
+                    },
                     fill: {
                         displayName: data.createDisplayNameGetter('Visual_Fill'),
                         type: { fill: { solid: { color: true } } }
@@ -133,6 +143,9 @@ module powerbi.visuals {
             default: {},
         },
         supportsHighlight: true,
+        drilldown: {
+            roles: ['Category']
+        },
     };
 
     export var donutChartProps = {
@@ -140,7 +153,9 @@ module powerbi.visuals {
             formatString: <DataViewObjectPropertyIdentifier>{ objectName: 'general', propertyName: 'formatString' },
         },
         dataPoint: {
+            defaultColor: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'defaultColor' },
             fill: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'fill' },
+            showAllDataPoints: <DataViewObjectPropertyIdentifier>{ objectName: 'dataPoint', propertyName: 'showAllDataPoints' },
         },
         legend: {
             show: <DataViewObjectPropertyIdentifier>{ objectName: 'legend', propertyName: 'show' },

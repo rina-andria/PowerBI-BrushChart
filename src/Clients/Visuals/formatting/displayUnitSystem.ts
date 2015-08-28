@@ -62,6 +62,10 @@ module powerbi {
             var precision = Double.getPrecision(value, 3);
             return Double.greaterOrEqualWithPrecision(value, this.applicableRangeMin, precision) && Double.lessWithPrecision(value, this.applicableRangeMax, precision);
         }
+
+        public isScaling(): boolean {
+            return this.value > 1;
+        }
     }
 
     export class DisplayUnitSystem {
@@ -108,7 +112,7 @@ module powerbi {
         public format(value: number, format: string, decimals?: number, trailingZeros?: boolean ): string {
 
             if (!DisplayUnitSystem.UNSUPPORTED_FORMATS.test(format)) {
-                if (this.displayUnit) {
+                if (this.isScalingUnit()) {
                     var projectedValue = this.displayUnit.project(value);
                     var nonScientificFormat = (trailingZeros)
                         ? DisplayUnitSystem.getNonScientificFormatWithPrecision(this.displayUnit.labelFormat, decimals)
@@ -131,6 +135,10 @@ module powerbi {
 
             format = this.removeFractionIfNecessary(format);
             return formattingService.formatValue(value, format);
+        }
+
+        public isScalingUnit(): boolean {
+            return this.displayUnit && this.displayUnit.isScaling();
         }
 
         private formatHelper(value: number, projectedValue: number, nonScientificFormat: string, format: string, decimals?: number, trailingZeros?: boolean) {
@@ -172,8 +180,16 @@ module powerbi {
             if (this.units.length === 0)
                 return true;
 
-            // Check if the value is big enough to have a valid unit by checking against the smallest unit.
-            return Math.abs(value) < this.units[0].applicableRangeMin;
+            // Check if the value is big enough to have a valid unit by checking against the smallest unit (that it's value bigger than 1).
+            var applicableRangeMin: number = 0;
+            for (var i = 0; i < this.units.length; i++) {
+                if (this.units[i].isScaling()) {
+                    applicableRangeMin = this.units[i].applicableRangeMin;
+                    break;
+                }
+            }
+            
+            return Math.abs(value) < applicableRangeMin;
         }
 
         private removeFractionIfNecessary(formatString: string): string {
@@ -275,6 +291,38 @@ module powerbi {
                 WholeUnitsDisplayUnitSystem._units = createDisplayUnits(unitLookup);
             }
             return WholeUnitsDisplayUnitSystem._units;
+        }
+    }
+
+    export class DataLabelsDisplayUnitSystem extends DisplayUnitSystem {
+        private static _units: DisplayUnit[];
+
+        constructor(unitLookup: (exponent: number) => DisplayUnitSystemNames) {
+            super(DataLabelsDisplayUnitSystem.getUnits(unitLookup));
+        }
+
+        private static getUnits(unitLookup: (exponent: number) => DisplayUnitSystemNames): DisplayUnit[] {
+            if (!DataLabelsDisplayUnitSystem._units) {
+                var units = [];
+                var adjustMinBasedOnPreviousUnit = (value: number, previousUnitValue: number, min: number): number => {
+                    if (value === -1)
+                        if (value - previousUnitValue >= 1000) {
+                            return value / 10;
+                        }
+                    return min;
+                };
+
+                //Add Auto & None
+                var names = unitLookup(-1);
+                addUnitIfNonEmpty(units, 0, names.title, names.format, adjustMinBasedOnPreviousUnit);
+
+                names = unitLookup(0);
+                addUnitIfNonEmpty(units, 1, names.title, names.format, adjustMinBasedOnPreviousUnit);
+
+                //add normal units
+                DataLabelsDisplayUnitSystem._units = units.concat(createDisplayUnits(unitLookup, adjustMinBasedOnPreviousUnit));
+            }
+            return DataLabelsDisplayUnitSystem._units;
         }
     }
 

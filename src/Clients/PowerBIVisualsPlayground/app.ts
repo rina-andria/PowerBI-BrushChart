@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  Power BI Visualizations
  *
  *  Copyright (c) Microsoft Corporation
@@ -36,27 +36,6 @@ module powerbi.visuals {
     import defaultVisualHostServices = powerbi.visuals.defaultVisualHostServices;
 
     import HostControls = powerbi.visuals.HostControls;
-    
-    var dataColors: DataColorPalette = new powerbi.visuals.DataColorPalette();
-
-    var visualStyle: IVisualStyle = {
-        titleText: {
-            color: { value: 'rgba(51,51,51,1)' }
-        },
-        subTitleText: {
-            color: { value: 'rgba(145,145,145,1)' }
-        },
-        colorPalette: {
-            dataColors: dataColors,
-        },
-        labelText: {
-            color: {
-                value: 'rgba(51,51,51,1)',
-            },
-            fontSize: '11px'
-        },
-        isHighContrast: false,
-    };
 
     /**
      * Demonstrates Power BI visualization elements and the way to embed them in standalone web page.
@@ -70,34 +49,47 @@ module powerbi.visuals {
         private static hostControls: HostControls;
         private static container: JQuery;
 
+        private static visualStyle: IVisualStyle = {
+            titleText: {
+                color: { value: 'rgba(51,51,51,1)' }
+            },
+            subTitleText: {
+                color: { value: 'rgba(145,145,145,1)' }
+            },
+            colorPalette: {
+                dataColors: new powerbi.visuals.DataColorPalette(),
+            },
+            labelText: {
+                color: {
+                    value: 'rgba(51,51,51,1)',
+                },
+                fontSize: '11px'
+            },
+            isHighContrast: false,
+        };
+
         /** Performs sample app initialization.*/
         public static initialize(): void {
-            this.hostControls = new HostControls($('#options'));
             this.container = $('#container');
+            this.hostControls = new HostControls($('#options'));
+            this.hostControls.setElement(this.container);
 
             this.populateVisualTypeSelect();
-
+            powerbi.visuals.DefaultVisualHostServices.initialize();
             // Wrapper function to simplify visualization element creation when using jQuery
             $.fn.visual = function (plugin: IVisualPlugin, dataView?: DataView[]) {
 
                 // Step 1: Create new DOM element to represent Power BI visual
-                var element = $('<div/>');
+                let element = $('<div/>');
                 element.addClass('visual');
-                element.css({
-                    'background-color': 'white',
-                    'padding': '10px',
-                    'margin': '5px'
-                });
-              
                 element['visible'] = () => { return true; };
                 this.append(element);
-
+            
                 Playground.createVisualElement(element, plugin, dataView);
-
                 return this;
             };
 
-            var visualByDefault = jsCommon.Utility.getURLParamValue('visual');
+            let visualByDefault = jsCommon.Utility.getURLParamValue('visual');
             if (visualByDefault) {
                 $('.topBar, #options').css({ "display": "none" });
                 Playground.onVisualTypeSelection(visualByDefault.toString());
@@ -108,36 +100,34 @@ module powerbi.visuals {
         private static createVisualElement(element: JQuery, plugin: IVisualPlugin, dataView?: DataView[]) {
 
             // Step 2: Instantiate Power BI visual
-            var host = this.container;
-            var viewport: IViewport = { height: host.height() - 100, width: host.width() - 100 };
             this.visualElement = plugin.create();
             this.visualElement.init({
                 element: element,
                 host: defaultVisualHostServices,
-                style: visualStyle,
-                viewport: viewport,
+                style: this.visualStyle,
+                viewport: this.hostControls.getViewport(),
                 settings: { slicingEnabled: true },
                 interactivity: { isInteractiveLegend: false, selection: false },
                 animation: { transitionImmediate: true }
             });
             
-            this.hostControls.setVisual(this.visualElement, viewport);
+            this.hostControls.setVisual(this.visualElement);
         };
 
         private static populateVisualTypeSelect(): void {
            
-            var typeSelect = $('#visualTypes');
+            let typeSelect = $('#visualTypes');
             typeSelect.append('<option value="">(none)</option>');
 
-            var visuals = this.pluginService.getVisuals();
+            let visuals = this.pluginService.getVisuals();
             visuals.sort(function (a, b) {
                 if (a.name < b.name) return -1;
                 if (a.name > b.name) return 1;
                 return 0;
             });
 
-            for (var i = 0, len = visuals.length; i < len; i++) {
-                var visual = visuals[i];
+            for (let i = 0, len = visuals.length; i < len; i++) {
+                let visual = visuals[i];
                 typeSelect.append('<option value="' + visual.name + '">' + visual.name + '</option>');
             }
 
@@ -145,18 +135,20 @@ module powerbi.visuals {
         }
 
         private static onVisualTypeSelection(pluginName: string): void {
-            this.container.empty();
-            if (pluginName.length === 0) return;
+            if (pluginName.length === 0) {
+                return;
+            }
 
             this.createVisualPlugin(pluginName);
             this.hostControls.onPluginChange(pluginName);
         }        
 
         private static createVisualPlugin(pluginName: string): void {
+            this.container.children().not(".ui-resizable-handle").remove();
 
-            var plugin = this.pluginService.getPlugin(pluginName);
+            let plugin = this.pluginService.getPlugin(pluginName);
             if (!plugin) {
-                this.container.html('<div class="wrongVisualWarning">Wrong visual name <span>\'' + pluginName + '\'</span> in parameters</div>'); return;
+                this.container.append('<div class="wrongVisualWarning">Wrong visual name <span>\'' + pluginName + '\'</span> in parameters</div>'); return;
             }
             this.container.visual(plugin);
         }       

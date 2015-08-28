@@ -27,6 +27,8 @@
 /// <reference path="typedefs/typedefs.ts"/>
 /// <reference path="typedefs/typedefs.obj.ts"/>
 
+/// <reference path="iVisual.ts"/>
+
 /// <reference path="animators/animatorCommon.ts"/>
 /// <reference path="animators/columnChartAnimator.ts"/>
 /// <reference path="animators/donutChartAnimator.ts"/>
@@ -48,6 +50,7 @@
 /// <reference path="contracts/contracts.ts"/>
 
 /// <reference path="common/axisHelper.ts"/>
+/// <reference path="common/basicShapeUtils.ts"/>
 /// <reference path="common/cartesianHelper.ts"/>
 /// <reference path="common/colorHelper.ts"/>
 /// <reference path="common/columnChartUtil.ts"/>
@@ -59,6 +62,7 @@
 /// <reference path="common/invalidDataValuesChecker.ts"/>
 /// <reference path="common/listView.ts"/>
 /// <reference path="common/selectionId.ts"/>
+/// <reference path="common/selectionManager.ts"/>
 /// <reference path="common/shapes.ts"/>
 /// <reference path="common/svgUtil.ts"/>
 /// <reference path="common/textUtil.ts"/>
@@ -97,12 +101,18 @@
 /// <reference path="visuals/animatedNumber.ts"/>
 /// <reference path="capabilities/animatedNumber.capabilities.ts"/>
 
+/// <reference path="visuals/basicShape.ts"/>
+/// <reference path="capabilities/basicShape.capabilities.ts"/>
+
 /// <reference path="cartesian/cartesianChart.ts"/>
 
 /// <reference path="capabilities/columnChart.capabilities.ts"/>
 /// <reference path="cartesian/columnChart.ts"/>
 /// <reference path="cartesian/columnChartClustered.ts"/>
 /// <reference path="cartesian/columnChartStacked.ts"/>
+/// <reference path="capabilities/columnChart.capabilities.ts"/>
+
+/// <reference path="capabilities/comboChart.capabilities.ts"/>
 /// <reference path="cartesian/comboChart.ts"/>
 
 /// <reference path="dataColorPalette.ts"/>
@@ -122,7 +132,6 @@
 /// <reference path="capabilities/samples/consoleWriter.capabilities.ts"/>
 /// <reference path="visuals/samples/consoleWriter.ts"/>
 
-/// <reference path="iVisual.ts"/>
 /// <reference path="iVisualStyle.ts"/>
 
 /// <reference path="capabilities/lineChart.capabilities.ts"/>
@@ -167,6 +176,5 @@
 
 /// <reference path="visuals/donutChart.ts"/>
 
-/// <reference path="capabilities/webChart.capabilities.ts"/>
-
+/// <reference path="pluginsCapabilities.ts"/>
 /// <reference path="plugins.ts"/>

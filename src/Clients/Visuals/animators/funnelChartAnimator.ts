@@ -46,9 +46,9 @@ module powerbi.visuals {
         dataLabels: D3.UpdateSelection;
     }
 
-    export type IFunnelAnimator = Animator<IAnimatorOptions, FunnelAnimationOptions, FunnelAnimationResult>;
+    export type IFunnelAnimator = IAnimator<IAnimatorOptions, FunnelAnimationOptions, FunnelAnimationResult>;
 
-    export class WebFunnelAnimator extends Animator<IAnimatorOptions, FunnelAnimationOptions, FunnelAnimationResult> implements IFunnelAnimator {
+    export class WebFunnelAnimator extends BaseAnimator<IAnimatorOptions, FunnelAnimationOptions, FunnelAnimationResult> implements IFunnelAnimator {
         private previousViewModel: FunnelData;
 
         constructor(options?: IAnimatorOptions) {

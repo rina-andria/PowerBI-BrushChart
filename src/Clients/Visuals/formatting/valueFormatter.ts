@@ -108,6 +108,8 @@ module powerbi.visuals {
             'RestatementComma': '{0}, {1}',
             'RestatementCompoundAnd': '{0} and {1}',
             'RestatementCompoundOr': '{0} or {1}',
+            'DisplayUnitSystem_EAuto_Title': 'Auto',
+            'DisplayUnitSystem_E0_Title': 'None',
             'DisplayUnitSystem_E3_LabelFormat': '{0}K',
             'DisplayUnitSystem_E3_Title': 'Thousands',
             'DisplayUnitSystem_E6_LabelFormat': '{0}M',
@@ -166,8 +168,10 @@ module powerbi.visuals {
         }
 
         function describeUnit(exponent: number): DisplayUnitSystemNames {
-            var title: string = defaultLocalizedStrings["DisplayUnitSystem_E" + exponent + "_Title"];
-            var format: string = defaultLocalizedStrings["DisplayUnitSystem_E" + exponent + "_LabelFormat"];
+            var exponentLookup = (exponent === -1) ? 'Auto' : exponent.toString();
+
+            var title: string = defaultLocalizedStrings["DisplayUnitSystem_E" + exponentLookup + "_Title"];
+            var format: string = (exponent <= 0) ? '{0}' : defaultLocalizedStrings["DisplayUnitSystem_E" + exponentLookup + "_LabelFormat"];
 
             if (title || format)
                 return { title: title, format: format };
@@ -242,7 +246,7 @@ module powerbi.visuals {
                 if (forcePrecision) {
                     decimals = -options.precision;
                 }
-                else if (displayUnitSystem.displayUnit)
+                else if (displayUnitSystem.displayUnit && displayUnitSystem.displayUnit.value > 1)
                     decimals = -MaxScaledDecimalPlaces;
 
                 return {
@@ -252,7 +256,7 @@ module powerbi.visuals {
                         if (!StringExtensions.isNullOrUndefinedOrWhiteSpaceString(formattedValue))
                             return formattedValue;
 
-                        if (value && !displayUnitSystem.displayUnit && Math.abs(value) < MaxValueForDisplayUnitRounding && !forcePrecision)
+                        if (value && !displayUnitSystem.isScalingUnit() && Math.abs(value) < MaxValueForDisplayUnitRounding && !forcePrecision)
                             value = Double.roundToPrecision(value, Double.pow10(Double.getPrecision(value)));
 
                         return singleValueFormattingMode ?
@@ -304,6 +308,8 @@ module powerbi.visuals {
                     return new WholeUnitsDisplayUnitSystem(locale.describe);
                 case DisplayUnitSystemType.Verbose:
                     return new NoDisplayUnitSystem();
+                case DisplayUnitSystemType.DataLabels:
+                    return new DataLabelsDisplayUnitSystem(locale.describe);
                 default:
                     debug.assertFail('Unknown display unit system type');
                     return new DefaultDisplayUnitSystem(locale.describe);

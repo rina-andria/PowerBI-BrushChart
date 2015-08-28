@@ -29,11 +29,8 @@
 module powerbi.visuals {
     import EnumExtensions = jsCommon.EnumExtensions;
 
-    export interface LineChartConstructorOptions {
-        isScrollable: boolean;
+    export interface LineChartConstructorOptions extends CartesianVisualConstructorOptions {
         chartType?: LineChartType;
-        interactivityService?: IInteractivityService;
-        animator?: IAnimator;
     }
 
     export interface ILineChartConfiguration {
@@ -127,7 +124,7 @@ module powerbi.visuals {
         private lastInteractiveSelectedColumnIndex: number;
 
         private interactivityService: IInteractivityService;
-        private animator: IAnimator;
+        private animator: IGenericAnimator;
 
         public static customizeQuery(options: CustomizeQueryOptions): void {
             var dataViewMapping = options.dataViewMappings[0];
@@ -242,7 +239,7 @@ module powerbi.visuals {
                         continue;
 
                     var categorical: DataViewCategorical = dataView.categorical;
-                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, seriesIndex);
+                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, seriesIndex);
 
                     dataPoints.push({
                         categoryValue: isDateTime && categoryValue ? categoryValue.getTime() : categoryValue,
@@ -688,16 +685,19 @@ module powerbi.visuals {
                 .remove();            
 
             // Render extra lines that are wider and invisible used for better interactivity
-            var interactivityLines = this.mainGraphicsContext.selectAll(".interactivity-line").data(data.series, (d: LineChartSeries) => d.identity.getKey());
-            interactivityLines.enter()
-                .append(LineChart.PathElementName)
-                .classed('interactivity-line', true);
-            interactivityLines
-                .attr('d', (d: LineChartSeries) => {
-                    return line(d.data);
-                });
-            interactivityLines.exit()
-                .remove();
+            var interactivityLines;
+            if (this.interactivityService) {
+                interactivityLines = this.mainGraphicsContext.selectAll(".interactivity-line").data(data.series, (d: LineChartSeries) => d.identity.getKey());
+                interactivityLines.enter()
+                    .append(LineChart.PathElementName)
+                    .classed('interactivity-line', true);
+                interactivityLines
+                    .attr('d', (d: LineChartSeries) => {
+                        return line(d.data);
+                    });
+                interactivityLines.exit()
+                    .remove();
+            }
 
             // Prepare grouping for dots
             var dotGroups = this.mainGraphicsContext.selectAll(LineChart.CategoryClassSelector)
@@ -755,18 +755,18 @@ module powerbi.visuals {
                 dataLabelUtils.cleanDataLabels(this.mainGraphicsSVG);
             }
 
-            // Add tooltips
-            var seriesTooltipApplier = (tooltipEvent: TooltipEvent) => {
-                var pointX: number = tooltipEvent.elementCoordinates[0];
-                return LineChart.getTooltipInfoByPointX(this, tooltipEvent.data, pointX);
-            };
-            TooltipManager.addTooltip(interactivityLines, seriesTooltipApplier, true);
-            if (renderAreas)
-                TooltipManager.addTooltip(areas, seriesTooltipApplier, true);
-            TooltipManager.addTooltip(dots, (tooltipEvent: TooltipEvent) => tooltipEvent.data.tooltipInfo, true);
-
-            // Register interactivity
             if (this.interactivityService) {
+                // Add tooltips
+                var seriesTooltipApplier = (tooltipEvent: TooltipEvent) => {
+                    var pointX: number = tooltipEvent.elementCoordinates[0];
+                    return LineChart.getTooltipInfoByPointX(this, tooltipEvent.data, pointX);
+                };
+                TooltipManager.addTooltip(interactivityLines, seriesTooltipApplier, true);
+                if (renderAreas)
+                    TooltipManager.addTooltip(areas, seriesTooltipApplier, true);
+                TooltipManager.addTooltip(dots, (tooltipEvent: TooltipEvent) => tooltipEvent.data.tooltipInfo, true);
+
+                // Register interactivity
                 var dataPointsToBind: SelectableDataPoint[] = data.series.slice();
                 for (var i = 0, ilen = data.series.length; i < ilen; i++) {
                     dataPointsToBind = dataPointsToBind.concat(data.series[i].data);

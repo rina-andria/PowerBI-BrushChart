@@ -32,6 +32,18 @@ module powerbi.visuals {
 
     export interface MapConstructionOptions {
         filledMap?: boolean;
+        geocoder?: IGeocoder;
+        mapControlFactory?: IMapControlFactory;
+    }
+
+    export interface IGeocoder {
+        geocode: (query: string, category?: string) => any;
+        geocodeBoundary: (latitude: number, longitude: number, category: string, levelOfDetail?: number, maxGeoData?: number) => any;
+    }
+
+    export interface IMapControlFactory {
+        createMapControl(element: HTMLElement, options?: Microsoft.Maps.MapOptions): Microsoft.Maps.Map;
+        ensureMap(action: () => void): void;
     }
 
     /** Note: public for UnitTest */
@@ -243,9 +255,9 @@ module powerbi.visuals {
             var bubbleData: MapBubble[] = [];
             var sliceData: MapSlice[][] = [];
             var formatStringProp = mapProps.general.formatString;
+            var categorical: DataViewCategorical = dataView ? dataView.categorical : null;
 
             for (var i = 0, len = this.values.length; i < len; i++) {
-                var categorical: DataViewCategorical = dataView ? dataView.categorical : null;
                 var canvasDataPoint = this.values[i];
                 var categoryValue = canvasDataPoint.categoryValue;
                 var location = canvasDataPoint.cachedLocation;
@@ -259,13 +271,18 @@ module powerbi.visuals {
                     this.setMaxDataPointRadius(radius);
                     var sizeValuesForGroup = canvasDataPoint.seriesInfo.sizeValuesForGroup;
 
+                    var categoryColumn = categorical.categories[0];
+                    let dataMap: SelectorForColumn = {};
+                    
                     var sliceCount = sizeValuesForGroup ? sizeValuesForGroup.length : 1;
                     if (sliceCount === 1) {
                         var sizeValueForGroup: MapPieSlice = sizeValuesForGroup[0];
                         var value = sizeValueForGroup.value;
                         var index = sizeValueForGroup.index;
-                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, index);
+                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, index, i);
                         var mapBubble = sizeValuesForGroup[0];
+                        dataMap[categoryColumn.source.queryName] = canvasDataPoint.categoryIdentity;
+                        var identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, null);
 
                         bubbleData.push({
                             x: x,
@@ -276,19 +293,24 @@ module powerbi.visuals {
                             stroke: mapBubble.stroke,
                             strokeWidth: strokeWidth,
                             tooltipInfo: tooltipInfo,
-                            identity: SelectionId.createWithId(canvasDataPoint.categoryIdentity),
+                            identity: identity,
                             selected: false,
                             labelFill: labelSettings.labelColor,
                         });
                     }
                     else {
                         var slices = [];
+                        var measureColumn = categorical.values[0];
+                        dataMap[categoryColumn.source.queryName] = canvasDataPoint.categoryIdentity;                        
+
                         for (var j = 0; j < sliceCount; ++j) {
                             var sizeValueForGroup: MapPieSlice = sizeValuesForGroup[j];
                             var value = sizeValueForGroup.value;
                             var index = sizeValueForGroup.index;
-                            var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, index);
+                            var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, index);
                             var mapSlice = sizeValuesForGroup[j];
+                            dataMap[measureColumn.source.queryName] = mapSlice.seriesId;
+                            var identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, null);
 
                             slices.push({
                                 x: x,
@@ -300,7 +322,7 @@ module powerbi.visuals {
                                 strokeWidth: strokeWidth,
                                 value: value,
                                 tooltipInfo: tooltipInfo,
-                                identity: SelectionId.createWithIds(canvasDataPoint.categoryIdentity, mapSlice.seriesId),
+                                identity: identity,
                                 selected: false,
                                 labelFill: labelSettings.labelColor,
                             });
@@ -566,8 +588,11 @@ module powerbi.visuals {
                     var sizeValueForGroup: MapPieSlice = sizeValuesForGroup[0];
                     var value = sizeValueForGroup.value;
                     var index = sizeValueForGroup.index;
-                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical.categories, categoryValue, categorical.values, value, null, index);
-                    var identity = SelectionId.createWithId(canvasDataPoint.categoryIdentity);
+                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, index);
+                    var categoryColumn = categorical.categories[0];
+                    let dataMap: SelectorForColumn = {};
+                    dataMap[categoryColumn.source.queryName] = canvasDataPoint.categoryIdentity;
+                    var identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, null);
                     var idKey = identity.getKey();
                     for (var pathIndex = 0, pathCount = paths.length; pathIndex < pathCount; pathIndex++) {
                         var path = paths[pathIndex];
@@ -704,6 +729,8 @@ module powerbi.visuals {
         private host: IVisualHostServices;
         private receivedExternalViewChange = false;
         private executingInternalViewChange = false;
+        private geocoder: IGeocoder;
+        private mapControlFactory: IMapControlFactory;
 
         constructor(options: MapConstructionOptions) {
             if (options.filledMap) {
@@ -714,6 +741,8 @@ module powerbi.visuals {
                 this.dataPointRenderer = new MapBubbleDataPointRenderer();
                 this.enableGeoShaping = false;
             }
+            this.geocoder = options.geocoder ? options.geocoder : Map.createDefaultGeocoder();
+            this.mapControlFactory = options.mapControlFactory ? options.mapControlFactory : this.getDefaultMapControlFactory();
         }
 
         public init(options: VisualInitOptions) {
@@ -733,7 +762,7 @@ module powerbi.visuals {
 
             this.resetBounds();
 
-            jsCommon.ensureMap(() => {
+            this.mapControlFactory.ensureMap(() => {
                 Microsoft.Maps.loadModule('Microsoft.Maps.Overlays.Style', {
                     callback: () => {
                         this.initialize(element[0]);
@@ -761,7 +790,7 @@ module powerbi.visuals {
         }
 
         private enqueueGeoCode(dataPoint: MapDataPoint): void {
-            visuals.BI.Services.GeocodingManager.geocode(dataPoint.geocodingQuery, this.geocodingCategory).then((location) => {
+            this.geocoder.geocode(dataPoint.geocodingQuery, this.geocodingCategory).then((location) => {
                 if (location) {
                     dataPoint.cachedLocation = location;
                     this.addDataPoint(dataPoint);
@@ -770,7 +799,7 @@ module powerbi.visuals {
         }
 
         private enqueueGeoCodeAndGeoShape(dataPoint: MapDataPoint, params: FilledMapParams): void {
-            visuals.BI.Services.GeocodingManager.geocode(dataPoint.geocodingQuery, this.geocodingCategory).then((location) => {
+            this.geocoder.geocode(dataPoint.geocodingQuery, this.geocodingCategory).then((location) => {
                 if (location) {
                     dataPoint.cachedLocation = location;
                     this.enqueueGeoShape(dataPoint, params);
@@ -780,7 +809,7 @@ module powerbi.visuals {
 
         private enqueueGeoShape(dataPoint: MapDataPoint, params: FilledMapParams): void {
             debug.assertValue(dataPoint.cachedLocation, "cachedLocation");
-            visuals.BI.Services.GeocodingManager.geocodeBoundary(dataPoint.cachedLocation.latitude, dataPoint.cachedLocation.longitude, this.geocodingCategory, params.level, params.maxPolygons)
+            this.geocoder.geocodeBoundary(dataPoint.cachedLocation.latitude, dataPoint.cachedLocation.longitude, this.geocodingCategory, params.level, params.maxPolygons)
                 .then((result: visuals.BI.Services.GeocodingManager.IGeocodeCoordinate) => {
                     var paths;
                     if (result.locations.length === 0 || result.locations[0].geographic) {
@@ -1328,11 +1357,11 @@ module powerbi.visuals {
                     this.geocodingCategory = Map.getGeocodingCategory(categorical, this.geoTaggingAnalyzerService);
                     var scaleDiff = this.valueScale ? this.valueScale.max - this.valueScale.min : 0;
 
-                    if (enableGeoShaping && !this.geocodingCategory) {
+                    if (enableGeoShaping && (!this.geocodingCategory || !this.geoTaggingAnalyzerService.isGeoshapable(this.geocodingCategory))) {
                         warnings.push(new FilledMapWithoutValidGeotagCategoryWarning());
                     }
 
-                    jsCommon.ensureMap(() => {
+                    this.mapControlFactory.ensureMap(() => {
                         var groupValues = categorical.categories[0].values;
                         var categoryIdentities = dataView.categorical.categories[0].identity;
                         this.dataPointRenderer.beginDataPointUpdate(this.geocodingCategory, groupValues.length);
@@ -1437,7 +1466,7 @@ module powerbi.visuals {
                 disableKeyboardInput: true, // Workaround for the BingMaps control moving focus from QnA
             };
             var divQuery = InJs.DomFactory.div().addClass(Map.MapContainer.cssClass).appendTo(container);
-            this.mapControl = new Microsoft.Maps.Map(divQuery[0], mapOptions);
+            this.mapControl = this.mapControlFactory.createMapControl(divQuery[0], mapOptions);
             Microsoft.Maps.Events.addHandler(this.mapControl, "viewchange", () => { this.onViewChanged(); });
             this.dataPointRenderer.init(this.mapControl, divQuery);
 
@@ -1526,6 +1555,20 @@ module powerbi.visuals {
 
         private clearDataPoints(): void {
             this.dataPointRenderer.clearDataPoints();
+        }
+
+        private static createDefaultGeocoder(): IGeocoder {
+            return {
+                geocode: powerbi.visuals.BI.Services.GeocodingManager.geocode,
+                geocodeBoundary: powerbi.visuals.BI.Services.GeocodingManager.geocodeBoundary,
+            };
+        }
+
+        private getDefaultMapControlFactory(): IMapControlFactory {
+            return {
+                createMapControl: (element: HTMLElement, options: Microsoft.Maps.MapOptions) => new Microsoft.Maps.Map(element, options),
+                ensureMap: jsCommon.ensureMap,
+            };
         }
     }
 }

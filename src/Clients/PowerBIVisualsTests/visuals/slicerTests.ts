@@ -29,9 +29,10 @@
 module powerbitests {
     import Slicer = powerbi.visuals.Slicer;
     import DataViewTransform = powerbi.data.DataViewTransform;
-    import EventType = powerbitests.helpers.ClickEventType;
     import ValueType = powerbi.ValueType;
     import SelectionId = powerbi.visuals.SelectionId;
+
+    var SelectAllTextKey = "Select All";
 
     powerbitests.mocks.setLocale();
 
@@ -117,7 +118,7 @@ module powerbitests {
                 viewport: {
                     height: element.height(),
                     width: element.width()
-        }
+                }
             });
 
         });
@@ -132,8 +133,8 @@ module powerbitests {
                 expect($(".slicerContainer .slicerHeader .clear")).toBeInDOM();
                 expect($(".slicerContainer .slicerBody")).toBeInDOM();
                 expect($(".slicerContainer .slicerBody .row .slicerText")).toBeInDOM();
-                expect($(".slicerText").length).toBe(5);
-                expect($(".slicerText").first().text()).toBe("Apple");
+                expect($(".slicerText").length).toBe(6);
+                expect($(".slicerText").first().text()).toBe(SelectAllTextKey);
                 expect($(".slicerText").last().text()).toBe("Banana");
 
                 expect(powerbi.visuals.valueFormatter.format).toHaveBeenCalledWith("Apple", undefined);
@@ -170,8 +171,8 @@ module powerbitests {
                     expect($(".slicerContainer .slicerBody")).toBeInDOM();
                     expect($(".slicerContainer .slicerBody .row .slicerText")).toBeInDOM();
 
-                    expect($(".slicerText").length).toBe(3);
-                    expect($(".slicerText").first().text()).toBe("Strawberry");
+                    expect($(".slicerText").length).toBe(4);
+                    expect($(".slicerText").first().text()).toBe(SelectAllTextKey);
                     expect($(".slicerText").last().text()).toBe("Blackberry");
                     done();
                 }, DefaultWaitForRender);
@@ -179,11 +180,9 @@ module powerbitests {
         });
 
         it("Validate converter", (done) => {
-            v.onDataChanged(interactiveDataViewOptions);
-
             setTimeout(() => {
-                var slicerData = Slicer.converter(dataView);
-                expect(slicerData.slicerDataPoints.length).toBe(5);
+                var slicerData = Slicer.converter(dataView, SelectAllTextKey, null);
+                expect(slicerData.slicerDataPoints.length).toBe(6);
                 var dataViewIdentities = dataView.categorical.categories[0].identity;
                 var selectionIds = [
                     SelectionId.createWithId(dataViewIdentities[0]),
@@ -193,6 +192,14 @@ module powerbitests {
                     SelectionId.createWithId(dataViewIdentities[4])
                 ];
                 var dataPoints = [
+                    {
+                        value: SelectAllTextKey,
+                        mouseOver: false,
+                        mouseOut: true,
+                        identity: SelectionId.createWithMeasure(SelectAllTextKey),
+                        selected: false,
+                        isSelectAllDataPoint: true
+                    },
                     {
                         value: "Apple",
                         mouseOver: false,
@@ -234,7 +241,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('Null dataView test', (done) => {
+        it("Null dataView test", (done) => {
             v.onDataChanged({ dataViews: [] });
             setTimeout(() => {
                 expect($(".slicerText").length).toBe(0);
@@ -278,7 +285,7 @@ module powerbitests {
             var originalFunc = powerbi.visuals.createInteractivityService;
             powerbi.visuals.createInteractivityService = (host) => {
                 var result = originalFunc(host);
-                clearSelectionSpy = spyOn(result, 'clearSelection');
+                clearSelectionSpy = spyOn(result, "clearSelection");
                 clearSelectionSpy.and.callThrough();
                 powerbi.visuals.createInteractivityService = originalFunc;
                 return result;
@@ -316,12 +323,12 @@ module powerbitests {
 
         it("slicer item select", (done) => {
             setTimeout(() => {
-                (<any>slicers.first()).d3Click(0, 0);
+                (<any>slicers.eq(1)).d3Click(0, 0);
 
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
-                expect(d3.select(slicerCheckboxInput[0]).property("checked")).toBe(true);
-                expect(slicers[1].style.color).toBe("rgb(102, 102, 102)");
-                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(false);
+                expect(slicers[1].style.color).toBe("rgb(33, 33, 33)");
+                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(true);
+                expect(slicers[2].style.color).toBe("rgb(102, 102, 102)");
+                expect(d3.select(slicerCheckboxInput[2]).property("checked")).toBe(false);
 
                 expect(hostServices.onSelect).toHaveBeenCalledWith(
                     {
@@ -340,107 +347,53 @@ module powerbitests {
 
         it("slicer item multi-select checkboxes", (done) => {
             setTimeout(() => {
-                (<any>slicers.first()).d3Click(0, 0);
+                (<any>slicers.eq(1)).d3Click(0, 0);
 
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
-                expect(slicers[1].style.color).toBe("rgb(102, 102, 102)");
-                expect(d3.select(slicerCheckboxInput[0]).property("checked")).toBe(true);
+                expect(slicers[1].style.color).toBe("rgb(33, 33, 33)");
+                expect(slicers[2].style.color).toBe("rgb(102, 102, 102)");
+                expect(d3.select(slicerCheckboxInput[0]).property("checked")).toBe(false);
+                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(true);
+                expect(d3.select(slicerCheckboxInput[2]).property("checked")).toBe(false);
 
-                expect(hostServices.onSelect).toHaveBeenCalledWith(
-                    {
-                        data:
-                        [
-                            {
-                                data: [
-                                    interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]
-                                ]
-                            }
-                        ]
-                    });
-
-                               
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
-                expect(slicers[1].style.color).toBe("rgb(102, 102, 102)");
-
-                expect(d3.select(slicerCheckboxInput[0]).property("checked")).toBe(true);
-                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(false);
-                
                 (<any>slicers.last()).d3Click(0, 0);
-                expect(slicers[4].style.color).toBe("rgb(33, 33, 33)");
-                expect(d3.select(slicerCheckboxInput[4]).property("checked")).toBe(true);
-
-                expect(hostServices.onSelect).toHaveBeenCalledWith(
-                    {
-                        data:
-                        [
-                            {
-                                data: [
-                                    interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]
-                                ]
-                            }
-                        ]
-                    });
-                
-                expect(hostServices.onSelect).toHaveBeenCalledWith(
-                    {
-                        data:
-                        [
-                            {
-                                data: [
-                                    interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[4]
-                                ]
-                            }
-                        ]
-                    });
-
-                done();
-            }, DefaultWaitForRender);
-        });
-
-        it("slicer item multi-select with control key", (done) => {
-            setTimeout(() => {
-                (<any>slicers.first()).d3Click(0, 0);
-
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
-                expect(slicers[1].style.color).toBe("rgb(102, 102, 102)");
-
-                expect(d3.select(slicerCheckboxInput[0]).property("checked")).toBe(true);
-                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(false);
-
-                (<any>slicers.last()).d3Click(0, 0, EventType.CtrlKey);
-                expect(slicers[4].style.color).toBe("rgb(33, 33, 33)");
-                
-                expect(d3.select(slicerCheckboxInput[4]).property("checked")).toBe(true);
-
-                expect(hostServices.onSelect).toHaveBeenCalledWith(
-                    {
-                        data:
-                            [
-                                {
-                                    data: [
-                                    interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]
-                                    ]
-                                }
-                            ]
-                    });
-
+                expect(slicers[5].style.color).toBe("rgb(33, 33, 33)");
+                expect(d3.select(slicerCheckboxInput[5]).property("checked")).toBe(true);
                 done();
             }, DefaultWaitForRender);
         });
 
         it("slicer item repeated selection", (done) => {
             setTimeout(() => {
-                (<any>slicers.first()).d3Click(0, 0);
+                (<any>slicers.eq(1)).d3Click(0, 0);
 
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
+                expect(slicers[1].style.color).toBe("rgb(33, 33, 33)");
 
                 (<any>slicers.last()).d3Click(0, 0);
                 (<any>slicers.last()).d3Click(0, 0);
 
-                expect(slicers[4].style.color).toBe("rgb(102, 102, 102)");
+                expect(slicers[5].style.color).toBe("rgb(102, 102, 102)");
 
-                expect(d3.select(slicerCheckboxInput[0]).property("checked")).toBe(true);
-                expect(d3.select(slicerCheckboxInput[4]).property("checked")).toBe(false);
+                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(true);
+                expect(d3.select(slicerCheckboxInput[5]).property("checked")).toBe(false);
+
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it("slicer selectAll", (done) => {
+            setTimeout(() => {
+                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(false);
+                expect(d3.select(slicerCheckboxInput[2]).property("checked")).toBe(false);
+
+                (<any>slicers.eq(0)).d3Click(0, 0);
+                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(true);
+                expect(d3.select(slicerCheckboxInput[2]).property("checked")).toBe(true);
+                expect(d3.select(slicerCheckboxInput[5]).property("checked")).toBe(true);
+
+                (<any>slicers.eq(1)).d3Click(0, 0);
+                expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(false);
+                expect(d3.select(slicerCheckboxInput[2]).property("checked")).toBe(true);
+                expect(d3.select(slicerCheckboxInput[5]).property("checked")).toBe(true);
 
                 done();
             }, DefaultWaitForRender);
@@ -451,13 +404,13 @@ module powerbitests {
                 var clearBtn = $(".clear");
 
                 // Slicer click
-                (<any>slicers.first()).d3Click(0, 0);               
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
-                expect(slicers[1].style.color).toBe("rgb(102, 102, 102)");
+                (<any>slicers.eq(1)).d3Click(0, 0);
+                expect(slicers[1].style.color).toBe("rgb(33, 33, 33)");
+                expect(slicers[2].style.color).toBe("rgb(102, 102, 102)");
 
                 (<any>slicers.last()).d3Click(0, 0);
-                expect(slicers[4].style.color).toBe("rgb(33, 33, 33)");
-
+                expect(slicers[5].style.color).toBe("rgb(33, 33, 33)");
+                
                 /* Slicer clear */
                 (<any>clearBtn.first()).d3Click(0, 0);
 
@@ -466,9 +419,10 @@ module powerbitests {
                 expect(slicers[2].style.color).toBe("rgb(102, 102, 102)");
                 expect(slicers[3].style.color).toBe("rgb(102, 102, 102)");
                 expect(slicers[4].style.color).toBe("rgb(102, 102, 102)");
-                
+                expect(slicers[5].style.color).toBe("rgb(102, 102, 102)");
+
                 expect(hostServices.onSelect).toHaveBeenCalledWith({ data: [] });
-                
+
                 done();
             }, DefaultWaitForRender);
         });
@@ -501,18 +455,18 @@ module powerbitests {
                 slicers[0].dispatchEvent(mouseOutEvent);
                 expect(slicers[0].style.color).toBe("rgb(102, 102, 102)");
 
-                (<any>slicers.first()).d3Click(0, 0);
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
+                (<any>slicers.eq(1)).d3Click(0, 0);
+                expect(slicers[1].style.color).toBe("rgb(33, 33, 33)");
 
                 var mouseOverEvent1 = document.createEvent("Event");
                 mouseOverEvent1.initEvent("mouseover", true, true);
-                slicers[0].dispatchEvent(mouseOverEvent1);
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
+                slicers[1].dispatchEvent(mouseOverEvent1);
+                expect(slicers[1].style.color).toBe("rgb(33, 33, 33)");
 
                 var mouseOutEvent1 = document.createEvent("Event");
                 mouseOutEvent1.initEvent("mouseout", true, true);
-                slicers[0].dispatchEvent(mouseOutEvent1);
-                expect(slicers[0].style.color).toBe("rgb(33, 33, 33)");
+                slicers[1].dispatchEvent(mouseOutEvent1);
+                expect(slicers[1].style.color).toBe("rgb(33, 33, 33)");
 
                 done();
             }, DefaultWaitForRender);
@@ -560,7 +514,7 @@ module powerbitests {
             expect(loadMoreSpy.calls.all().length).toBe(1);
         });
 
-        it('Validate scroll position on onDataChanged', (done) => {           
+        it("Validate scroll position on onDataChanged", (done) => {
             var interactiveDataViewOptionsWithLoadMore: powerbi.VisualDataChangedOptions = {
                 dataViews: [{ metadata: dataViewMetadata, categorical: dataViewCategorical }],
                 operationKind: powerbi.VisualDataChangeOperationKind.Append
@@ -569,13 +523,13 @@ module powerbitests {
             dataViewCategorical = {
                 categories: [{
                     source: dataViewMetadata.columns[0],
-                    values: ['PineApple', 'Strawberry', 'Mango', 'Grapes', 'Banana'],
+                    values: ["PineApple", "Strawberry", "Mango", "Grapes", "Banana"],
                     identity: [
-                        mocks.dataViewScopeIdentity('PineApple'),
-                        mocks.dataViewScopeIdentity('Strawberry'),
-                        mocks.dataViewScopeIdentity('Mango'),
-                        mocks.dataViewScopeIdentity('Grapes'),
-                        mocks.dataViewScopeIdentity('Banana'),
+                        mocks.dataViewScopeIdentity("PineApple"),
+                        mocks.dataViewScopeIdentity("Strawberry"),
+                        mocks.dataViewScopeIdentity("Mango"),
+                        mocks.dataViewScopeIdentity("Grapes"),
+                        mocks.dataViewScopeIdentity("Banana"),
                     ]
                 }],
                 values: DataViewTransform.createValueColumns([{
@@ -588,8 +542,8 @@ module powerbitests {
                 operationKind: powerbi.VisualDataChangeOperationKind.Create
             };
 
-            var listView = <powerbi.visuals.IListView>v['listView'];
-            var renderSpy = spyOn(listView, 'render');
+            var listView = <powerbi.visuals.IListView>v["listView"];
+            var renderSpy = spyOn(listView, "render");
 
             v.onDataChanged(interactiveDataViewOptions);
 
@@ -597,7 +551,7 @@ module powerbitests {
                 // Loading the same categories should NOT reset the scrollbar
                 expect(renderSpy).toHaveBeenCalledWith(/*sizeChanged*/ true, /*resetScrollbarPosition*/ false);
 
-                 // LoadMore should NOT reset the scrollbar
+                // LoadMore should NOT reset the scrollbar
                 v.onDataChanged(interactiveDataViewOptionsWithLoadMore);
                 expect(renderSpy).toHaveBeenCalledWith(/*sizeChanged*/ true, /*resetScrollbarPosition*/ false);
 

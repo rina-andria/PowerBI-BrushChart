@@ -38,6 +38,7 @@ module powerbi.visuals.sampleData {
             new sampleDataViews.RichtextData(),
             new sampleDataViews.SalesByCountryData(),
             new sampleDataViews.SalesByDayOfWeekData(),
+            new sampleDataViews.SimpleFunnelData(),
             new sampleDataViews.SimpleGaugeData(),
             new sampleDataViews.SimpleMatrixData(),
             new sampleDataViews.SimpleTableData(),
@@ -49,7 +50,7 @@ module powerbi.visuals.sampleData {
          */
         public static getSamplesByPluginName(pluginName: string) {
 
-            var samples = this.data.filter((item) => item.hasPlugin(pluginName));
+            let samples = this.data.filter((item) => item.hasPlugin(pluginName));
 
             if (samples.length > 0) {
                 return samples;

@@ -36,6 +36,7 @@ module powerbitests {
     import LegendPosition = powerbi.visuals.LegendPosition;
     import ValueType = powerbi.ValueType;
     import PrimitiveType = powerbi.PrimitiveType;
+    import buildSelector = powerbitests.helpers.buildSelectorForColumn;
 
     var donutColors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
 
@@ -138,12 +139,12 @@ module powerbitests {
                         displayName: 'col2',
                         isMeasure: true,
                         type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double),
-                        queryName: 'col1',
+                        queryName: 'col2',
                     }],
             };
 
             beforeEach(() => {
-                element = powerbitests.helpers.testDom('500', '500');
+                element = powerbitests.helpers.testDom('500', '520');
                 v = powerbi.visuals.visualPluginFactory.createMinerva({}).getPlugin('donutChart').create();
                 v.init({
                     element: element,
@@ -338,9 +339,9 @@ module powerbitests {
 
                 setTimeout(() => {
                     var labels = element.find('.donutChart .labels').find('text');
-                    expect($(labels[0]).text()).toBe("a 100");
-                    expect($(labels[1]).text()).toBe("b 200");
-                    expect($(labels[2]).text()).toBe("c 700");
+                    expect($(labels[0]).text()).toBe("a (100)");
+                    expect($(labels[1]).text()).toBe("b (200)");
+                    expect($(labels[2]).text()).toBe("c (700)");
                     done();
                 }, DefaultWaitForRender);
             });
@@ -372,9 +373,9 @@ module powerbitests {
 
                 setTimeout(() => {
                     var labels = element.find('.donutChart .labels').find('text');
-                    expect($(labels[0]).text()).toBe("a 12.35K");
-                    expect($(labels[1]).text()).toBe("b 15.53K");
-                    expect($(labels[2]).text()).toBe("c 0.78K");
+                    expect($(labels[0]).text()).toBe("a (12.35K)");
+                    expect($(labels[1]).text()).toBe("b (15.53K)");
+                    expect($(labels[2]).text()).toBe("c (0.78K)");
                     done();
                 }, DefaultWaitForRender);
             });
@@ -406,9 +407,9 @@ module powerbitests {
 
                 setTimeout(() => {
                     var labels = element.find('.donutChart .labels').find('text');
-                    expect($(labels[0]).text()).toBe("a 12K");
-                    expect($(labels[1]).text()).toBe("b 16K");
-                    expect($(labels[2]).text()).toBe("c 1K");
+                    expect($(labels[0]).text()).toBe("a (12K)");
+                    expect($(labels[1]).text()).toBe("b (16K)");
+                    expect($(labels[2]).text()).toBe("c (1K)");
                     done();
                 }, DefaultWaitForRender);
             });
@@ -440,9 +441,9 @@ module powerbitests {
 
                 setTimeout(() => {
                     var labels = element.find('.donutChart .labels').find('text');
-                    expect($(labels[0]).text()).toBe("a 0.012M");
-                    expect($(labels[1]).text()).toBe("b 0.016M");
-                    expect($(labels[2]).text()).toBe("c 0.001M");
+                    expect($(labels[0]).text()).toBe("a (0.012M)");
+                    expect($(labels[1]).text()).toBe("b (0.016M)");
+                    expect($(labels[2]).text()).toBe("c (0.001M)");
                     done();
                 }, DefaultWaitForRender);
             });
@@ -877,7 +878,7 @@ module powerbitests {
                 };
                 
                 var actualData = DonutChart.converter(dataView, donutColors);
-                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithId(categoryId));
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithIdAndMeasureAndCategory(categoryId, null, dataViewMetadata.columns[0].queryName));
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('a').value,
@@ -936,7 +937,7 @@ module powerbitests {
                 };
 
                 var actualData = DonutChart.converter(dataView, donutColors);
-                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithId(categoryId));
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithIdAndMeasureAndCategory(categoryId, null, dataViewMetadata.columns[0].queryName));
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('a').value,
@@ -1005,9 +1006,11 @@ module powerbitests {
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('b').value,
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('c').value,
                 ];
+                var v = dataView.categorical.values;
+                var categoryQueryName = dataView.categorical.categories[0].source.queryName;
                 var expectSlices: DonutDataPoint[] = [
                     {
-                        identity: SelectionId.createWithIds(categoryIdentities[0], dataView.categorical.values[0].identity),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(v[0].source.queryName, v[0].identity, buildSelector(categoryQueryName, categoryIdentities[0])), null),
                         measure: -200,
                         value: 0.2,
                         index: 0,
@@ -1015,7 +1018,7 @@ module powerbitests {
                         tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "-200" }],
                         color: sliceColors[0],
                     }, {
-                        identity: SelectionId.createWithIds(categoryIdentities[0], dataView.categorical.values[1].identity),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(v[1].source.queryName, v[1].identity, buildSelector(categoryQueryName, categoryIdentities[0])), null),
                         measure: -300,
                         value: 0.3,
                         index: 0,
@@ -1023,7 +1026,7 @@ module powerbitests {
                         tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col3", value: "-300" }],
                         color: sliceColors[0],
                     }, {
-                        identity: SelectionId.createWithIds(categoryIdentities[1], dataView.categorical.values[0].identity),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(v[0].source.queryName, v[0].identity, buildSelector(categoryQueryName, categoryIdentities[1])), null),
                         measure: 0,
                         value: 0.0,
                         index: 1,
@@ -1031,7 +1034,7 @@ module powerbitests {
                         tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "0" }],
                         color: sliceColors[1],
                     }, {
-                        identity: SelectionId.createWithIds(categoryIdentities[1], dataView.categorical.values[1].identity),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(v[1].source.queryName, v[1].identity, buildSelector(categoryQueryName, categoryIdentities[1])), null),
                         measure: 300,
                         value: 0.3,
                         index: 1,
@@ -1039,7 +1042,7 @@ module powerbitests {
                         tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col3", value: "300" }],
                         color: sliceColors[1],
                     }, {
-                        identity: SelectionId.createWithIds(categoryIdentities[2], dataView.categorical.values[0].identity),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(v[0].source.queryName, v[0].identity, buildSelector(categoryQueryName, categoryIdentities[2])), null),
                         measure: 150,
                         value: 0.15,
                         index: 2,
@@ -1047,7 +1050,7 @@ module powerbitests {
                         tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "150" }],
                         color: sliceColors[2],
                     }, {
-                        identity: SelectionId.createWithIds(categoryIdentities[2], dataView.categorical.values[1].identity),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(v[1].source.queryName, v[1].identity, buildSelector(categoryQueryName, categoryIdentities[2])), null),
                         measure: -50,
                         value: 0.05,
                         index: 2,
@@ -1091,7 +1094,7 @@ module powerbitests {
                 };
 
                 var actualData = DonutChart.converter(dataView, donutColors);
-                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithId(categoryId));
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithIdAndMeasureAndCategory(categoryId, null, dataViewMetadata.columns[0].queryName));
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('a').value,
@@ -1130,6 +1133,119 @@ module powerbitests {
                 expect(actualData.legendData.dataPoints[0].label).toBe('a');
             });
 
+            it('categorical, no slicing, default color', () => {
+                var dataView: powerbi.DataView = {
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadata.columns[0],
+                            values: ['a', 'b', 'c'],
+                            identity: categoryIdentities,
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadata.columns[1],
+                            values: [-300, null, 700]
+                        }])
+                    },
+                    metadata: null,
+                };
+
+                //red will be used as the default color
+                var redHexColor = "FF0000";
+
+                var actualData = DonutChart.converter(dataView, donutColors, redHexColor, null, true);
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithIdAndMeasureAndCategory(categoryId, null, dataViewMetadata.columns[0].queryName));
+                var expectSlices: DonutDataPoint[] = [
+                    {
+                        identity: selectionIds[0],
+                        measure: -300,
+                        value: 0.3,
+                        index: 0,
+                        label: 'a',
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "-300" }],
+                        color: redHexColor
+                    }, {
+                        identity: selectionIds[1],
+                        measure: 0,
+                        value: 0.0,
+                        index: 1,
+                        label: 'b',
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "0" }],
+                        color: redHexColor
+                    }, {
+                        identity: selectionIds[2],
+                        measure: 700,
+                        value: 0.7,
+                        index: 2,
+                        label: 'c',
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "700" }],
+                        color: redHexColor
+                    }].map(buildDataPoint);
+                expect(actualData.dataPoints.map((value) => value.data)).toEqual(expectSlices);
+                // Legend
+                expect(actualData.legendData.title).toBe('col1');
+                expect(actualData.legendData.dataPoints[0].label).toBe('a');
+            });
+
+            it('categorical, no slicing, formatted color and default color', () => {
+
+                var hexGreen = "#00FF00";
+                //red will be used as the default color
+                var hexDefaultColorRed = "FF0000";
+
+                var dataView: powerbi.DataView = {
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadata.columns[0],
+                            values: ['a', 'b', 'c'],
+                            identity: categoryIdentities,
+                            objects: [
+                                undefined,
+                                { dataPoint: { fill: { solid: { color: hexGreen } } } },
+                                undefined
+                            ]
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadata.columns[1],
+                            values: [-300, null, 700]
+                        }])
+                    },
+                    metadata: null,
+                };
+
+                var actualData = DonutChart.converter(dataView, donutColors, hexDefaultColorRed);
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithIdAndMeasureAndCategory(categoryId, null, dataViewMetadata.columns[0].queryName));
+                var expectSlices: DonutDataPoint[] = [
+                    {
+                        identity: selectionIds[0],
+                        measure: -300,
+                        value: 0.3,
+                        index: 0,
+                        label: 'a',
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "-300" }],
+                        color: hexDefaultColorRed
+                    }, {
+                        identity: selectionIds[1],
+                        measure: 0,
+                        value: 0.0,
+                        index: 1,
+                        label: 'b',
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "0" }],
+                        color: hexGreen
+                    }, {
+                        identity: selectionIds[2],
+                        measure: 700,
+                        value: 0.7,
+                        index: 2,
+                        label: 'c',
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "700" }],
+                        color: hexDefaultColorRed
+                    }].map(buildDataPoint);
+                expect(actualData.dataPoints.map((value) => value.data)).toEqual(expectSlices);
+                // Legend
+                expect(actualData.legendData.title).toBe('col1');
+                expect(actualData.legendData.dataPoints[0].label).toBe('a');
+            });
+
             it('categorical multi-measure, with slicing', () => {
                 var dataView: powerbi.DataView = {
                     categorical: {
@@ -1160,9 +1276,11 @@ module powerbitests {
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('b').value,
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('c').value,
                 ];
+
+                var categoryQueryName = dataView.categorical.categories[0].source.queryName;
                 var expectSlices: DonutDataPoint[] = [
                         {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
+                            identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[0]), 'col2'),
                             measure: -200,
                             label: 'col2',
                             value: 0.2,
@@ -1170,7 +1288,7 @@ module powerbitests {
                             tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "-200" }],
                             color: sliceColors[0],
                         }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col3'),
+                            identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[0]), 'col3'),
                             measure: -300,
                             label: 'col3',
                             value: 0.3,
@@ -1178,7 +1296,7 @@ module powerbitests {
                             tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col3", value: "-300" }],
                             color: sliceColors[0],
                         }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
+                            identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[1]), 'col2'),
                             measure: 0,
                             label: 'col2',
                             value: 0,
@@ -1186,7 +1304,7 @@ module powerbitests {
                             tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "0" }],
                             color: sliceColors[1],
                         }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col3'),
+                            identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[1]), 'col3'),
                             measure: 300,
                             label: 'col3',
                             value: 0.3,
@@ -1194,7 +1312,7 @@ module powerbitests {
                             tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col3", value: "300" }],
                             color: sliceColors[1],
                         }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col2'),
+                            identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[2]), 'col2'),
                             label: 'col2',
                             measure: 150,
                             value: 0.15,
@@ -1202,7 +1320,7 @@ module powerbitests {
                             tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "150" }],
                             color: sliceColors[2],
                         }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col3'),
+                            identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[2]), 'col3'),
                             label: 'col3',
                             measure: -50,
                             value: 0.05,
@@ -1461,10 +1579,11 @@ module powerbitests {
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('b').value,
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('c').value,
                 ];
+                var categoryQueryName = dataView.categorical.categories[0].source.queryName;
                 var highlightDisplayName = powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName;
                 var expectSlices: DonutDataPoint[] = [
                         {
-                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[0]), 'col2'),
                         measure: -200,
                         label: 'col2',
                             highlightRatio: 0.5,
@@ -1473,7 +1592,7 @@ module powerbitests {
                         tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "-200" }, { displayName: highlightDisplayName, value: "-100" }],
                             color: sliceColors[0],
                         }, {
-                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col3'),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[0]), 'col3'),
                         measure: -300,
                         label: 'col3',
                         highlightRatio: 0.5,
@@ -1483,7 +1602,7 @@ module powerbitests {
                         color: sliceColors[0],
                         labelFormatString: undefined,
                     }, {
-                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[1]), 'col2'),
                         measure: 0,
                         label: 'col2',
                         highlightRatio: 1e-9,
@@ -1493,7 +1612,7 @@ module powerbitests {
                         color: sliceColors[1],
                         labelFormatString: undefined,
                     }, {
-                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col3'),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[1]), 'col3'),
                             measure: 300,
                         label: 'col3',
                         highlightRatio: 0.25,
@@ -1503,7 +1622,7 @@ module powerbitests {
                             color: sliceColors[1],
                         labelFormatString: undefined,
                     }, {
-                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col2'),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[2]), 'col2'),
                         label: 'col2',
                         highlightRatio: 0.1,
                         measure: 150,
@@ -1512,7 +1631,7 @@ module powerbitests {
                         tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "150" }, { displayName: highlightDisplayName, value: "15" }],
                         color: sliceColors[2],
                         }, {
-                        identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col3'),
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[2]), 'col3'),
                         label: 'col3',
                         highlightRatio: 1,
                         measure: -50,
@@ -1669,74 +1788,75 @@ module powerbitests {
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('b').value,
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('c').value,
                 ];
+                var categoryQueryName = dataView.categorical.categories[0].source.queryName;
                 var highlightName = powerbi.visuals.ToolTipComponent.localizationOptions.highlightedValueDisplayName;
                 var expectSlices: DonutDataPoint[] = [
-                        {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
-                            measure: -100,
-                            measureFormat: "\$#,0;(\$#,0);\$#,0",
-                            label: 'col2',
-                            value: 0.16,
-                            highlightRatio: 1.0,
-                            index: 0,
-                            tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($100)" }, { displayName: highlightName, value: "($100)" }],
-                            color: sliceColors[0],
-                            labelFormatString: undefined,
-                        }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col3'),
-                            measure: -150,
-                            measureFormat: undefined,
-                            label: 'col3',
-                            value: 0.24,
-                            highlightRatio: 1.0,
-                            index: 0,
-                            tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col3", value: "-150" }, { displayName: highlightName, value: "-150" }],
-                            color: sliceColors[0],
-                            labelFormatString: undefined,
-                        }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
-                            label: 'col2',
-                            measure: 0,
-                            measureFormat: "\$#,0;(\$#,0);\$#,0",
-                            value: 0.0,
-                            highlightRatio: 1.0,
-                            index: 1,
-                            tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$0" }],
-                            color: sliceColors[1],
-                            labelFormatString: undefined,
-                        }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col3'),
-                            label: 'col3',
-                            measure: 75,
-                            measureFormat: undefined,
-                            value: 0.12,
-                            highlightRatio: 1.0,
-                            index: 1,
-                            tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col3", value: "75" }, { displayName: highlightName, value: "75" }],
-                            color: sliceColors[1],
-                            labelFormatString: undefined,
-                        }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col2'),
-                            measure: 250,
-                            measureFormat: "\$#,0;(\$#,0);\$#,0",
-                            label: 'col2',
-                            value: 0.4,
-                            highlightRatio: 1.0,
-                            index: 2,
-                            tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$250" }, { displayName: highlightName, value: "$250" }],
-                            color: sliceColors[2],
-                            labelFormatString: undefined,
-                        }, {
-                            identity: SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col3'),
-                            measure: 50,
-                            measureFormat: undefined,
-                            label: 'col3',
-                            value: 0.08,
-                            highlightRatio: 1.0,
-                            index: 2,
-                            tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col3", value: "50" }, { displayName: highlightName, value: "50" }],
-                            color: sliceColors[2],
-                            labelFormatString: undefined,
+                    {
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[0]), 'col2'),
+                        measure: -100,
+                        measureFormat: "\$#,0;(\$#,0);\$#,0",
+                        label: 'col2',
+                        value: 0.16,
+                        highlightRatio: 1.0,
+                        index: 0,
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col2", value: "($100)" }, { displayName: highlightName, value: "($100)" }],
+                        color: sliceColors[0],
+                        labelFormatString: undefined,
+                    }, {
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[0]), 'col3'),
+                        measure: -150,
+                        measureFormat: undefined,
+                        label: 'col3',
+                        value: 0.24,
+                        highlightRatio: 1.0,
+                        index: 0,
+                        tooltipInfo: [{ displayName: "col1", value: "a" }, { displayName: "col3", value: "-150" }, { displayName: highlightName, value: "-150" }],
+                        color: sliceColors[0],
+                        labelFormatString: undefined,
+                    }, {
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[1]), 'col2'),
+                        label: 'col2',
+                        measure: 0,
+                        measureFormat: "\$#,0;(\$#,0);\$#,0",
+                        value: 0.0,
+                        highlightRatio: 1.0,
+                        index: 1,
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col2", value: "$0" }],
+                        color: sliceColors[1],
+                        labelFormatString: undefined,
+                    }, {
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[1]), 'col3'),
+                        label: 'col3',
+                        measure: 75,
+                        measureFormat: undefined,
+                        value: 0.12,
+                        highlightRatio: 1.0,
+                        index: 1,
+                        tooltipInfo: [{ displayName: "col1", value: "b" }, { displayName: "col3", value: "75" }, { displayName: highlightName, value: "75" }],
+                        color: sliceColors[1],
+                        labelFormatString: undefined,
+                    }, {
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[2]), 'col2'),
+                        measure: 250,
+                        measureFormat: "\$#,0;(\$#,0);\$#,0",
+                        label: 'col2',
+                        value: 0.4,
+                        highlightRatio: 1.0,
+                        index: 2,
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col2", value: "$250" }, { displayName: highlightName, value: "$250" }],
+                        color: sliceColors[2],
+                        labelFormatString: undefined,
+                    }, {
+                        identity: SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[2]), 'col3'),
+                        measure: 50,
+                        measureFormat: undefined,
+                        label: 'col3',
+                        value: 0.08,
+                        highlightRatio: 1.0,
+                        index: 2,
+                        tooltipInfo: [{ displayName: "col1", value: "c" }, { displayName: "col3", value: "50" }, { displayName: highlightName, value: "50" }],
+                        color: sliceColors[2],
+                        labelFormatString: undefined,
                     }].map(buildDataPoint);
                 expect(actualData.dataPoints.map((value) => value.data)).toEqual(expectSlices);
             });
@@ -1759,8 +1879,8 @@ module powerbitests {
                 };
 
                 var viewPort = { height: 10, width: 10 };
-                var actualData = DonutChart.converter(dataView, donutColors, viewPort, false);
-                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithId(categoryId));
+                var actualData = DonutChart.converter(dataView, donutColors, null, viewPort, false);
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithIdAndMeasureAndCategory(categoryId, null, dataViewMetadata.columns[0].queryName));
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('a').value,
@@ -1809,8 +1929,8 @@ module powerbitests {
                 };
 
                 var viewPort = { height: 10, width: 10 };
-                var actualData = DonutChart.converter(dataView, donutColors, viewPort, true);
-                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithId(categoryId));
+                var actualData = DonutChart.converter(dataView, donutColors, null, viewPort, true);
+                var selectionIds: SelectionId[] = categoryIdentities.map(categoryId => SelectionId.createWithIdAndMeasureAndCategory(categoryId, null, dataViewMetadata.columns[0].queryName));
                 var categoryColumnId = powerbi.data.SQExprShortSerializer.serializeArray(dataView.categorical.categories[0].identityFields);
                 var sliceColors = [
                     donutColors.getColorScaleByKey(categoryColumnId).getColor('a').value,
@@ -2018,7 +2138,7 @@ module powerbitests {
                 expect(slices.length).toBe(3);
                 slices.each((i, element) =>
                     expect(parseFloat($(element).css('fill-opacity'))).toBeCloseTo(dimmedOpacity, 0)
-                );
+                    );
 
                 var highlightSlices = $('.donutChart .slice-highlight');
                 expect(highlightSlices.length).toBe(3);
@@ -2107,7 +2227,7 @@ module powerbitests {
 
             setTimeout(() => {
                 expect($('.donutChart')).toBeInDOM();
-                    expect($('.donutChart .slice').length).toBe(6);
+                expect($('.donutChart .slice').length).toBe(6);
                 done();
             }, DefaultWaitForRender);
         });
@@ -2665,7 +2785,7 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('pie chart legend interactivity',() => {
+        it('pie chart legend interactivity', () => {
             expect($('.donutChart')).toBeInDOM();
 
             if (!interactiveChart) {
@@ -2751,35 +2871,46 @@ module powerbitests {
                             expect($('.legend').attr('orientation')).toBe(LegendPosition.Right.toString());
                         }
 
-                        //set title
-                        var testTitle = 'Test Title'; 
-                        dataView.metadata.objects = { legend: { show: true, position: 'Right', showTitle: true, titleText: testTitle } };
+                        dataView.metadata.objects = { legend: { show: true, position: 'TopCenter', showTitle: true } };
                         v.onDataChanged({
                             dataViews: [dataView]
                         });
                         setTimeout(() => {
-                            expect($('.donutChart')).toBeInDOM();
                             if (hasLegendObject) {
-                                expect($('.legend').attr('orientation')).toBe(LegendPosition.Right.toString());
-                                expect($('.legendTitle').text()).toBe(testTitle);
+                                expect($('#legendGroup').attr('transform')).toBeDefined();
                             }
-                            //hide legend
-                            dataView.metadata.objects = { legend: { show: false, position: 'Right' } };
+
+                            //set title
+                            var testTitle = 'Test Title';
+                            dataView.metadata.objects = { legend: { show: true, position: 'Right', showTitle: true, titleText: testTitle } };
                             v.onDataChanged({
                                 dataViews: [dataView]
                             });
                             setTimeout(() => {
                                 expect($('.donutChart')).toBeInDOM();
                                 if (hasLegendObject) {
-                                    expect($('.legend').attr('orientation')).toBe(LegendPosition.None.toString());
+                                    expect($('.legend').attr('orientation')).toBe(LegendPosition.Right.toString());
+                                    expect($('.legendTitle').text()).toBe(testTitle);
+                                    expect($('#legendGroup').attr('transform')).not.toBeDefined();
                                 }
-                                done();
+                                //hide legend
+                                dataView.metadata.objects = { legend: { show: false, position: 'Right' } };
+                                v.onDataChanged({
+                                    dataViews: [dataView]
+                                });
+                                setTimeout(() => {
+                                    expect($('.donutChart')).toBeInDOM();
+                                    if (hasLegendObject) {
+                                        expect($('.legend').attr('orientation')).toBe(LegendPosition.None.toString());
+                                    }
+                                    done();
+                                }, DefaultWaitForRender);
                             }, DefaultWaitForRender);
                         }, DefaultWaitForRender);
                     }, DefaultWaitForRender);
                 }, DefaultWaitForRender);
             });
-        }               
+        }
     }
 
     describe("PieChart DOM validation", () => pieChartDomValidation(false, false));
@@ -3029,11 +3160,11 @@ module powerbitests {
 
             v.onDataChanged(dataChangedOptions);
             var points = v.enumerateObjectInstances({ objectName: 'dataPoint' });
-            expect(points.length).toBe(3);
-            expect(points[0].displayName).toEqual('a');
-            expect(points[0].properties['fill']).toBeDefined();
-            expect(points[1].displayName).toEqual('b');
-            expect(points[1].properties['fill']).toBeDefined();
+            expect(points.length).toBe(5);
+            expect(points[2].displayName).toEqual('a');
+            expect(points[2].properties['fill']).toBeDefined();
+            expect(points[3].displayName).toEqual('b');
+            expect(points[3].properties['fill']).toBeDefined();
             done();
         });
 
@@ -3072,11 +3203,11 @@ module powerbitests {
             v.onDataChanged(dataChangedOptions);
 
             var points = v.enumerateObjectInstances({ objectName: 'dataPoint' });
-            expect(points.length).toBe(3);
-            expect(points[0].displayName).toEqual('a');
-            expect(points[0].properties['fill']).toBeDefined();
-            expect(points[1].displayName).toEqual('b');
-            expect(points[1].properties['fill']).toBeDefined();
+            expect(points.length).toBe(5);
+            expect(points[2].displayName).toEqual('a');
+            expect(points[2].properties['fill']).toBeDefined();
+            expect(points[3].displayName).toEqual('b');
+            expect(points[3].properties['fill']).toBeDefined();
             done();
         });
 
@@ -3107,7 +3238,7 @@ module powerbitests {
                 // Check legend is hidden
                 expect($('.legend').attr('orientation')).toBe(LegendPosition.None.toString());
                 var points = v.enumerateObjectInstances({ objectName: 'dataPoint' });
-                expect(points.length).toBe(3);
+                expect(points.length).toBe(5);
                 done();
             }, DefaultWaitForRender);
         });

@@ -56,6 +56,9 @@ module powerbi {
          * Suitable for dashboard tile cards
          */
         WholeUnits,
+
+        /**A display unit system that also contains Auto and None units for data labels*/
+        DataLabels,
     }
 }
 

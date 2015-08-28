@@ -47,8 +47,8 @@ module powerbi.data {
     /** Defines a property of a DataViewObjectDefinition. */
     export interface DataViewObjectPropertyDescriptor {
         displayName?: DisplayNameGetter;
+        description?: DisplayNameGetter;
         type: DataViewObjectPropertyTypeDescriptor;
-
         rule?: DataViewObjectPropertyRuleDescriptor;
     }
 

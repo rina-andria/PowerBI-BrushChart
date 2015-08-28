@@ -42,9 +42,9 @@ module powerbi.visuals {
         labels: D3.UpdateSelection;
     }
 
-    export type ITreemapAnimator = Animator<IAnimatorOptions, TreemapAnimationOptions, TreemapAnimationResult>;
+    export type ITreemapAnimator = IAnimator<IAnimatorOptions, TreemapAnimationOptions, TreemapAnimationResult>;
 
-    export class WebTreemapAnimator extends Animator<IAnimatorOptions, TreemapAnimationOptions, TreemapAnimationResult> implements ITreemapAnimator {
+    export class WebTreemapAnimator extends BaseAnimator<IAnimatorOptions, TreemapAnimationOptions, TreemapAnimationResult> implements ITreemapAnimator {
         previousViewModel: TreemapData;
 
         constructor(options?: IAnimatorOptions) {

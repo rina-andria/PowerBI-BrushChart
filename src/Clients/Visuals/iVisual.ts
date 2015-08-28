@@ -58,7 +58,7 @@ module powerbi {
          *
          * @param finalViewport This is the viewport that the visual will eventually be resized to.
          */
-        onResizing(finalViewport: IViewport): void;
+        onResizing?(finalViewport: IViewport): void;
 
         /** 
          * Notifies the IVisual of new data being provided.
@@ -123,6 +123,11 @@ module powerbi {
          * are expected to edit this in-place.
          */
         dataViewMappings: data.CompiledDataViewMapping[];
+
+        /**
+         * Visual should prefer to request a higher volume of data.
+         */
+        preferHigherDataVolume?: boolean;
     }
 
     /** Parameters available to a sortable visual candidate */
@@ -172,6 +177,12 @@ module powerbi {
 
         /** Indicates whether a default title should be displayed.  Visuals with self-describing layout can omit this. */
         suppressDefaultTitle?: boolean;
+
+        /** Indicates whether drilling is supported by the visual. */
+        drilldown?: VisualDrillCapabilities;
+        
+        /** Indicates whether rotating is supported by the visual. */
+        canRotate?: boolean;
     }
 
     /** Defines the data roles understood by the IVisual. */
@@ -200,6 +211,12 @@ module powerbi {
         implicit?: VisualImplicitSorting;
     }
 
+    /** Defines the visual's drill capability. */
+    export interface VisualDrillCapabilities {
+        /** Returns the drillable role names for this visual **/
+        roles?: string[];
+    }
+
     /** Defines implied sorting behaviour for an IVisual. */
     export interface VisualImplicitSorting {
         clauses: VisualImplicitSortingClause[];
@@ -210,7 +227,7 @@ module powerbi {
         direction: data.QuerySortDirection;
     }
 
-    export const enum VisualDataRoleKind {
+    export enum VisualDataRoleKind {
         /** Indicates that the role should be bound to something that evaluates to a grouping of values. */
         Grouping,
         /** Indicates that the role should be bound to something that evaluates to a single value in a scope. */
@@ -258,7 +275,7 @@ module powerbi {
         operationKind?: VisualDataChangeOperationKind;
     }
 
-    export const enum VisualDataChangeOperationKind {
+    export enum VisualDataChangeOperationKind {
         Create = 0,
         Append = 1
     }
@@ -276,7 +293,7 @@ module powerbi {
         sortDirection?: data.QuerySortDirection;
     }
 
-    export const enum ViewMode {
+    export enum ViewMode {
         View = 0,
         Edit = 1,
     }

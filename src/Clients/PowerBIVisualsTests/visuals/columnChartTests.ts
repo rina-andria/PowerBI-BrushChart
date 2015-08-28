@@ -2259,6 +2259,57 @@ module powerbitests {
             ]);
         });
 
+        it('Gradient color - validate tool tip', () => {
+            var dataView: powerbi.DataViewCategorical = {
+                categories: [{
+                    source: categoryColumn,
+                    values: [2011, 2012],
+                    identity: [
+                        mocks.dataViewScopeIdentity("2011"),
+                        mocks.dataViewScopeIdentity("2012"),
+                    ],
+                }],
+                values: DataViewTransform.createValueColumns([
+                    {
+                        source: Prototype.inherit(measureColumn, c => c.roles = { 'Y': true }),
+                        values: [100, 200],
+                    }, {
+                        source: Prototype.inherit(measure2Column, c => c.roles = { 'Gradient': true }),
+                        values: [75, 50],
+                    }])
+            };
+
+            var colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
+            var data = ColumnChart.converter(dataView, colors);
+
+            expect(data.series[0].data[0].tooltipInfo).toEqual([{ displayName: 'year', value: '2011' }, { displayName: 'sales', value: '$100' }, { displayName: 'tax', value: '75' }]);
+            expect(data.series[0].data[1].tooltipInfo).toEqual([{ displayName: 'year', value: '2012' }, { displayName: 'sales', value: '$200' }, { displayName: 'tax', value: '50' }]);
+        });
+
+        it('Gradient and Y have the index - validate tool tip', () => {
+            var dataView: powerbi.DataViewCategorical = {
+                categories: [{
+                    source: categoryColumn,
+                    values: [2011, 2012],
+                    identity: [
+                        mocks.dataViewScopeIdentity("2011"),
+                        mocks.dataViewScopeIdentity("2012"),
+                    ],
+                }],
+                values: DataViewTransform.createValueColumns([
+                    {
+                        source: Prototype.inherit(measureColumn, c => c.roles = { 'Y': true, 'Gradient': true }),
+                        values: [100, 200],
+                    }])
+            };
+
+            var colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
+            var data = ColumnChart.converter(dataView, colors);
+
+            expect(data.series[0].data[0].tooltipInfo).toEqual([{ displayName: 'year', value: '2011' }, { displayName: 'sales', value: '$100' }]);
+            expect(data.series[0].data[1].tooltipInfo).toEqual([{ displayName: 'year', value: '2012' }, { displayName: 'sales', value: '$200' }]);
+        });
+
         it('single measure with infinite value',() => {
             var categoryIdentities = [
                 mocks.dataViewScopeIdentity("2011"),
@@ -3535,13 +3586,17 @@ module powerbitests {
             setTimeout(() => {
                 expect($('.columnChart')).toBeInDOM();
                 expect($('.column').length).toBe(6);
+                var x = +$('.column')[1].attributes.getNamedItem('x').value;
+                var width = +$('.column')[1].attributes.getNamedItem('width').value;
                 if (scalarSetting) {
-                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(31, 0);
-                    expect(+$('.column')[1].attributes.getNamedItem('width').value).toBeCloseTo(12, 0);
+                    expect(x).toBeCloseTo(31, 0);
+                    expect(width).toBeCloseTo(12, 0);
                 }
                 else {
-                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(179, 0);
-                    expect(+$('.column')[1].attributes.getNamedItem('width').value).toBeCloseTo(48, 0);
+                    // 179.(6) in Mac OS and 178.8 in Windows
+                    expect(powerbitests.helpers.isInRange(x, 178, 180)).toBe(true);
+                    // 48.6 in Mac OS and 48 in Windows
+                    expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
                 }
                 done();
             }, DefaultWaitForRender);
@@ -3582,15 +3637,19 @@ module powerbitests {
 
             setTimeout(() => {
                 expect($('.columnChart')).toBeInDOM();
+                var x = +$('.column')[1].attributes.getNamedItem('x').value;
+                var width = +$('.column')[1].attributes.getNamedItem('width').value;
                 if (scalarSetting) {
-                    expect($('.column').length).toBe(4);
-                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(363, 0);
-                    expect(+$('.column')[1].attributes.getNamedItem('width').value).toBeCloseTo(48, 0);
+                    expect($('.column').length).toBe(4);                    
+                    expect(powerbitests.helpers.isInRange(x, 363, 365)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
                 }
                 else {
                     expect($('.column').length).toBe(6);
-                    expect(+$('.column')[1].attributes.getNamedItem('x').value).toBeCloseTo(179, 0);
-                    expect(+$('.column')[1].attributes.getNamedItem('width').value).toBeCloseTo(48, 0);
+                    // 179.(6) in Mac OS and 178.8 in Windows
+                    expect(powerbitests.helpers.isInRange(x, 178, 180)).toBe(true);
+                    // 48.6 in Mac OS and 48 in Windows
+                    expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
                 }
                 done();
             }, DefaultWaitForRender);
@@ -4170,25 +4229,35 @@ module powerbitests {
                     v.onDataChanged({
                         dataViews: [dataView]
                     });
-                    setTimeout(() => {                   
-                        expect($('.legend').attr('orientation')).toBe(LegendPosition.Right.toString());                   
-                        //set title
-                        var testTitle = 'Test Title';
-                        dataView.metadata.objects = { legend: { show: true, position: 'Right', showTitle: true, titleText: testTitle } };
+                    setTimeout(() => {
+                        expect($('.legend').attr('orientation')).toBe(LegendPosition.Right.toString());
+
+                        dataView.metadata.objects = { legend: { show: true, position: 'TopCenter', showTitle: true } };
                         v.onDataChanged({
                             dataViews: [dataView]
                         });
-                        setTimeout(() => {                           
-                            expect($('.legend').attr('orientation')).toBe(LegendPosition.Right.toString());    
-                            expect($('.legendTitle').text()).toBe(testTitle);                          
-                            //hide legend
-                            dataView.metadata.objects = { legend: { show: false, position: 'Right' } };
+                        setTimeout(() => {
+                            expect($('#legendGroup').attr('transform')).toBeDefined();                           
+
+                            //set title
+                            var testTitle = 'Test Title';
+                            dataView.metadata.objects = { legend: { show: true, position: 'Right', showTitle: true, titleText: testTitle } };
                             v.onDataChanged({
                                 dataViews: [dataView]
                             });
-                            setTimeout(() => {                             
-                                expect($('.legend').attr('orientation')).toBe(LegendPosition.None.toString());                               
-                                done();
+                            setTimeout(() => {
+                                expect($('.legend').attr('orientation')).toBe(LegendPosition.Right.toString());
+                                expect($('.legendTitle').text()).toBe(testTitle);
+                                expect($('#legendGroup').attr('transform')).not.toBeDefined();
+                                //hide legend
+                                dataView.metadata.objects = { legend: { show: false, position: 'Right' } };
+                                v.onDataChanged({
+                                    dataViews: [dataView]
+                                });
+                                setTimeout(() => {
+                                    expect($('.legend').attr('orientation')).toBe(LegendPosition.None.toString());
+                                    done();
+                                }, DefaultWaitForRender);
                             }, DefaultWaitForRender);
                         }, DefaultWaitForRender);
                     }, DefaultWaitForRender);
@@ -7332,7 +7401,7 @@ module powerbitests {
         });
 
         it('Check the first data label if he cuts off properly', (done) => {
-            var longTitle = 'very very very long label that will be cut off eventually';
+            var longTitle = 'veryveryverylonglabelthatwillbecutoffeventually';
             var categoryIdentities = [
                 mocks.dataViewScopeIdentity(longTitle),
                 mocks.dataViewScopeIdentity(longTitle + '2'),
@@ -7372,6 +7441,58 @@ module powerbitests {
 
                 var texts = $('.columnChart .axisGraphicsContext .x.axis .tick').find('text');
                 expect(texts.first().text()).toEqual(texts.last().text());
+
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Check the data label is word broken when spaces are present', (done) => {
+            var longTitle = 'very very very long label that will be cut off eventually';
+            var categoryIdentities = [
+                mocks.dataViewScopeIdentity(longTitle),
+                mocks.dataViewScopeIdentity(longTitle + '2'),
+                mocks.dataViewScopeIdentity(longTitle + '3'),
+                mocks.dataViewScopeIdentity(longTitle + '4'),
+                mocks.dataViewScopeIdentity(longTitle + '5'),
+                mocks.dataViewScopeIdentity(longTitle + '6'),
+                mocks.dataViewScopeIdentity(longTitle + '7'),
+                mocks.dataViewScopeIdentity(longTitle + '8'),
+                mocks.dataViewScopeIdentity(longTitle + '9'),
+                mocks.dataViewScopeIdentity(longTitle + '10')
+            ];
+            var dataViews = [{
+                metadata: dataViewMetadataTwoColumn,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadataTwoColumn.columns[0],
+                        values: [longTitle, longTitle + '2', longTitle + '3', longTitle + '4', longTitle + '5', longTitle + '6', longTitle + '7', longTitle + '8', longTitle + '9', longTitle + '10'],
+                        identity: categoryIdentities,
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewMetadataTwoColumn.columns[1],
+                            values: [100000, 200000, 100000, 200000, 100000, 200000, 100000, 200000, 100000, 200000]
+                        }
+                    ])
+                }
+            }];
+
+            v.onDataChanged({
+                dataViews: dataViews
+            });
+
+            setTimeout(() => {
+                // Word breaks with 11 tspans (for each word)
+                var texts = $('.columnChart .axisGraphicsContext .x.axis .tick').find('text');
+                expect(texts.first().text()).toBe(texts.last().text());
+                expect(texts.find('tspan').length).toBeGreaterThan(0);
+
+                v.onResizing({ height: 500, width: 200 });
+
+                // Rotated 90deg for scrolling
+                var texts = $('.columnChart .axisGraphicsContext .x.axis .tick').find('text');
+                expect(texts.first().text()).toEqual(texts.last().text());
+                expect(texts.find('tspan').length).toBe(0);
 
                 done();
             }, DefaultWaitForRender);
@@ -8890,8 +9011,12 @@ module powerbitests {
                 var transform = SVGUtil.parseTranslateTransform($('.columnChart .axisGraphicsContext .x.axis .tick').last().attr('transform'));
                 expect(transform.y).toBe('0');
                 expect(transform.x).toBeLessThan(element.width());
-                expect($('.brush').attr('transform')).toBe('translate(22,90)');
-                expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0)).toBe(13);
+                // 22,90 for Windows and 21,90 for Mac OS
+                expect(powerbitests.helpers.isTranslateCloseTo($('.brush').attr('transform'), 22, 90)).toBe(true);
+
+                var width = parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0);
+                // 13 for Windows and 14 for Mac OS
+                expect(powerbitests.helpers.isInRange(width, 13, 14)).toBe(true);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
                 done();
             }, DefaultWaitForRender);
@@ -8977,7 +9102,7 @@ module powerbitests {
                 interactivity: { dragDataPoint: true },
             });
 
-            var longLabelValue = 'Very very very very long label';
+            var longLabelValue = 'Veryveryveryveryverylonglabel';
             v.onDataChanged({
                 dataViews: [{
                     metadata: dataViewMetadataTwoColumn,

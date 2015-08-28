@@ -34,6 +34,7 @@ module powerbitests {
     import EventType = powerbitests.helpers.ClickEventType;
     import SelectionId = powerbi.visuals.SelectionId;
     import ColorConvertor = powerbitests.utils.ColorUtility.convertFromRGBorHexToHex;
+    import buildSelector = powerbitests.helpers.buildSelectorForColumn;
 
     var minHeightFunnelCategoryLabelsVisible: number = powerbi.visuals.visualPluginFactory.MobileVisualPluginService.MinHeightFunnelCategoryLabelsVisible;
     var categoryLabelsVisibleGreaterThanMinHeight: number = minHeightFunnelCategoryLabelsVisible + 1;
@@ -236,10 +237,11 @@ module powerbitests {
             };
 
             var actualData = FunnelChart.converter(dataView, colors);
+            let categoryQueryName = dataView.categorical.categories[0].source.queryName;
             var selectionIds: SelectionId[] = [
-                SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
-                SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
-                SelectionId.createWithIdAndMeasure(categoryIdentities[2], 'col2')];
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[0]), 'col2'),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[1]), 'col2'),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[2]), 'col2')];
             var sliceColor = colors.getColorByIndex(0).value;
 
             var expectedData: powerbi.visuals.FunnelData = {
@@ -361,9 +363,10 @@ module powerbitests {
             };
 
             var actualData = FunnelChart.converter(dataView, colors);
+            let categoryQueryName = dataView.categorical.categories[0].source.queryName;
             var selectionIds = [
-                SelectionId.createWithIdAndMeasure(categoryIdentities[0], 'col2'),
-                SelectionId.createWithIdAndMeasure(categoryIdentities[1], 'col2'),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[0]), 'col2'),
+                SelectionId.createWithSelectorForColumnAndMeasure(buildSelector(categoryQueryName, categoryIdentities[1]), 'col2'),
             ];
             var sliceColor = colors.getColorByIndex(0).value;
 
@@ -507,7 +510,7 @@ module powerbitests {
         var hostServices: powerbi.IVisualHostServices;
         var dataViewMetadataCategorySeriesColumns: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'Squad', properties: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                { queryName: 'select0', displayName: 'Squad', properties: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
                 { displayName: 'Period', properties: { "Series": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                 { displayName: null, groupName: '201501', isMeasure: true, properties: { "Values": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                 { displayName: null, groupName: '201502', isMeasure: true, properties: { "Values": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
@@ -685,6 +688,13 @@ module powerbitests {
                             {
                                 data: [interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]]
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: {
+                                    'select0' : interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]
+                                }
+                            }
                         ]
                     });
                 done();
@@ -710,6 +720,13 @@ module powerbitests {
                             {
                                 data: [interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]],
                             }
+                        ],
+                        data2: [
+                            {
+                                dataMap: {
+                                    'select0': interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]
+                                }
+                            }
                         ]
                     });
 
@@ -723,6 +740,13 @@ module powerbitests {
                             {
                                 data: [interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]],
                             },
+                        ],
+                        data2: [
+                            {
+                                dataMap: {
+                                    'select0': interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]
+                                }
+                            }
                         ]
                     });
 
@@ -748,6 +772,13 @@ module powerbitests {
                         data: [
                             {
                                 data: [interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: {
+                                    'select0': interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]
+                                }
                             }
                         ]
                     });
@@ -778,6 +809,13 @@ module powerbitests {
                         data: [
                             {
                                 data: [interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]]
+                            }
+                        ],
+                        data2: [
+                            {
+                                dataMap: {
+                                    'select0': interactiveDataViewOptions.dataViews[0].categorical.categories[0].identity[0]
+                                }
                             }
                         ]
                     });
@@ -1263,6 +1301,51 @@ module powerbitests {
 
                 // Check that the last label is outside
                 expect($(labels[2]).attr('x')).toBeGreaterThan(lastBarY + lastBarHeight);
+
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Default labels validation - with value 0', (done) => {
+            var metadataWithDisplayUnits = $.extend(true, {}, dataViewMetadata);
+            metadataWithDisplayUnits.objects = { labels: { labelDisplayUnits: 1000 } };
+            
+            var categoryIdentities = [
+                mocks.dataViewScopeIdentity("John Domo"),
+                mocks.dataViewScopeIdentity("Delta Force"),
+                mocks.dataViewScopeIdentity("Mr Bing"),
+            ];
+            var dataView: powerbi.DataView = {
+                metadata: metadataWithDisplayUnits,
+                categorical: {
+                    categories: [{
+                        source: dataViewMetadata.columns[0],
+                        values: ['John Domo', 'Delta Force', 'Mr Bing'],
+                        identity: categoryIdentities,
+                        identityFields: [categoryColumnRef],
+                    }],
+                    values: DataViewTransform.createValueColumns([{
+                        source: dataViewMetadata.columns[1],
+                        values: [555, 2000, 0],
+                        subtotal: 2555
+                    }])
+                }
+            };
+            v.onDataChanged({ dataViews: [dataView] });
+            setTimeout(() => {
+                // The funnel bars are rotated 90 degrees, so for the bars, "y" and "height" correspond
+                // to what we would think of as the position and size along the x-axis.
+                // The funnel data labels are not rotated, so for the labels we need to use "x" and "width".
+
+                var labels = $('.funnelChart .labels text');
+                expect(labels.length).toBe(3);
+                expect($(labels[2]).text()).toEqual('$0.00K');
+                expect(ColorConvertor($(labels[0]).css('fill'))).toEqual(defaultInsideLabelColor);
+                //last value is 0, should be default color 
+                expect(ColorConvertor($(labels[2]).css('fill'))).toEqual(labelColor);
+                // Check that all labels are centering 
+                expect($(labels[2]).attr('x')).toEqual($(labels[0]).attr('x'));
+                expect($(labels[2]).attr('x')).toEqual($(labels[1]).attr('x'));
 
                 done();
             }, DefaultWaitForRender);
@@ -2119,6 +2202,100 @@ module powerbitests {
             expect(actualData.slices[0].color).toBe(colors[0]);
             expect(actualData.slices[1].color).toBe(colors[1]);
             expect(actualData.slices[2].color).toBe(colors[2]);
+        });
+
+        it('Gradient color - validate tool tip', () => {
+            var dataColors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
+
+            var dataViewGradientMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    { displayName: 'col1', queryName: 'col1' },
+                    { displayName: 'col2', queryName: 'col2', isMeasure: true },
+                    { displayName: 'col3', queryName: 'col3', isMeasure: true, roles: { 'Gradient': true } }
+                ]
+            };
+
+            var colors = ["#d9f2fb", "#ff557f", "#b1eab7"];
+            var objectDefinitions: powerbi.DataViewObjects[] = [
+                { dataPoint: { fill: { solid: { color: colors[0] } } } },
+                { dataPoint: { fill: { solid: { color: colors[1] } } } },
+                { dataPoint: { fill: { solid: { color: colors[2] } } } }
+            ];
+
+            var dataView = {
+                metadata: dataViewGradientMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewGradientMetadata.columns[0],
+                        values: ['a', 'b', 'c'],
+                        objects: objectDefinitions
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewGradientMetadata.columns[1],
+                            values: [100, 200, 300, 400, 500],
+                            subtotal: [1500]
+                        }, {
+                            source: dataViewGradientMetadata.columns[2],
+                            values: [200, 400, 600, 800, 1000],
+                            subtotal: [3000]
+                        }])
+                }
+            };
+
+            var defaultDataPointColor = "#00FF00";
+            var actualData = FunnelChart.converter(dataView, dataColors, defaultDataPointColor);
+
+            expect(actualData.slices[0].tooltipInfo).toEqual([{ displayName: 'col1', value: 'a' }, { displayName: 'col2', value: '300' }, { displayName: 'col3', value: '200' }]);
+            expect(actualData.slices[1].tooltipInfo).toEqual([{ displayName: 'col1', value: 'b' }, { displayName: 'col2', value: '600' }, { displayName: 'col3', value: '400' }]);
+            expect(actualData.slices[2].tooltipInfo).toEqual([{ displayName: 'col1', value: 'c' }, { displayName: 'col2', value: '900' }, { displayName: 'col3', value: '600' }]);
+        });
+
+        it('Gradient and Y have the index - validate tool tip', () => {
+            var dataColors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
+
+            var dataViewGradientMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    { displayName: 'col1', queryName: 'col1' },
+                    { displayName: 'col2', queryName: 'col2', isMeasure: true, roles: { 'Y': true, 'Gradient': true } },
+                    { displayName: 'col3', queryName: 'col3', isMeasure: true }
+                ]
+            };
+
+            var colors = ["#d9f2fb", "#ff557f", "#b1eab7"];
+            var objectDefinitions: powerbi.DataViewObjects[] = [
+                { dataPoint: { fill: { solid: { color: colors[0] } } } },
+                { dataPoint: { fill: { solid: { color: colors[1] } } } },
+                { dataPoint: { fill: { solid: { color: colors[2] } } } }
+            ];
+
+            var dataView = {
+                metadata: dataViewGradientMetadata,
+                categorical: {
+                    categories: [{
+                        source: dataViewGradientMetadata.columns[0],
+                        values: ['a', 'b', 'c'],
+                        objects: objectDefinitions
+                    }],
+                    values: DataViewTransform.createValueColumns([
+                        {
+                            source: dataViewGradientMetadata.columns[1],
+                            values: [100, 200, 300, 400, 500],
+                            subtotal: [1500]
+                        }, {
+                            source: dataViewGradientMetadata.columns[2],
+                            values: [200, 400, 600, 800, 1000],
+                            subtotal: [3000]
+                        }])
+                }
+            };
+
+            var defaultDataPointColor = "#00FF00";
+            var actualData = FunnelChart.converter(dataView, dataColors, defaultDataPointColor);
+
+            expect(actualData.slices[0].tooltipInfo).toEqual([{ displayName: 'col1', value: 'a' }, { displayName: 'col2', value: '300' }]);
+            expect(actualData.slices[1].tooltipInfo).toEqual([{ displayName: 'col1', value: 'b' }, { displayName: 'col2', value: '600' }]);
+            expect(actualData.slices[2].tooltipInfo).toEqual([{ displayName: 'col1', value: 'c' }, { displayName: 'col2', value: '900' }]);
         });
     });
 

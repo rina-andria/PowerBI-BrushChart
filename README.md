@@ -78,7 +78,7 @@ gulp test                                # Run unit tests (requires 'PhantomJS',
 
 To run sample app:
 
-1. Open `src\PowerBIClients.VS2015.sln` in Visual Studio then open src\Clients\PowerBIVisualsPlayground\, right click on index.html file and select 'Set As Start Page'.
+1. Open `src\PowerBIClients.sln` in Visual Studio then open src\Clients\PowerBIVisualsPlayground\, right click on index.html file and select 'Set As Start Page'.
 
 2. Right click on the project root folder then select 'Property Pages'. In the window opened select 'Build' and then in 'Before running startup page' select 'No Build'.
 

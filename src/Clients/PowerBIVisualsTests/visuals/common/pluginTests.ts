@@ -203,8 +203,7 @@ module powerbitests {
                 var exception = null,
                     visualPlugin: powerbi.IVisualPlugin = allVisuals[i];
 
-                if (visualPlugin.name !== "categoricalFilter" &&
-                    visualPlugin.name !== "consoleWriter" &&
+                if (visualPlugin.name !== "categoricalFilter" && 
                     visualPlugin.capabilities &&
                     visualPlugin.capabilities.dataViewMappings &&
                     visualPlugin.capabilities.dataViewMappings.length > 0 &&

@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export var cardCapabilities: VisualCapabilities = {
         dataRoles: [
@@ -33,7 +35,41 @@ module powerbi.visuals {
                 displayName: data.createDisplayNameGetter('Role_DisplayName_Fields')
             }
         ],
-        objects: animatedTextObjectDescs,
+        objects: {
+            general: {
+                properties: {
+                    formatString: {
+                        type: { formatting: { formatString: true } },
+                    },
+                },
+            },
+            labels: {
+                displayName: data.createDisplayNameGetter('Visual_DataPointLabel'),
+                properties: {
+                    color: {
+                        displayName: data.createDisplayNameGetter('Visual_LabelsFill'),
+                        type: { fill: { solid: { color: true } } }
+                    },
+                    labelDisplayUnits: {
+                        displayName: data.createDisplayNameGetter('Visual_DisplayUnits'),
+                        type: { formatting: { labelDisplayUnits: true } }
+                    },
+                    labelPrecision: {
+                        displayName: data.createDisplayNameGetter('Visual_Precision'),
+                        type: { numeric: true }
+                    },
+                },
+            },
+            cardTitle: {
+                displayName: data.createDisplayNameGetter('Visual_CategoryLabel'),
+                properties: {
+                    show: {
+                        displayName: data.createDisplayNameGetter('Visual_Show'),
+                        type: { bool: true }
+                    },
+                },
+            }
+        },
         dataViewMappings: [{
             conditions: [
                 { 'Values': { max: 1 } }
@@ -42,4 +78,16 @@ module powerbi.visuals {
         }],
         suppressDefaultTitle: true,
     };
-}
+
+    export var cardProps = {
+        cardTitle: {
+            show: <DataViewObjectPropertyIdentifier>{ objectName: 'cardTitle', propertyName: 'show' },
+        },
+        labels: {
+            color: <DataViewObjectPropertyIdentifier>{ objectName: 'labels', propertyName: 'color' },
+            labelPrecision: <DataViewObjectPropertyIdentifier>{ objectName: 'labels', propertyName: 'labelPrecision' },
+            labelDisplayUnits: <DataViewObjectPropertyIdentifier>{ objectName: 'labels', propertyName: 'labelDisplayUnits' },
+        },
+    };
+
+} 

@@ -38,6 +38,7 @@ module powerbitests {
     import SelectionId = powerbi.visuals.SelectionId;
     import ValueType = powerbi.ValueType;
     import PrimitiveType = powerbi.PrimitiveType;
+    import Helpers = powerbitests.helpers;
 
     var labelColor = powerbi.visuals.dataLabelUtils.defaultLabelColor;
 
@@ -1469,6 +1470,29 @@ module powerbitests {
                 }, DefaultWaitForRender);
             });
 
+            it('line chart renders no interactivity lines when not in interactive mode', (done) => {
+                v.onDataChanged({
+                    dataViews: [{
+                        metadata: dataViewMetadata,
+                        categorical: {
+                            categories: [{
+                                source: dataViewMetadata.columns[0],
+                                values: ['a', 'b', 'c', 'd', 'e']
+                            }],
+                            values: DataViewTransform.createValueColumns([{
+                                source: dataViewMetadata.columns[1],
+                                values: [500000, 495000, 490000, 480000, 500000],
+                                subtotal: 246500
+                            }])
+                        }
+                    }]
+                });
+                setTimeout(() => {
+                    expect($('.interactivity-line').length).toEqual(0);
+                    done();
+                }, DefaultWaitForRender);
+            });
+
             it('verify viewport when filtering data', (done) => {
 
                 // Clone in order to keep the original as it is
@@ -1506,14 +1530,16 @@ module powerbitests {
                 if (interactiveChart) {
                     setTimeout(() => {
                         expect(svgBox.height).toBeCloseTo(405, 0);
-                        expect(svgBox.width).toBeCloseTo(384, 0);
+                        // 384 for Windows and 385 for Mac OS
+                        expect(Helpers.isInRange(svgBox.width, 384, 385)).toBe(true);
                         done();
                     }, DefaultWaitForRender);
                 }
                 else {
                     setTimeout(() => {
                         expect(svgBox.height).toBeCloseTo(470, 0);
-                        expect(svgBox.width).toBeCloseTo(384, 0);
+                        // 384 for Windows and 385 for Mac OS
+                        expect(Helpers.isInRange(svgBox.width, 384, 385)).toBe(true);
                         done();
                     }, DefaultWaitForRender);
                 }
@@ -2267,6 +2293,54 @@ module powerbitests {
                         expect(d3.select(item).datum() === 0).toBe(true);
                     });
 
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it('line chart validate word breaking axis labels', (done) => {
+                v.onDataChanged({
+                    dataViews: [{
+                        metadata: dataViewMetadata,
+                        categorical: {
+                            categories: [{
+                                source: dataViewMetadata.columns[0],
+                                values: ['Some ReallyLongValuesSoYouTruncate1 Words', 'ReallyLongValuesSoYouTruncate2 Some Words', 'Some Words ReallyLongValuesSoYouTruncate3']
+                            }],
+                            values: DataViewTransform.createValueColumns([{
+                                source: dataViewMetadata.columns[3],
+                                values: [50000, 45000, 49000],
+                            }])
+                        }
+                    }]
+                });
+                setTimeout(() => {
+                    let tickLabels = $('.lineChart .axisGraphicsContext .x.axis .tick text');
+                    let tspans = tickLabels.find('tspan');
+                    expect(tspans.length).toBeGreaterThan(6);
+                    done();
+                }, DefaultWaitForRender);
+            });
+
+            it('line chart word breaking does not occur if any value requires rotation (does not have word break character, e.g. space)', (done) => {
+                v.onDataChanged({
+                    dataViews: [{
+                        metadata: dataViewMetadata,
+                        categorical: {
+                            categories: [{
+                                source: dataViewMetadata.columns[0],
+                                values: ['Some ReallyLongValuesSoYouTruncate1 Words', 'ReallyLongValuesSoYouTruncate2 Some Words', 'Some Words ReallyLongValuesSoYouTruncate3', 'ReallyLongValuesSoYouTruncate4']
+                            }],
+                            values: DataViewTransform.createValueColumns([{
+                                source: dataViewMetadata.columns[3],
+                                values: [50000, 45000, 49000, 48000],
+                            }])
+                        }
+                    }]
+                });
+                setTimeout(() => {
+                    let tickLabels = $('.lineChart .axisGraphicsContext .x.axis .tick text');
+                    let tspans = tickLabels.find('tspan');
+                    expect(tspans.length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
             });

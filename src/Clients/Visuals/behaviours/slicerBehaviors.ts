@@ -33,10 +33,11 @@ module powerbi.visuals {
         slicerItemLabels: D3.Selection;
         slicerItemInputs: D3.Selection;
         slicerClear: D3.Selection;
+        isInvertedSelectionMode: boolean;
     }
 
     export class SlicerWebBehavior {
-        public select(selectionLabels: D3.Selection) {
+        public selectLabels(selectionLabels: D3.Selection): void {
             selectionLabels.style({
                 'color': (d: SlicerDataPoint) => {
                     if (d.selected)
@@ -47,7 +48,34 @@ module powerbi.visuals {
             });
         }
 
-        public mouseInteractions(selectionLabels: D3.Selection) {
+        public selectInputs(slicerItemInputs: D3.Selection, dataPoint: SlicerDataPoint): void {
+            if (dataPoint == null)
+                return;
+
+            slicerItemInputs.selectAll('input').each(function (d: SlicerDataPoint) {
+                if (d.value === dataPoint.value) {
+                    return;
+                }
+                else {
+                    var input = d3.select(this);
+                    input.property({ 'checked': (d: SlicerDataPoint) => d.selected });
+                }
+            });
+        }
+
+        public updateSelectAll(slicerItemInputs: D3.Selection, dataPoint: SlicerDataPoint, isNotSelectedQueryMode: boolean): void {
+            if (dataPoint == null)
+                return;
+
+            slicerItemInputs.select('input').each(function (d: SlicerDataPoint) {
+                if (d.value === dataPoint.value) {
+                    var input = d3.select(this);
+                    input.classed('partiallySelected', isNotSelectedQueryMode);
+                }
+            });
+        }
+
+        public mouseInteractions(selectionLabels: D3.Selection): void {
             selectionLabels.style({
                 'color': (d: SlicerDataPoint) => {
                     if (d.mouseOver)
@@ -63,7 +91,7 @@ module powerbi.visuals {
             });
         }
 
-        public clearSlicers(selectionLabels: D3.Selection, slicerItemInputs: D3.Selection) {
+        public clearSlicers(selectionLabels: D3.Selection, slicerItemInputs: D3.Selection): void {
             slicerItemInputs.selectAll('input').property('checked', false);
             selectionLabels.style('color', Slicer.DefaultStyleProperties.slicerText.color);
         }

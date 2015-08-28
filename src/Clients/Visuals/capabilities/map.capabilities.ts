@@ -172,6 +172,9 @@ module powerbi.visuals {
         sorting: {
             custom: {},
         },
+        drilldown: {
+            roles: ['Category']
+        },
     };
 
     export var mapProps = {

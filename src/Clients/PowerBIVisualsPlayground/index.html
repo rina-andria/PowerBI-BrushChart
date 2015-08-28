@@ -1,27 +1,16 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Power BI visualization playground</title>
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="visuals.css" />
-    
-    <script type="text/javascript" src="powerbi-visuals.all.js"></script>
+
+    <script type="text/javascript" src="externals.min.js"></script>  
+    <script type="text/javascript" src="powerbi-visuals.js"></script>    
     <script type="text/javascript" src ="PowerBIVisualsPlayground.js"></script>
     
 </head>
 <body>
-    <section id="sample">
-        <div class="topBar">
-            <div style="float:left;">
-                <div>
-                    <span>Select a visual:</span>
-                    <select id="visualTypes"></select>
-                </div>
-            </div>
-        </div>
-
-        <div id="container"></div>
-    </section>
     <section id="options">
         <h4>Options:</h4>
         <ul id="options-list">
@@ -43,6 +32,18 @@
                 <input type="checkbox" name="is_interactions" value="">
             </li>
         </ul>
+    </section>
+    <section id="sample">
+        <div class="topBar">
+            <div style="float:left;">
+                <div>
+                    <span>Select a visual:</span>
+                    <select id="visualTypes"></select>
+                </div>
+            </div>
+        </div>
+
+        <div id="container"></div>
     </section>
 
     <script type="text/javascript">

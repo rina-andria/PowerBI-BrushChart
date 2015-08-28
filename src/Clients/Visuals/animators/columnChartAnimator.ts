@@ -42,9 +42,9 @@ module powerbi.visuals {
         dataLabels: D3.UpdateSelection;
     }
 
-    export type IColumnChartAnimator = Animator<IAnimatorOptions, ColumnChartAnimationOptions, ColumnChartAnimationResult>;
+    export type IColumnChartAnimator = IAnimator<IAnimatorOptions, ColumnChartAnimationOptions, ColumnChartAnimationResult>;
 
-    export class WebColumnChartAnimator extends Animator<IAnimatorOptions, ColumnChartAnimationOptions, ColumnChartAnimationResult> implements IColumnChartAnimator {
+    export class WebColumnChartAnimator extends BaseAnimator<IAnimatorOptions, ColumnChartAnimationOptions, ColumnChartAnimationResult> implements IColumnChartAnimator {
         private previousViewModel: ColumnChartData;
 
         constructor(options?: IAnimatorOptions) {

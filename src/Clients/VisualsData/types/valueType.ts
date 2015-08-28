@@ -87,6 +87,7 @@ module powerbi {
         alignment?: boolean;
         labelDisplayUnits?: boolean;
         labelPosition?: boolean;
+        shapeType?: boolean;
     }
 
     /** Describes a data value type, including a primitive type and extended type if any (derived from data category). */
@@ -170,6 +171,7 @@ module powerbi {
                 if (descriptor.formatting.alignment) return ValueType.fromExtendedType(ExtendedType.Alignment);
                 if (descriptor.formatting.labelDisplayUnits) return ValueType.fromExtendedType(ExtendedType.LabelDisplayUnits);
                 if (descriptor.formatting.labelPosition) return ValueType.fromExtendedType(ExtendedType.LabelPosition);
+                if (descriptor.formatting.shapeType) return ValueType.fromExtendedType(ExtendedType.ShapeType);
             }
             if (descriptor.extendedType) {
                 return ValueType.fromExtendedType(descriptor.extendedType);
@@ -395,6 +397,10 @@ module powerbi {
         public get labelPosition(): boolean {
             return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.LabelPosition);
         }
+
+        public get shapeType(): boolean {
+            return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.ShapeType);
+        }
     }
 
     /** Defines primitive value types. Must be consistent with types defined by server conceptual schema. */
@@ -484,6 +490,7 @@ module powerbi {
         Alignment = Text | Formatting | (306 << 16),
         LabelDisplayUnits = Text | Formatting | (307 << 16),
         LabelPosition = Text | Formatting | (308 << 16),
+        ShapeType = Text | Formatting | (309 << 16),
 
         // NOTE: To avoid confusion, underscores should be used only to delimit primitive type variants of an extended type
         // (e.g. Year_Integer or Latitude_Double above)

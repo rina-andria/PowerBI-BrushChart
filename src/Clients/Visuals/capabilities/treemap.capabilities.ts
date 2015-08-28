@@ -158,6 +158,9 @@ module powerbi.visuals {
                 clauses: [{ role: 'Values', direction: data.QuerySortDirection.Descending }]
             },
         },
+        drilldown: {
+            roles: ['Group']
+        },
     };
     
     export var treemapProps = {

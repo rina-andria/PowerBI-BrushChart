@@ -24,6 +24,8 @@
 *  THE SOFTWARE.
 */
 
+/// <reference path="../../_references.ts"/>
+
 module powerbitests {
     import TextProperties = powerbi.TextProperties;
     import TextMeasurementService = powerbi.TextMeasurementService;
@@ -152,8 +154,7 @@ module powerbitests {
             expect(jsCommon.StringExtensions.endsWith(text, "...")).toBeTruthy();
         });
 
-        it("svgEllipsis with ellipses", () => {           
-
+        it("svgEllipsis with ellipses", () => {
             var element = createSvgTextElement("PowerBI rocks!");
             attachToDom(element);
 
@@ -163,8 +164,7 @@ module powerbitests {
             expect(jsCommon.StringExtensions.endsWith(text, "...")).toBeTruthy();
         });
 
-        it("svgEllipsis without ellipses", () => {           
-
+        it("svgEllipsis without ellipses", () => {
             var element = createSvgTextElement("PowerBI rocks!");
             attachToDom(element);
 
@@ -172,6 +172,68 @@ module powerbitests {
 
             var text = $(element).text();
             expect(text).toEqual("PowerBI rocks!");
+        });
+
+        describe('wordBreak', () => {
+            it('with no breaks', () => {
+                var originalText = "ContentWithNoBreaks!";
+                var element = createSvgTextElement(originalText);
+                attachToDom(element);
+
+                TextMeasurementService.wordBreak(<any>element[0], 25 /* maxLength */, 20 * 1 /* maxHeight */);
+
+                var text = $(element).text();
+                expect($(element).find('tspan').length).toBe(1);
+                expect(jsCommon.StringExtensions.endsWith(text, "...")).toBeTruthy();
+            });
+
+            it('with breaks', () => {
+                var originalText = "PowerBI rocks!";
+                var element = createSvgTextElement(originalText);
+                attachToDom(element);
+
+                TextMeasurementService.wordBreak(<any>element[0], 25 /* maxLength */, 20 * 2 /* maxHeight */);
+
+                var text = $(element).text();
+                expect($(element).find('tspan').length).toBe(2);
+                expect(text.match(/\.\.\./g).length).toBe(2);
+            });
+
+            it('with breaks but forced to single line', () => {
+                var originalText = "PowerBI rocks!";
+                var element = createSvgTextElement(originalText);
+                attachToDom(element);
+
+                TextMeasurementService.wordBreak(<any>element[0], 25 /* maxLength */, 20 * 1 /* maxHeight */);
+
+                var text = $(element).text();
+                expect($(element).find('tspan').length).toBe(1);
+                expect(jsCommon.StringExtensions.endsWith(text, "...")).toBeTruthy();
+            });
+
+            it('with breaks but forced to single line due to low max height', () => {
+                var originalText = "PowerBI rocks!";
+                var element = createSvgTextElement(originalText);
+                attachToDom(element);
+
+                TextMeasurementService.wordBreak(<any>element[0], 25 /* maxLength */, 1 /* maxHeight */);
+
+                var text = $(element).text();
+                expect($(element).find('tspan').length).toBe(1);
+                expect(jsCommon.StringExtensions.endsWith(text, "...")).toBeTruthy();
+            });
+
+            it('with breaks multiple words on each line', () => {
+                var originalText = "The Quick Brown Fox Jumped Over The Lazy Dog";
+                var element = createSvgTextElement(originalText);
+                attachToDom(element);
+
+                TextMeasurementService.wordBreak(<any>element[0], 75 /* maxLength */, 20 * 3 /* maxHeight */);
+
+                var text = $(element).text();
+                expect($(element).find('tspan').length).toBe(3);
+                expect(jsCommon.StringExtensions.endsWith(text, "...")).toBeTruthy();
+            });
         });
 
         function attachToDom(element: JQuery|Element): JQuery {

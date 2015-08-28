@@ -31,6 +31,7 @@
 /// <reference path="types\enumType.ts"/>
 /// <reference path="types\axisStyle.ts"/>
 /// <reference path="types\axisType.ts"/>
+/// <reference path="types\basicShapeType.ts"/>
 /// <reference path="types\fill.ts"/>
 /// <reference path="types\fillRule.ts"/>
 /// <reference path="types\filter.ts"/>

@@ -53,9 +53,7 @@ module powerbi.visuals {
         highlight: boolean;
     }
 
-    export interface DataDotChartConstructorOptions {
-        isScrollable: boolean;
-        interactivityService: IInteractivityService;
+    export interface DataDotChartConstructorOptions extends CartesianVisualConstructorOptions {
     }
 
     /**

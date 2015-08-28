@@ -37,26 +37,34 @@ module powerbi.visuals.sampleDataViews {
         public visuals: string[] = ['gauge',
         ];
 
+        private sampleData: number[] = [50, 250, 300, 500];
+
+        private sampleMin: number = 50;
+        private sampleMax: number = 1500;
+
         public getDataViews(): DataView[] {
-            var gaugeDataViewMetadata: powerbi.DataViewMetadata = {
+            let gaugeDataViewMetadata: powerbi.DataViewMetadata = {
                 columns: [
                     {
+                        displayName: 'col2',
+                        roles: { 'MinValue': true },
+                        isMeasure: true,
+                        objects: { general: { formatString: '$0' } },
+                    }, {
                         displayName: 'col1',
                         roles: { 'Y': true },
                         isMeasure: true,
                         objects: { general: { formatString: '$0' } },
                     }, {
-                        displayName: 'col2',
-                        roles: { 'MinValue': true },
-                        isMeasure: true
+                        displayName: 'col4',
+                        roles: { 'TargetValue': true },
+                        isMeasure: true,
+                        objects: { general: { formatString: '$0' } },
                     }, {
                         displayName: 'col3',
                         roles: { 'MaxValue': true },
-                        isMeasure: true
-                    }, {
-                        displayName: 'col4',
-                        roles: { 'TargetValue': true },
-                        isMeasure: true
+                        isMeasure: true,
+                        objects: { general: { formatString: '$0' } },
                     }],
                 groups: [],
                 measures: [0],
@@ -64,27 +72,31 @@ module powerbi.visuals.sampleDataViews {
 
             return [{
                 metadata: gaugeDataViewMetadata,
-                single: { value: 500 },
+                single: { value: this.sampleData[1] },
                 categorical: {
                     values: DataViewTransform.createValueColumns([
                         {
                             source: gaugeDataViewMetadata.columns[0],
-                            values: [500],
+                            values: [this.sampleData[0]],
                         }, {
                             source: gaugeDataViewMetadata.columns[1],
-                            values: [0],
+                            values: [this.sampleData[1]],
                         }, {
                             source: gaugeDataViewMetadata.columns[2],
-                            values: [300],
+                            values: [this.sampleData[2]],
                         }, {
                             source: gaugeDataViewMetadata.columns[3],
-                            values: [200],
+                            values: [this.sampleData[3]],
                         }])
                 }
             }];
         }
 
         public randomize(): void {
+
+            this.sampleData = this.sampleData.map(() => this.getRandomValue(this.sampleMin, this.sampleMax));
+
+            this.sampleData.sort((a, b) => { return a - b; });
         }
         
     }

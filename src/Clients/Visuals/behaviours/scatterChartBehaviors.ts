@@ -51,8 +51,11 @@ module powerbi.visuals {
     }
 
     export class ScatterChartWebBehavior {
-        public select(hasSelection: boolean, datapoints: D3.Selection) {
-            datapoints.style("fill-opacity", (d: ScatterChartDataPoint) => d.size != null ? ScatterChart.getBubbleOpacity(d, hasSelection) : 0);
+        public select(hasSelection: boolean, options: ScatterBehaviorOptions) {
+            var datapoints = options.dataPointsSelection;
+            var data = options.data;
+            var shouldEnableFill = (!data.sizeRange || !data.sizeRange.min) && data.fillPoint;
+            datapoints.style("fill-opacity", (d: ScatterChartDataPoint) => (d.size != null || shouldEnableFill) ? ScatterChart.getBubbleOpacity(d, hasSelection) : 0);
             datapoints.style("stroke-opacity",(d: ScatterChartDataPoint) => ScatterChart.getBubbleOpacity(d, hasSelection));
         }
     }

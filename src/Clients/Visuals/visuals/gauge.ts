@@ -102,7 +102,7 @@ module powerbi.visuals {
 
     export interface GaugeConstructorOptions {
         gaugeSmallViewPortProperties?: GaugeSmallViewPortProperties;
-        animator?: IAnimator;
+        animator?: IGenericAnimator;
     }
 
     /** 
@@ -208,7 +208,7 @@ module powerbi.visuals {
         // TODO: Remove this once all visuals have implemented update.
         private dataViews: DataView[];
 
-        public animator: IAnimator;
+        public animator: IGenericAnimator;
 
         constructor(options?: GaugeConstructorOptions) {
             if (options) {
@@ -436,7 +436,7 @@ module powerbi.visuals {
 
             if (dataView) {
                 if (gaugeData.tooltipItems.length > 0) {
-                    tooltipInfo = TooltipBuilder.createTooltipInfo(Gauge.formatStringProp, null, null, null, null, gaugeData.tooltipItems, null, null);
+                    tooltipInfo = TooltipBuilder.createTooltipInfo(Gauge.formatStringProp, null, null, null, null, gaugeData.tooltipItems);
                 }
                 else {
                     var dataViewCat = dataView.categorical;
@@ -445,7 +445,7 @@ module powerbi.visuals {
                         var categoryValue: DataViewValueColumn = dataViewCat.values[0];
                         var value = categoryValue.values[0];
 
-                        tooltipInfo = TooltipBuilder.createTooltipInfo(Gauge.formatStringProp, null, null, dataViewCat.values, value, null, null, null);
+                        tooltipInfo = TooltipBuilder.createTooltipInfo(Gauge.formatStringProp, dataViewCat, null, value);
                     }
                 }
             }

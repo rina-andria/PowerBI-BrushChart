@@ -741,6 +741,14 @@ module powerbitests {
             this.y2AxisProperties = this.buildAxisOptions([2000, 3000, 5000]);
         }
 
+        public getFontSize(): number {
+            return parseInt(this.textProperties.fontSize, 10);
+        }
+
+        public setXValues(values: any[]) {
+            this.xAxisProperties.values = values;
+        }
+
         public buildAxisOptions(values: any[]): powerbi.visuals.IAxisProperties {
             var axisProperties: powerbi.visuals.IAxisProperties = {
                 scale: undefined,
@@ -758,18 +766,22 @@ module powerbitests {
 
         public buildTickLabelMargins(
             rotateX: boolean = false,
+            wordBreak: boolean = false,
             showOnRight: boolean = false,
             renderXAxis: boolean = false,
             renderYAxes: boolean = false,
             renderY2Axis: boolean = false) {
 
+            this.xAxisProperties.willLabelsFit = !rotateX;
+            this.xAxisProperties.willLabelsWordBreak = wordBreak;
+
             var tickCount = AxisHelper.getTickLabelMargins(
                 this.viewPort,
                 20,
                 powerbi.TextMeasurementService.measureSvgTextWidth,
+                powerbi.TextMeasurementService.measureSvgTextHeight,
                 this.xAxisProperties,
                 this.y1AxisProperties,
-                rotateX,
                 77,
                 this.textProperties,
                 this.y2AxisProperties,
@@ -788,11 +800,13 @@ module powerbitests {
             new AxisHelperTickLabelBuilder();
 
         it("Check that margins are calculatde correctly when you render 2 axes", () => {
-            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, false, true, true, true);
+            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, false, false, true, true, true);
 
             expect(tickCount.xMax).toBe(7);
-            expect(tickCount.yLeft).toBe(12);
-            expect(tickCount.yRight).toBe(24);
+            // 11 for Mac OS and 12 for Windows
+            expect(powerbitests.helpers.isInRange(tickCount.yLeft, 11, 12)).toBe(true);
+            // 22 for Mac OS and 24 for Windows
+            expect(powerbitests.helpers.isInRange(tickCount.yRight, 22, 24)).toBe(true);
         });
 
         it("Check that margins are calculated correctly when you hide all axes", () => {
@@ -804,19 +818,29 @@ module powerbitests {
         });
 
         it("Disable the secondary axis", () => {
-            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, false, true, true, false);
+            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, false, false, true, true, false);
 
             expect(tickCount.xMax).toBe(7);
-            expect(tickCount.yLeft).toBe(12);
+            // 11 for Mac OS and 12 for Windows
+            expect(powerbitests.helpers.isInRange(tickCount.yLeft, 11, 12)).toBe(true);
             expect(tickCount.yRight).toBe(0);
         });
 
         it("Switch the y-axes, and disable the secondary axis", () => {
-            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, true, true, true, false);
+            var tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, false, true, true, true, false);
 
             expect(tickCount.xMax).toBe(7);
             expect(tickCount.yLeft).toBe(0);
-            expect(tickCount.yRight).toBe(12);
+            // 11 for Mac OS and 12 for Windows
+            expect(powerbitests.helpers.isInRange(tickCount.yRight, 11, 12)).toBe(true);
+        });
+
+        it('Check xMax margin for word breaking is based on number of text lines shown', () => {
+            axisHelperTickLabelBuilder.setXValues(['IPO', '83742 (Jun-15) %', 'Q4']);
+            let tickCount = axisHelperTickLabelBuilder.buildTickLabelMargins(true, true, true, true, true, false);
+
+            let xMaxLineHeight = tickCount.xMax >= 3 * axisHelperTickLabelBuilder.getFontSize();
+            expect(xMaxLineHeight).toBeTruthy();
         });
     });
 

@@ -43,7 +43,7 @@ module powerbi.visuals {
             propertyName: 'formatString',
         };
 
-        protected animator: IAnimator;
+        protected animator: IGenericAnimator;
 
         private name: string;
 
@@ -125,7 +125,8 @@ module powerbi.visuals {
             displayUnitSystemType: DisplayUnitSystemType,
             animationOptions: AnimationOptions,
             duration: number,
-            forceUpdate: boolean): void {
+            forceUpdate: boolean,
+            formatter?: IValueFormatter): void {
             if (!forceUpdate && startValue === endValue && endValue != null)
                 return;
 
@@ -140,7 +141,10 @@ module powerbi.visuals {
                 seedFontHeight = this.getSeedFontHeight(width, height),
                 translateX = this.getTranslateX(width),
                 translateY = this.getTranslateY(seedFontHeight),
-                metaDataColumn = this.metaDataColumn,
+                metaDataColumn = this.metaDataColumn;
+
+            // Respect the formatter default value
+            if (!formatter) {
                 formatter = valueFormatter.create({
                     format: this.getFormatString(metaDataColumn),
                     value: endValue,
@@ -148,8 +152,9 @@ module powerbi.visuals {
                     formatSingleValues: true,
                     allowFormatBeautification: true,
                     columnType: metaDataColumn ? metaDataColumn.type : undefined
-                }),
-                startText = formatter.format(startValue),
+                });
+            }
+            var startText = formatter.format(startValue),
                 endText = formatter.format(endValue);
 
             svg.attr('class', this.name);
@@ -164,7 +169,7 @@ module powerbi.visuals {
                 .attr('class', this.mainText.class);
 
             var fontHeight = this.getAdjustedFontHeight(width, endText, seedFontHeight);
-            translateY = this.getTranslateY(fontHeight + (height - fontHeight) / 2);  
+            translateY = this.getTranslateY(fontHeight + (height - fontHeight) / 2);
 
             var textElementUpdate = textElement
                 .text(startText)
@@ -179,7 +184,7 @@ module powerbi.visuals {
             }
             else if (metaDataColumn && AxisHelper.isDateTime(metaDataColumn.type)) {
                 textElementUpdate.text(endText);
-            }            
+            }
             else {
                 var interpolatedValue = startValue;
                 textElementUpdate

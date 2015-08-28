@@ -42,9 +42,9 @@ module powerbi.visuals {
         highlightShapes: D3.UpdateSelection;
     }
 
-    export type IDonutChartAnimator = Animator<IAnimatorOptions, DonutChartAnimationOptions, DonutChartAnimationResult>;
+    export type IDonutChartAnimator = IAnimator<IAnimatorOptions, DonutChartAnimationOptions, DonutChartAnimationResult>;
 
-    export class WebDonutChartAnimator extends Animator<IAnimatorOptions, DonutChartAnimationOptions, DonutChartAnimationResult> implements IDonutChartAnimator {
+    export class WebDonutChartAnimator extends BaseAnimator<IAnimatorOptions, DonutChartAnimationOptions, DonutChartAnimationResult> implements IDonutChartAnimator {
         private previousViewModel: DonutData;
 
         constructor(options?: IAnimatorOptions) {

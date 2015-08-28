@@ -356,6 +356,9 @@ module powerbi.visuals {
 
                     var text = textRunDef.value;
 
+                    if (textRunDef.url)
+                        formats.link = textRunDef.url;
+
                     var op: quill.InsertOp = {
                         insert: text,
                         attributes: formats,
@@ -584,16 +587,23 @@ module powerbi.visuals {
                 var text = this.editor.getText();
                 var urlRegex = /http[s]?:\/\/(\S)+/gi;
 
-                // Remove existing links, then find and format all urls in the text.
+                // Find and format all urls in the text
                 // TODO: This can be a bit expensive, maybe include a cap here for text with many urls?
-                this.editor.formatText(0, text.length, 'link', false, 'api');
                 var matches;
                 while ((matches = urlRegex.exec(text)) !== null) {
                     var url = matches[0];
                     var start = matches.index;
                     var end = urlRegex.lastIndex;
+
+                    // Remove existing link
+                    this.editor.formatText(start, end, 'link', false, 'api');
+
+                    // Format as link
                     this.editor.formatText(start, end, 'link', url, 'api');
                 }
+
+                // Force link tooltip to update on URL change
+                this.editor.emit(Quill.events.SELECTION_CHANGE, this.getSelection(), 'api');
             }
 
             public setSelection(start: number, end: number): void {
@@ -656,8 +666,7 @@ module powerbi.visuals {
                 if (!this.readOnly) {
                     var $toolbarDiv = this.$toolbarDiv;
                     if (!$toolbarDiv) {
-                        var toolbar = new Toolbar.Toolbar(this.editor, this.localizationProvider);
-                        this.$toolbarDiv = $toolbarDiv = toolbar.$container;
+                        this.$toolbarDiv = $toolbarDiv = Toolbar.buildToolbar(this.editor, this.localizationProvider);
                     }
 
                     $toolbarDiv.addClass('unselectable');
@@ -734,6 +743,59 @@ module powerbi.visuals {
         }
 
         module Toolbar {
+            let createSelector = (className: string): ClassAndSelector => {
+                return {
+                    class: className,
+                    selector: '.' + className,
+                };
+            };
+
+            export let selectors = {
+                linkTooltip: createSelector('ql-link-tooltip'),
+                toolbarUrlInput: createSelector('toolbar-url-input'),
+            };
+
+            export function buildToolbar(editor: quill.Quill, localizationProvider: jsCommon.IStringResourceProvider) {
+                // Module for adding custom hyperlinks
+                var linkTooltipTemplate = buildToolbarLinkInputTemplate(localizationProvider);
+                editor.addModule('link-tooltip', { template: linkTooltipTemplate });
+
+                var toolbarLinkInput: JQuery = buildToolbarLinkInput(editor, getTooltip('Link', localizationProvider), localizationProvider.get('RichTextbox_Link_DefaultText'));
+
+                var fontPicker = picker(getTooltip('Font', localizationProvider), fonts, 'font', defaultFont,
+                    // Show the fonts in their own font face.
+                    ($option, option) => { $option.css('font-family', option.value); return $option; }
+                    );
+
+                let $container = div()
+                    .addClass('toolbar ql-toolbar')
+                    .append(
+                        formatGroup()
+                            .append(label(localizationProvider.get('RichTextbox_Font_Label')))
+                            .append(fontPicker)
+                            .append(picker(getTooltip('Size', localizationProvider), fontSizes, 'size', defaultFontSize))
+                        )
+                    .append(
+                        formatGroup()
+                            .append(formatButton(getTooltip('Bold', localizationProvider), 'bold'))
+                            .append(formatButton(getTooltip('Italic', localizationProvider), 'italic'))
+                            .append(formatButton(getTooltip('Underline', localizationProvider), 'underline'))
+                        )
+                    .append(
+                        formatGroup()
+                            .append(toggleGroup('Text Alignment', textAlignments, 'align', 'Left', localizationProvider))
+                        )
+                    .append(toolbarLinkInput);
+
+                // Prevent mousedown from triggering subsequent blur on editor
+                $container.on('mousedown', (event) => {
+                    var target = <HTMLElement>(event.target || document.activeElement);
+                    if (target.tagName !== 'INPUT' && target.tagName !== 'SELECT')
+                        event.preventDefault();
+                });
+
+                return $container;
+            }
 
             export function setSelectValue($select: JQuery, value: any): void {
                 $select.val(value);
@@ -743,6 +805,27 @@ module powerbi.visuals {
                 var evt = document.createEvent('UIEvent');
                 evt.initUIEvent('change', false, false, null, 0);
                 $select.get(0).dispatchEvent(evt);
+            }
+
+            function linkTooltipTemplateGenerator(removeText: string, doneText: string): JQuery {
+                return $(`
+                        <a href="#" class="url" target="_blank" href="about:blank"></a>
+                        <input class="input" type="text">
+                        <span class="bar">&nbsp;|&nbsp;</span>
+                        <a href="javascript:;" class="change"></a>
+                        <a href="javascript:;" class="remove">${removeText}</a>
+                        <a href="javascript:;" class="done">${doneText}</a>
+                    `);
+            };
+
+            function buildToolbarLinkInputTemplate(localizationProvider: jsCommon.IStringResourceProvider): string {
+                let template: JQuery = div();
+                let doneText = localizationProvider.get('RichTextbox_Link_Done');
+                let removeText = localizationProvider.get('RichTextbox_Link_Remove');
+
+                template.append(linkTooltipTemplateGenerator(removeText, doneText));
+
+                return template.html();
             }
 
             function formatGroup(): JQuery {
@@ -763,122 +846,131 @@ module powerbi.visuals {
                 return $('<span>');
             }
 
-            export class Toolbar {
-                private localizationProvider: jsCommon.IStringResourceProvider;
+            function toggleGroup(title: string, list: ListValueOption[], format: string, defaultValue: string, localizationProvider: jsCommon.IStringResourceProvider): JQuery {
+                var tooltip = getTooltip(title, localizationProvider);
+                var $group = span()
+                    .attr('title', tooltip)
+                    .addClass('ql-toggle-group');
 
-                public $container: JQuery;
+                // Hidden selector that Quill will use to hook up change listeners.
+                var $select = selector(tooltip, list, defaultValue)
+                    .addClass('ql-picker ql-' + format)
+                    .css('display', 'none');
 
-                constructor(editor: quill.Quill, localizationProvider: jsCommon.IStringResourceProvider) {
-                    this.localizationProvider = localizationProvider;
+                var $buttons = list.map((option) => {
+                    var $button = formatButton(getTooltip(option.label, localizationProvider))
+                        .attr('data-value', option.value)
+                        .click((e) => setSelectValue($select, option.value));
+                    return $button;
+                });
 
-                    var fontPicker = this.picker('Font', fonts, 'font', defaultFont,
-                        // Show the fonts in their own font face.
-                        ($option, option) => { $option.css('font-family', option.value); return $option; }
-                        );
+                // Quill will change the value of the selector when the text selection changes, so we need to set the state of the buttons to match.
+                $select.change((e) => {
+                    var newValue = $select.val();
+                    for (var i = 0; i < $buttons.length; i++) {
+                        $buttons[i].toggleClass('ql-active', $buttons[i].attr('data-value') === newValue);
+                    }
+                });
 
-                    this.$container = div()
-                        .addClass('toolbar ql-toolbar')
-                        .append(
-                            formatGroup()
-                                .append(label(localizationProvider.get('RichTextbox_Font_Label')))
-                                .append(fontPicker)
-                                .append(this.picker('Size', fontSizes, 'size', defaultFontSize))
-                            )
-                        .append(
-                            formatGroup()
-                                .append(this.formatButton(this.getLocalizationString('Bold'), 'bold'))
-                                .append(this.formatButton(this.getLocalizationString('Italic'), 'italic'))
-                                .append(this.formatButton(this.getLocalizationString('Underline'), 'underline'))
-                            )
-                        .append(
-                            formatGroup()
-                                .append(this.toggleGroup('Text Alignment', textAlignments, 'align', 'Left'))
-                            );
+                $group.append($select);
+                $group.append($buttons);
 
-                    // Prevent mousedown from triggering subsequent blur on editor
-                    this.$container.on('mousedown', (event) => {
-                        var target = <HTMLElement>(event.target || document.activeElement);
-                        if (target.tagName !== 'SELECT')
-                            event.preventDefault();
-                    });
+                return $group;
+            }
+
+            function picker(tooltip: string, list: ListValueOption[], format: string, defaultValue: string, optionModifier?: (JQuery, ListValueOption) => JQuery): JQuery {
+                var $selector = selector(tooltip, list, defaultValue, optionModifier)
+                    .addClass('ql-picker ql-' + format);
+
+                return $selector;
+            }
+
+            function selector(tooltip: string, list: ListValueOption[], defaultValue?: string, optionModifier?: (JQuery, ListValueOption) => JQuery): JQuery {
+                var $selector = $('<select>')
+                    .attr('title', tooltip);
+
+                for (var i = 0; i < list.length; i++) {
+                    var option = list[i];
+                    var $option = $('<option>')
+                        .attr('value', option.value)
+                        .text(option.label);
+
+                    if (option.value === defaultValue)
+                        $option.attr('selected', 'selected');
+
+                    if (optionModifier !== undefined)
+                        $option = optionModifier($option, option);
+
+                    $selector.append($option);
                 }
 
-                private toggleGroup(title: string, list: ListValueOption[], format: string, defaultValue: string): JQuery {
-                    var $group = span()
-                        .attr('localize-tooltip', this.getLocalizationString(title))
-                        .addClass('ql-toggle-group');
+                return $selector;
+            }
 
-                    // Hidden selector that Quill will use to hook up change listeners.
-                    var $select = this.selector(title, list, defaultValue)
-                        .addClass('ql-picker ql-' + format)
-                        .css('display', 'none');
+            function formatButton(tooltip?: string, format?: string) {
+                let $button = span()
+                    .addClass('ql-format-button');
 
-                    var $buttons = list.map((option) => {
-                        var $button = this.formatButton(this.getLocalizationString(option.label))
-                            .attr('data-value', option.value)
-                            .click((e) => setSelectValue($select, option.value));
-                        return $button;
-                    });
+                if (tooltip != null)
+                    $button.attr('title', tooltip);
 
-                    // Quill will change the value of the selector when the text selection changes, so we need to set the state of the buttons to match.
-                    $select.change((e) => {
-                        var newValue = $select.val();
-                        for (var i = 0; i < $buttons.length; i++) {
-                            $buttons[i].toggleClass('ql-active', $buttons[i].attr('data-value') === newValue);
+                if (format != null)
+                    $button.addClass('ql-' + format);
+
+                return $button;
+            }
+
+            function getTooltip(name: string, localizationProvider: jsCommon.IStringResourceProvider): string {
+                return localizationProvider.get('RichTextbox_' + name + '_ToolTip');
+            }
+
+            function buildToolbarLinkInput(editor: quill.Quill, buttonTooltip: string, defaultLinkText: string): JQuery {
+                // Pull out link tooltip
+                let linkTooltip = $(editor.container).find(Toolbar.selectors.linkTooltip.selector);
+
+                // Append link tooltip to a new toolbar format group
+                let toolbarLinkInput: JQuery = formatGroup()
+                    .addClass(Toolbar.selectors.toolbarUrlInput.class)
+                    .append(formatButton(buttonTooltip, 'link').append('<div>'))
+                    .append(linkTooltip);
+
+                // Remove editing class when we blur input field unless we are clicking 'Done'
+                toolbarLinkInput.find('.input').blur((event: JQueryEventObject) => {
+                    let blurTarget = event.relatedTarget;
+                    if (blurTarget && !blurTarget.classList.contains('done'))
+                        linkTooltip.removeClass('editing');
+                });
+
+                toolbarLinkInput.find('.ql-link div')
+                // Handle click on button before Quill removes link (default behavior)
+                    .click((event: JQueryEventObject) => {
+                        let target = (<HTMLElement>event.target).parentElement;
+                        if (target && target.classList.contains('ql-active')) {
+                            toolbarLinkInput.find('.change')[0].click();
+                            return false;
+                        }
+                    })
+                // Properly set selection before we handle the click
+                    .mousedown((event: JQueryEventObject) => {
+                        let linkButton = (<HTMLElement>event.target).parentElement;
+                        if (linkButton && !linkButton.classList.contains('ql-active')) {
+                            // Adding a new link, check for word breaking
+                            let text = editor.getText().slice(0, -1);
+                            if (text.length === 0) {
+                                let linkText = defaultLinkText;
+                                editor.setText(linkText, 'api');
+                                text = linkText;
+                            }
+
+                            let selection = editor.getSelection();
+                            if (selection && selection.start === selection.end) {
+                                let result = jsCommon.WordBreaker.find(selection.start, text);
+                                editor.setSelection(result.start, result.end);
+                            }
                         }
                     });
 
-                    $group.append($select);
-                    $group.append($buttons);
-
-                    return $group;
-                }
-
-                private picker(title: string, list: ListValueOption[], format: string, defaultValue: string, optionModifier?: (JQuery, ListValueOption) => JQuery): JQuery {
-                    var $selector = this.selector(title, list, defaultValue, optionModifier)
-                        .addClass('ql-picker ql-' + format);
-
-                    return $selector;
-                }
-
-                private selector(title: string, list: ListValueOption[], defaultValue?: string, optionModifier?: (JQuery, ListValueOption) => JQuery): JQuery {
-                    var $selector = $('<select>')
-                        .attr('localize-tooltip', this.getLocalizationString(title));
-
-                    for (var i = 0; i < list.length; i++) {
-                        var option = list[i];
-                        var $option = $('<option>')
-                            .attr('value', option.value)
-                            .text(option.label);
-
-                        if (option.value === defaultValue)
-                            $option.attr('selected', 'selected');
-
-                        if (optionModifier !== undefined)
-                            $option = optionModifier($option, option);
-
-                        $selector.append($option);
-                    }
-
-                    return $selector;
-                }
-
-                private formatButton(tooltip?: string, format?: string) {
-                    var $button = span()
-                        .addClass('ql-format-button');
-
-                    if (tooltip != null)
-                        $button.attr('localize-tooltip', tooltip);
-
-                    if (format != null)
-                        $button.addClass('ql-' + format);
-
-                    return $button;
-                }
-
-                private getLocalizationString(title: string): string {
-                    return 'RichTextbox_' + title + '_ToolTip';
-                }
+                return toolbarLinkInput;
             }
         }
     }

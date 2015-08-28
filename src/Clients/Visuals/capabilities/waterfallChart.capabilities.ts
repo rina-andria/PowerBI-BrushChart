@@ -167,6 +167,9 @@ module powerbi.visuals {
                 },
             },
         }],
+        drilldown: {
+            roles: ['Category']
+        },
     };
 
     export var waterfallChartProps = {

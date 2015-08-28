@@ -78,7 +78,7 @@ module powerbi.visuals {
     export interface CartesianConstructorOptions {
         chartType: CartesianChartType;
         isScrollable?: boolean;
-        animator?: IAnimator;
+        animator?: IGenericAnimator;
         cartesianSmallViewPortProperties?: CartesianSmallViewPortProperties;
     }
 
@@ -96,6 +96,12 @@ module powerbi.visuals {
         getSupportedCategoryAxisType?(): string;
         getPreferredPlotArea?(isScalar: boolean, categoryCount: number, categoryThickness: number): IViewport;
         setFilteredData?(startIndex: number, endIndex: number): CartesianData;
+    }
+
+    export interface CartesianVisualConstructorOptions {
+        isScrollable: boolean;
+        interactivityService?: IInteractivityService;
+        animator?: IGenericAnimator;
     }
 
     export interface CartesianDataPoint {
@@ -184,6 +190,10 @@ module powerbi.visuals {
         private static TickPaddingRotatedX = 5;
         private static FontSize = 11;
         private static FontSizeString = SVGUtil.convertToPixelString(CartesianChart.FontSize);
+        private static TextProperties: TextProperties = {
+            fontFamily: 'wf_segoe-ui_normal',
+            fontSize: CartesianChart.FontSizeString,
+        };
 
         private axisGraphicsContext: D3.Selection;
         private xAxisGraphicsContext: D3.Selection;
@@ -215,10 +225,9 @@ module powerbi.visuals {
         private yAxisOrientation: string;
         private bottomMarginLimit: number;
         private leftMarginLimit: number;
-        private needRotate: boolean;
         private sharedColorPalette: SharedColorPalette;
 
-        public animator: IAnimator;
+        public animator: IGenericAnimator;
 
         // Scrollbar related
         private isScrollable: boolean;
@@ -349,7 +358,7 @@ module powerbi.visuals {
                 this.isScrollable);
         }
 
-        private renderAxesLabels(axisLabels: ChartAxesLabels, legendMargin: number, viewport: IViewport, hideXAxisTitle: boolean, hideYAxisTitle: boolean, hideY2AxisTitle?: boolean): void {
+        private renderAxesLabels(axisLabels: ChartAxesLabels, legendMargin: number, viewport: IViewport, hideXAxisTitle: boolean, hideYAxisTitle: boolean, hideY2AxisTitle: boolean): void {
             this.axisGraphicsContext.selectAll('.xAxisLabel').remove();
             this.axisGraphicsContext.selectAll('.yAxisLabel').remove();
 
@@ -537,14 +546,13 @@ module powerbi.visuals {
 
             if (!dataViews) return;
 
-            var layers = this.layers;
-
-            if (layers.length === 0) {
+            if (this.layers.length === 0) {
                 // Lazily instantiate the chart layers on the first data load.
-                this.createAndInitLayers(dataViews);
+                this.layers = this.createAndInitLayers(dataViews);
 
-                debug.assert(layers.length > 0, 'createAndInitLayers should update the layers.');
+                debug.assert(this.layers.length > 0, 'createAndInitLayers should update the layers.');
             }
+            var layers = this.layers;
 
             if (dataViews && dataViews.length > 0) {
                 var warnings = getInvalidValueWarnings(
@@ -849,7 +857,7 @@ module powerbi.visuals {
             }
         }
 
-        private createAndInitLayers(dataViews: DataView[]): void {
+        private createAndInitLayers(dataViews: DataView[]): ICartesianVisual[] {
             var objects: DataViewObjects;
             if (dataViews && dataViews.length > 0) {
                 var dataViewMetadata = dataViews[0].metadata;
@@ -858,8 +866,7 @@ module powerbi.visuals {
             }
 
             // Create the layers
-            var layers = this.layers;
-            createLayers(layers, this.type, objects, this.interactivityService, this.animator, this.isScrollable);
+            var layers = CartesianLayerFactory.createLayers(this.type, objects, this.interactivityService, this.animator, this.isScrollable);
 
             // Initialize the layers
             var cartesianOptions = <CartesianVisualInitOptions>Prototype.inherit(this.visualInitOptions);
@@ -871,6 +878,8 @@ module powerbi.visuals {
 
             for (var i = 0, len = layers.length; i < len; i++)
                 layers[i].init(cartesianOptions);
+
+            return layers;
         }
 
         private renderLegend(): void {
@@ -919,7 +928,7 @@ module powerbi.visuals {
         }
 
         private addUnitTypeToAxisLabel(axes: CartesianAxisProperties): void {
-            var unitType = axes.x.formatter && axes.x.formatter.displayUnit ? axes.x.formatter.displayUnit.title : null;
+            var unitType = CartesianChart.getUnitType(axes, (axis: CartesianAxisProperties): IAxisProperties => axis.x);
             if (axes.x.isCategoryAxis) {
                 this.categoryAxisHasUnitType = unitType !== null;
             }
@@ -936,7 +945,7 @@ module powerbi.visuals {
                 }
             }
 
-            unitType = axes.y1.formatter && axes.y1.formatter.displayUnit ? axes.y1.formatter.displayUnit.title : null;
+            var unitType = CartesianChart.getUnitType(axes, (axis: CartesianAxisProperties): IAxisProperties => axis.y1);
 
             if (!axes.y1.isCategoryAxis) {
                 this.valueAxisHasUnitType = unitType !== null;
@@ -955,7 +964,7 @@ module powerbi.visuals {
             }
 
             if (axes.y2) {
-                unitType = axes.y2.formatter && axes.y2.formatter.displayUnit ? axes.y2.formatter.displayUnit.title : null;
+                var unitType = CartesianChart.getUnitType(axes, (axis: CartesianAxisProperties): IAxisProperties => axis.y2);
                 this.secValueAxisHasUnitType = unitType !== null;
                 if (axes.y2.axisLabel && unitType) {
                     if (this.valueAxisProperties && this.valueAxisProperties['secAxisStyle']) {
@@ -1011,7 +1020,7 @@ module powerbi.visuals {
             margin.bottom = bottomMarginLimit;
             margin.right = 0;
 
-            var axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties);
+            var axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
 
             this.y2AxisExists = axes.y2 != null;
             this.yAxisIsCategorical = axes.y1.isCategoryAxis;
@@ -1022,12 +1031,6 @@ module powerbi.visuals {
             var renderY2Axis = this.shouldRenderSecondaryAxis(axes.y2);
 
             var width = viewport.width - (margin.left + margin.right);
-
-            var properties: TextProperties = {
-                fontFamily: 'wf_segoe-ui_normal',
-                fontSize: CartesianChart.FontSizeString,
-            };
-
             var isScalar = false;
             var mainAxisScale;
             var preferredViewport: IViewport;
@@ -1058,27 +1061,25 @@ module powerbi.visuals {
                 }
             }
 
-            var needRotate = this.needRotate = AxisHelper.LabelLayoutStrategy.willRotate(
-                axes.x,
-                width,
-                TextMeasurementService.measureSvgTextWidth,
-                properties);
+            // Recalculate axes now that scrollbar visible variables have been set
+            axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
 
+            // Calculate margins with axis properties
             var margins = AxisHelper.getTickLabelMargins(
                 { width: width, height: viewport.height },
                 leftMarginLimit,
                 TextMeasurementService.measureSvgTextWidth,
+                TextMeasurementService.estimateSvgTextHeight,
                 axes.x,
                 axes.y1,
-                needRotate,
                 bottomMarginLimit,
-                properties,
+                CartesianChart.TextProperties,
                 axes.y2,
                 this.isXScrollBarVisible || this.isYScrollBarVisible,
                 showOnRight,
                 renderXAxis,
                 renderYAxes,
-                renderY2Axis);            
+                renderY2Axis);
 
             // We look at the y axes as main and second sides, if the y axis orientation is right so the main side is represents the right side
             var maxMainYaxisSide = showOnRight ? margins.yRight : margins.yLeft,
@@ -1119,7 +1120,7 @@ module powerbi.visuals {
                 margin.right = showOnRight ? maxMainYaxisSide : maxSecondYaxisSide;
                 margin.bottom = xMax;
                 this.margin = margin;
-                axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties);
+                axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
                 width = viewport.width - (margin.left + margin.right);
             }
 
@@ -1262,6 +1263,14 @@ module powerbi.visuals {
             CartesianChart.clampBrushExtent(this.brush, scrollSpaceLength, minExtent);
         }
 
+        private static getUnitType(axis: CartesianAxisProperties, axisPropertiesLookup: (axis: CartesianAxisProperties) => IAxisProperties) {
+            if (axisPropertiesLookup(axis).formatter &&
+                axisPropertiesLookup(axis).formatter.displayUnit &&
+                axisPropertiesLookup(axis).formatter.displayUnit.value > 1)
+                return axisPropertiesLookup(axis).formatter.displayUnit.title;
+            return null;
+        }
+
         private static clampBrushExtent(brush: D3.Svg.Brush, viewportWidth: number, minExtent: number): void {
             var extent = brush.extent();
             var width = extent[1] - extent[0];
@@ -1312,7 +1321,6 @@ module powerbi.visuals {
 
             var bottomMarginLimit = this.bottomMarginLimit;
             var leftMarginLimit = this.leftMarginLimit;
-            var needRotate = this.needRotate;
             var layers = this.layers;
             var duration = AnimatorCommon.GetAnimationDuration(this.animator, suppressAnimations);
 
@@ -1364,7 +1372,7 @@ module powerbi.visuals {
             //hide show x-axis here
             if (this.shouldRenderAxis(axes.x)) {
                 axes.x.axis.orient("bottom");
-                if (needRotate)
+                if (!axes.x.willLabelsFit)
                     axes.x.axis.tickPadding(CartesianChart.TickPaddingRotatedX);
 
                 var xAxisGraphicsElement = this.xAxisGraphicsContext;
@@ -1381,16 +1389,21 @@ module powerbi.visuals {
                         .call(CartesianChart.darkenZeroLine);
                 }
 
-                xAxisGraphicsElement.selectAll('text')
-                    .call(AxisHelper.LabelLayoutStrategy.rotate,
-                        width,
-                        bottomMarginLimit,
-                        TextMeasurementService.svgEllipsis,
-                        needRotate,
-                        bottomMarginLimit === margins.xMax,
-                        axes.x,
-                        this.margin,
-                        this.isXScrollBarVisible || this.isYScrollBarVisible);
+                let xAxisTextNodes = xAxisGraphicsElement.selectAll('text');
+                if (axes.x.willLabelsWordBreak) {
+                    xAxisTextNodes
+                        .call(AxisHelper.LabelLayoutStrategy.wordBreak, axes.x, bottomMarginLimit);
+                } else {
+                    xAxisTextNodes
+                        .call(AxisHelper.LabelLayoutStrategy.rotate,
+                            bottomMarginLimit,
+                            TextMeasurementService.svgEllipsis,
+                            !axes.x.willLabelsFit,
+                            bottomMarginLimit === margins.xMax,
+                            axes.x,
+                            this.margin,
+                            this.isXScrollBarVisible || this.isYScrollBarVisible);
+                }
             }
             else {
                 this.xAxisGraphicsContext.selectAll('*').remove();
@@ -1605,161 +1618,6 @@ module powerbi.visuals {
         }
     }
 
-    function createLayers(
-        layers: ICartesianVisual[],
-        type: CartesianChartType,
-        objects: DataViewObjects,
-        interactivityService: IInteractivityService,
-        animator?: any,
-        isScrollable: boolean = false): void {
-        debug.assertValue(layers, 'layers');
-        debug.assert(layers.length === 0, 'layers.length === 0');
-
-        switch (type) {
-            case CartesianChartType.Area:
-                layers.push(new LineChart({
-                    chartType: LineChartType.area,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService,
-                    animator: animator,
-                }));
-                return;
-            case CartesianChartType.Line:
-                layers.push(new LineChart({
-                    chartType: LineChartType.default,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService,
-                    animator: animator,
-                }));
-                return;
-            case CartesianChartType.StackedColumn:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.stackedColumn,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                return;
-            case CartesianChartType.ClusteredColumn:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.clusteredColumn,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                return;
-            case CartesianChartType.HundredPercentStackedColumn:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.hundredPercentStackedColumn,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                return;
-            case CartesianChartType.StackedBar:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.stackedBar,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                return;
-            case CartesianChartType.ClusteredBar:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.clusteredBar,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                return;
-            case CartesianChartType.HundredPercentStackedBar:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.hundredPercentStackedBar,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                return;
-            case CartesianChartType.Scatter:
-                layers.push(new ScatterChart({ interactivityService: interactivityService, animator: animator }));
-                return;
-            case CartesianChartType.Waterfall:
-                layers.push(new WaterfallChart({ isScrollable: isScrollable, interactivityService: interactivityService }));
-                return;
-            case CartesianChartType.ComboChart:
-                // This support existing serialization of pinned combo-chart visuals
-                var columnType: ColumnChartType = ColumnChartType.clusteredColumn;
-                if (objects) {
-                    var comboChartTypes: ComboChartDataViewObject = (<ComboChartDataViewObjects>objects).general;
-                    if (comboChartTypes) {
-                        switch (comboChartTypes.visualType1) {
-                            case 'Column':
-                                columnType = ColumnChartType.clusteredColumn;
-                                break;
-                            case 'ColumnStacked':
-                                columnType = ColumnChartType.stackedColumn;
-                                break;
-                            default:
-                                debug.assertFail('Unsupported cartesian chart type ' + comboChartTypes.visualType1);
-                        }
-
-                        // second visual is always LineChart (for now)
-                        if (comboChartTypes.visualType2) {
-                            debug.assert(comboChartTypes.visualType2 === 'Line', 'expecting a LineChart for VisualType2');
-                        }
-                    }
-                }
-
-                layers.push(new ColumnChart({
-                    chartType: columnType,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                layers.push(new LineChart({ chartType: (LineChartType.default | LineChartType.lineShadow), isScrollable: isScrollable, interactivityService: interactivityService, animator: animator }));
-                return;
-            case CartesianChartType.DataDot:
-                layers.push(new DataDotChart({ isScrollable: isScrollable, interactivityService: interactivityService }));
-                return;
-            case CartesianChartType.LineClusteredColumnCombo:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.clusteredColumn,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                layers.push(new LineChart({ chartType: (LineChartType.default | LineChartType.lineShadow), isScrollable: isScrollable, interactivityService: interactivityService, animator: animator }));
-                return;
-            case CartesianChartType.LineStackedColumnCombo:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.stackedColumn,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                layers.push(new LineChart({ chartType: (LineChartType.default | LineChartType.lineShadow), isScrollable: isScrollable, interactivityService: interactivityService, animator: animator }));
-                return;
-            case CartesianChartType.DataDotClusteredColumnCombo:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.clusteredColumn,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                layers.push(new DataDotChart({ isScrollable: isScrollable, interactivityService: interactivityService }));
-                return;
-            case CartesianChartType.DataDotStackedColumnCombo:
-                layers.push(new ColumnChart({
-                    chartType: ColumnChartType.stackedColumn,
-                    animator: <IColumnChartAnimator>animator,
-                    isScrollable: isScrollable,
-                    interactivityService: interactivityService
-                }));
-                layers.push(new DataDotChart({ isScrollable: isScrollable, interactivityService: interactivityService }));
-                return;
-        }
-    }
-
     function getLayerData(dataViews: DataView[], currentIdx: number, totalLayers: number): DataView[] {
         if (totalLayers > 1) {
             if (dataViews && dataViews.length > currentIdx)
@@ -1866,7 +1724,9 @@ module powerbi.visuals {
         viewport: IViewport,
         margin: IMargin,
         categoryAxisProperties: DataViewObject,
-        valueAxisProperties: DataViewObject): CartesianAxisProperties {
+        valueAxisProperties: DataViewObject,
+        textProperties: TextProperties,
+        scrollbarVisible: boolean): CartesianAxisProperties {
         debug.assertValue(layers, 'layers');
 
         var visualOptions: CalculateScaleAndDomainOptions = {
@@ -1940,9 +1800,166 @@ module powerbi.visuals {
                         result.y2 = axes[1];
                 }
             }
+
+            var width = viewport.width - (margin.left + margin.right);
+            result.x.willLabelsFit = AxisHelper.LabelLayoutStrategy.willLabelsFit(
+                result.x,
+                width,
+                TextMeasurementService.measureSvgTextWidth,
+                textProperties);
+
+            // If labels do not fit and we are not scrolling, try word breaking
+            result.x.willLabelsWordBreak = (!result.x.willLabelsFit && !scrollbarVisible) && AxisHelper.LabelLayoutStrategy.willLabelsWordBreak(
+                result.x,
+                width,
+                TextMeasurementService.measureSvgTextWidth,
+                textProperties);
         }
 
         return result;
+    }
+
+    module CartesianLayerFactory {
+
+        export function createLayers(
+            type: CartesianChartType,
+            objects: DataViewObjects,
+            interactivityService: IInteractivityService,
+            animator?: any,
+            isScrollable: boolean = false): ICartesianVisual[] {
+
+            let layers: ICartesianVisual[] = [];
+
+            let cartesianOptions: CartesianVisualConstructorOptions = {
+                isScrollable: isScrollable,
+                animator: animator,
+                interactivityService: interactivityService,
+            };
+
+            switch (type) {
+                case CartesianChartType.Area:
+                    layers.push(createLineChartLayer(LineChartType.area, /* inComboChart */ false, cartesianOptions));
+                    break;
+                case CartesianChartType.Line:
+                    layers.push(createLineChartLayer(LineChartType.default, /* inComboChart */ false, cartesianOptions));
+                    break;
+                case CartesianChartType.Scatter:
+                    layers.push(createScatterChartLayer(cartesianOptions));
+                    break;
+                case CartesianChartType.Waterfall:
+                    layers.push(createWaterfallChartLayer(cartesianOptions));
+                    break;
+                case CartesianChartType.DataDot:
+                    layers.push(createDataDotChartLayer(cartesianOptions));
+                    break;
+                case CartesianChartType.StackedColumn:
+                    layers.push(createColumnChartLayer(ColumnChartType.stackedColumn, cartesianOptions));
+                    break;
+                case CartesianChartType.ClusteredColumn:
+                    layers.push(createColumnChartLayer(ColumnChartType.clusteredColumn, cartesianOptions));
+                    break;
+                case CartesianChartType.HundredPercentStackedColumn:
+                    layers.push(createColumnChartLayer(ColumnChartType.hundredPercentStackedColumn, cartesianOptions));
+                    break;
+                case CartesianChartType.StackedBar:
+                    layers.push(createColumnChartLayer(ColumnChartType.stackedBar, cartesianOptions));
+                    break;
+                case CartesianChartType.ClusteredBar:
+                    layers.push(createColumnChartLayer(ColumnChartType.clusteredBar, cartesianOptions));
+                    break;
+                case CartesianChartType.HundredPercentStackedBar:
+                    layers.push(createColumnChartLayer(ColumnChartType.hundredPercentStackedBar, cartesianOptions));
+                    break;
+                case CartesianChartType.ComboChart:
+                    var columnType = getComboColumnType();
+                    layers.push(createColumnChartLayer(columnType, cartesianOptions));
+                    layers.push(createLineChartLayer(LineChartType.default, /* inComboChart */ true, cartesianOptions));
+                    break;
+                case CartesianChartType.LineClusteredColumnCombo:
+                    layers.push(createColumnChartLayer(ColumnChartType.clusteredColumn, cartesianOptions));
+                    layers.push(createLineChartLayer(LineChartType.default, /* inComboChart */ true, cartesianOptions));
+                    break;
+                case CartesianChartType.LineStackedColumnCombo:
+                    layers.push(createColumnChartLayer(ColumnChartType.stackedColumn, cartesianOptions));
+                    layers.push(createLineChartLayer(LineChartType.default, /* inComboChart */ true, cartesianOptions));
+                    break;
+                case CartesianChartType.DataDotClusteredColumnCombo:
+                    layers.push(createColumnChartLayer(ColumnChartType.clusteredColumn, cartesianOptions));
+                    layers.push(createDataDotChartLayer(cartesianOptions));
+                    break;
+                case CartesianChartType.DataDotStackedColumnCombo:
+                    layers.push(createColumnChartLayer(ColumnChartType.stackedColumn, cartesianOptions));
+                    layers.push(createDataDotChartLayer(cartesianOptions));
+                    break;
+            }
+
+            return layers;
+        }
+
+        function createLineChartLayer(type: LineChartType, inComboChart: boolean, defaultOptions: CartesianVisualConstructorOptions): LineChart {
+            let options: LineChartConstructorOptions = {
+                animator: defaultOptions.animator,
+                interactivityService: defaultOptions.interactivityService,
+                isScrollable: defaultOptions.isScrollable,
+                chartType: type
+            };
+
+            if (inComboChart) {
+                options.chartType = options.chartType | LineChartType.lineShadow;
+            }
+
+            return new LineChart(options);
+        }
+
+        function createScatterChartLayer(defaultOptions: CartesianVisualConstructorOptions): ScatterChart {
+            defaultOptions.isScrollable = false;
+            return new ScatterChart(defaultOptions);
+        }
+
+        function createWaterfallChartLayer(defaultOptions: CartesianVisualConstructorOptions): WaterfallChart {
+            return new WaterfallChart(defaultOptions);
+        }
+
+        function createDataDotChartLayer(defaultOptions: CartesianVisualConstructorOptions): DataDotChart {
+            return new DataDotChart(defaultOptions);
+        }
+
+        function createColumnChartLayer(type: ColumnChartType, defaultOptions: CartesianVisualConstructorOptions): ColumnChart {
+            let options: ColumnChartConstructorOptions = {
+                animator: <IColumnChartAnimator>defaultOptions.animator,
+                interactivityService: defaultOptions.interactivityService,
+                isScrollable: defaultOptions.isScrollable,
+                chartType: type
+            };
+            return new ColumnChart(options);
+        }
+
+        function getComboColumnType(objects?: DataViewObjects): ColumnChartType {
+            // This supports existing serialized forms of pinned combo-chart visuals
+            var columnType: ColumnChartType = ColumnChartType.clusteredColumn;
+            if (objects) {
+                var comboChartTypes: ComboChartDataViewObject = (<ComboChartDataViewObjects>objects).general;
+                if (comboChartTypes) {
+                    switch (comboChartTypes.visualType1) {
+                        case 'Column':
+                            columnType = ColumnChartType.clusteredColumn;
+                            break;
+                        case 'ColumnStacked':
+                            columnType = ColumnChartType.stackedColumn;
+                            break;
+                        default:
+                            debug.assertFail('Unsupported cartesian chart type ' + comboChartTypes.visualType1);
+                    }
+
+                    // second visual is always LineChart (for now)
+                    if (comboChartTypes.visualType2) {
+                        debug.assert(comboChartTypes.visualType2 === 'Line', 'expecting a LineChart for VisualType2');
+                    }
+                }
+            }
+
+            return columnType;
+        }
     }
 
     export class SharedColorPalette implements IDataColorPalette {

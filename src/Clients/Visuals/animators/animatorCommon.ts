@@ -30,7 +30,7 @@ module powerbi.visuals {
     export module AnimatorCommon {
         export const MinervaAnimationDuration = 250;
 
-        export function GetAnimationDuration(animator: IAnimator, suppressAnimations: boolean) {
+        export function GetAnimationDuration(animator: IGenericAnimator, suppressAnimations: boolean) {
             return (suppressAnimations || !animator) ? 0 : animator.getDuration();
         }
     }
@@ -47,13 +47,18 @@ module powerbi.visuals {
         failed: boolean;
     }
 
-    export type IAnimator = Animator<IAnimatorOptions, IAnimationOptions, IAnimationResult>;
+    export interface IAnimator<T extends IAnimatorOptions, U extends IAnimationOptions, V extends IAnimationResult> {
+        getDuration(): number;
+        animate(options: U): V;
+    }
+
+    export type IGenericAnimator = IAnimator<IAnimatorOptions, IAnimationOptions, IAnimationResult>;
 
     /** 
      * We just need to have a non-null animator to allow axis animations in cartesianChart.
      * Note: Use this temporarily for Line/Scatter until we add more animations (MinervaPlugins only).
      */
-    export class Animator<T extends IAnimatorOptions, U extends IAnimationOptions, V extends IAnimationResult> implements IAnimator {
+    export class BaseAnimator<T extends IAnimatorOptions, U extends IAnimationOptions, V extends IAnimationResult> implements IAnimator<T, U, V> {
         protected animationDuration: number;
 
         constructor(options?: T) {

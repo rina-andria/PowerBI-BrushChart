@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export function getColumnChartCapabilities(transposeAxes: boolean = false): VisualCapabilities {
         return {
@@ -63,15 +65,15 @@ module powerbi.visuals {
                             type: { bool: true }
                         },
                         position: {
-                            displayName: data.createDisplayNameGetter('Visual_LegendPosition'),
+                            displayName: data.createDisplayNameGetter('Visual_LegendPosition'),                            
                             type: { formatting: { legendPosition: true } }
                         },
                         showTitle: {
-                            displayName: data.createDisplayNameGetter('Visual_LegendShowTitle'),
+                            displayName: data.createDisplayNameGetter('Visual_LegendShowTitle'),                            
                             type: { bool: true }
                         },
                         titleText: {
-                            displayName: data.createDisplayNameGetter('Visual_LegendTitleText'),
+                            displayName: data.createDisplayNameGetter('Visual_LegendTitleText'),                            
                             type: { text: true }
                         }
                     }
@@ -84,27 +86,27 @@ module powerbi.visuals {
                             type: { bool: true }
                         },
                         position: {
-                            displayName: data.createDisplayNameGetter('Visual_YAxis_Position'),
+                            displayName: data.createDisplayNameGetter('Visual_YAxis_Position'),                            
                             type: { formatting: { yAxisPosition: true } }
                         },
                         start: {
-                            displayName: data.createDisplayNameGetter('Visual_Axis_Start'),
+                            displayName: data.createDisplayNameGetter('Visual_Axis_Start'),                            
                             type: { numeric: true }
                         },
                         end: {
-                            displayName: data.createDisplayNameGetter('Visual_Axis_End'),
+                            displayName: data.createDisplayNameGetter('Visual_Axis_End'),                            
                             type: { numeric: true }
                         },
                         axisType: {
-                            displayName: data.createDisplayNameGetter('Visual_Axis_Type'),
+                            displayName: data.createDisplayNameGetter('Visual_Axis_Type'),                            
                             type: { formatting: { axisType: true } }
                         },
                         showAxisTitle: {
-                            displayName: data.createDisplayNameGetter('Visual_Axis_Title'),
+                            displayName: data.createDisplayNameGetter('Visual_Axis_Title'),                            
                             type: { bool: true }
                         },
                         axisStyle: {
-                            displayName: data.createDisplayNameGetter('Visual_Axis_Style'),
+                            displayName: data.createDisplayNameGetter('Visual_Axis_Style'),                            
                             type: { formatting: { axisStyle: true } }
                         }
                     }
@@ -133,11 +135,11 @@ module powerbi.visuals {
                             type: { numeric: true }
                         },
                         showAxisTitle: {
-                            displayName: data.createDisplayNameGetter('Visual_Axis_Title'),
+                            displayName: data.createDisplayNameGetter('Visual_Axis_Title'),                            
                             type: { bool: true }
                         },
                         axisStyle: {
-                            displayName: data.createDisplayNameGetter('Visual_Axis_Style'),
+                            displayName: data.createDisplayNameGetter('Visual_Axis_Style'),                            
                             type: { formatting: { axisStyle: true } }
                         }
 
@@ -155,7 +157,7 @@ module powerbi.visuals {
                             type: { bool: true }
                         },
                         fill: {
-                            displayName: data.createDisplayNameGetter('Visual_Fill'),
+                            displayName: data.createDisplayNameGetter('Visual_Fill'),                            
                             type: { fill: { solid: { color: true } } }
                         },
                         fillRule: {
@@ -179,15 +181,15 @@ module powerbi.visuals {
                             type: { bool: true }
                         },
                         color: {
-                            displayName: data.createDisplayNameGetter('Visual_LabelsFill'),
+                            displayName: data.createDisplayNameGetter('Visual_LabelsFill'),                            
                             type: { fill: { solid: { color: true } } }
                         },
                         labelDisplayUnits: {
-                            displayName: data.createDisplayNameGetter('Visual_DisplayUnits'),
+                            displayName: data.createDisplayNameGetter('Visual_DisplayUnits'),                            
                             type: { formatting: { labelDisplayUnits: true } }
                         },
                         labelPrecision: {
-                            displayName: data.createDisplayNameGetter('Visual_Precision'),
+                            displayName: data.createDisplayNameGetter('Visual_Precision'),                            
                             type: { numeric: true }
                         },
                     },
@@ -217,6 +219,9 @@ module powerbi.visuals {
             supportsHighlight: true,
             sorting: {
                 default: {},
+            },
+            drilldown: {
+                roles: ['Category']
             },
         };
     }

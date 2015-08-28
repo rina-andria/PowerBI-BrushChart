@@ -24,6 +24,8 @@
  *  THE SOFTWARE.
  */
 
+/// <reference path="../_references.ts"/>
+
 module powerbi.visuals {
     export var filledMapCapabilities: VisualCapabilities = {
         dataRoles: [
@@ -151,6 +153,9 @@ module powerbi.visuals {
         }],
         sorting: {
             custom: {},
+        },
+        drilldown: {
+            roles: ['Category']
         },
     };
 }

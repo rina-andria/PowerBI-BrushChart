@@ -30,11 +30,9 @@ module powerbi.visuals {
     import EnumExtensions = jsCommon.EnumExtensions;
     import ArrayExtensions = jsCommon.ArrayExtensions;
 
-    export interface ColumnChartConstructorOptions {
+    export interface ColumnChartConstructorOptions extends CartesianVisualConstructorOptions {
         chartType: ColumnChartType;
         animator: IColumnChartAnimator;
-        isScrollable: boolean;
-        interactivityService: IInteractivityService;
     }
 
     export interface ColumnChartData extends CartesianData {
@@ -243,6 +241,10 @@ module powerbi.visuals {
             var dataViewMapping = options.dataViewMappings[0];
             if (!dataViewMapping || !dataViewMapping.categorical || !dataViewMapping.categorical.categories)
                 return;
+
+            if (options.preferHigherDataVolume) {
+                dataViewMapping.categorical.dataVolume = 4;
+            }
 
             var dataViewCategories = <data.CompiledDataViewRoleForMappingWithReduction>dataViewMapping.categorical.categories;
             var categoryItems = dataViewCategories.for.in.items;
@@ -593,7 +595,7 @@ module powerbi.visuals {
 
                     var rawCategoryValue = categories[categoryIndex];
                     var color = ColumnChart.getDataPointColor(legendItem, categoryIndex, dataPointObjects);
-                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, dataViewCat.categories, rawCategoryValue, dataViewCat.values, originalValue, null, seriesIndex);
+                    var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, dataViewCat, rawCategoryValue, originalValue, null, null, seriesIndex, categoryIndex);
                     var labelColor = labelSettings.labelColor;
                     //Stacked column/bar label color is white by default (except last series)
                     if ((EnumExtensions.hasFlag(chartType, flagStacked))) {
@@ -651,7 +653,7 @@ module powerbi.visuals {
                         var highlightIdentity = SelectionId.createWithHighlight(identity);
                         var rawCategoryValue = categories[categoryIndex];
                         var highlightedValue: number = highlightedTooltip ? valueHighlight : undefined;
-                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, dataViewCat.categories, rawCategoryValue, dataViewCat.values, originalValue, null, seriesIndex, highlightedValue);
+                        var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, dataViewCat, rawCategoryValue, originalValue, null, null, seriesIndex, categoryIndex, highlightedValue);
 
                         if (highlightedTooltip) {
                             // Override non highlighted data point

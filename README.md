@@ -23,7 +23,7 @@ There are many ways in which you can contribute to Power BI visuals:
 *  [Power BI visuals playground (see our visuals live in action)](http://microsoft.github.io/PowerBI-visuals/playground/index.html)
 *  [Power BI Homepage](https://powerbi.microsoft.com/)
 
-## How To Build and Run
+## How To Setup and Run
 
 ### Prerequisites
 
@@ -35,19 +35,7 @@ To build the library and run the sample application you will need:
 - [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git#Installing-on-Windows)
 - [Node.js](https://nodejs.org/download/)
 
-In order to run unit tests you will also need to do the following:
-
-Install [PhantomJS](http://phantomjs.org/) (PhantomJS is a headless WebKit scriptable with a JavaScript API. It has fast and native support for various web standards: DOM handling, CSS selector, JSON, Canvas, and SVG.).
-
-For Windows OS you can install PhantomJS using this command:
-
-```
-gulp phantomjs-dependency
-```
-As result, local version of the PhantomJS will be downloaded and installed into the project. For other OS you have to install PhantomJS manually.
-
-### Build Power BI visuals
-
+### One-Time Setup
 In order to build the Power BI visuals, ensure that you have [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git#Installing-on-Windows) and [Node.js](http://nodejs.org/download/) installed.
 
 Clone a copy of the repo:
@@ -67,6 +55,18 @@ Install dev dependencies:
 ```
 npm install  				# This command will install Gulp and all necessary modules
 ```
+You will also need to do the following to run unit tests:
+
+Install [PhantomJS](http://phantomjs.org/) (PhantomJS is a headless WebKit scriptable with a JavaScript API. It has fast and native support for various web standards: DOM handling, CSS selector, JSON, Canvas, and SVG.).
+
+For Windows OS you can install PhantomJS using this command:
+
+```
+gulp phantomjs-dependency
+```
+As result, local version of the PhantomJS will be downloaded and installed into the project. For other OS you have to install PhantomJS manually.
+
+### Build Power BI visuals
 
 Use the following commands to build and test:
 ```
@@ -84,9 +84,7 @@ To run sample app:
 
 3. Ensure under task explorer, the bindings for the 'build' gulp task is set to Before Build.
 
-4. Set PowerBI-visuals\src\Clients\PowerBIVisualsPlayground\index.html as the startup page.
-
-5. Run.
+4. Run.
 
 ### Copyrights
 

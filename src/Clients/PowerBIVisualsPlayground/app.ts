@@ -43,11 +43,13 @@ module powerbi.visuals {
     export class Playground {
 
         /** Represents sample data view used by visualization elements. */
-        private static pluginService: IVisualPluginService = powerbi.visuals.visualPluginFactory.create();
-        private static visualElement: IVisual;
+        private static pluginService: IVisualPluginService = new powerbi.visuals.visualPluginFactory.PlaygroundVisualPluginService();
+        private static currentVisual: IVisual;
 
         private static hostControls: HostControls;
         private static container: JQuery;
+        private static visualHostElement: JQuery;
+        private static interactionsEnabledCheckbox: JQuery;
 
         private static visualStyle: IVisualStyle = {
             titleText: {
@@ -70,6 +72,7 @@ module powerbi.visuals {
 
         /** Performs sample app initialization.*/
         public static initialize(): void {
+            this.interactionsEnabledCheckbox = $("input[name='is_interactions']");
             this.container = $('#container');
             this.hostControls = new HostControls($('#options'));
             this.hostControls.setElement(this.container);
@@ -89,7 +92,14 @@ module powerbi.visuals {
                 return this;
             };
 
+            this.interactionsEnabledCheckbox.on('change', () => {
+                this.visualHostElement.empty();
+                this.initVisual();
+                this.hostControls.update();
+            });
+
             let visualByDefault = jsCommon.Utility.getURLParamValue('visual');
+            
             if (visualByDefault) {
                 $('.topBar, #options').css({ "display": "none" });
                 Playground.onVisualTypeSelection(visualByDefault.toString());
@@ -100,19 +110,23 @@ module powerbi.visuals {
         private static createVisualElement(element: JQuery, plugin: IVisualPlugin, dataView?: DataView[]) {
 
             // Step 2: Instantiate Power BI visual
-            this.visualElement = plugin.create();
-            this.visualElement.init({
-                element: element,
+            this.currentVisual = plugin.create();
+            this.visualHostElement = element;
+            this.hostControls.setVisual(this.currentVisual);
+            this.initVisual();
+        };
+
+        private static initVisual() {
+            this.currentVisual.init({
+                element: this.visualHostElement,
                 host: defaultVisualHostServices,
                 style: this.visualStyle,
                 viewport: this.hostControls.getViewport(),
                 settings: { slicingEnabled: true },
-                interactivity: { isInteractiveLegend: false, selection: false },
-                animation: { transitionImmediate: true }
+                interactivity: { isInteractiveLegend: false, selection: this.interactionsEnabledCheckbox.is(':checked') },
             });
             
-            this.hostControls.setVisual(this.visualElement);
-        };
+        }
 
         private static populateVisualTypeSelect(): void {
            
@@ -151,7 +165,6 @@ module powerbi.visuals {
                 this.container.append('<div class="wrongVisualWarning">Wrong visual name <span>\'' + pluginName + '\'</span> in parameters</div>'); return;
             }
             this.container.visual(plugin);
-        }       
-        
+        }
     }   
 }

@@ -224,7 +224,7 @@ module powerbi.visuals {
         private secValueAxisHasUnitType: boolean;
         private yAxisOrientation: string;
         private bottomMarginLimit: number;
-        private leftMarginLimit: number;
+        private leftRightMarginLimit: number;
         private sharedColorPalette: SharedColorPalette;
 
         public animator: IGenericAnimator;
@@ -1013,7 +1013,7 @@ module powerbi.visuals {
             };
 
             var maxMarginFactor = this.getMaxMarginFactor();
-            var leftMarginLimit = this.leftMarginLimit = viewport.width * maxMarginFactor;
+            var leftRightMarginLimit = this.leftRightMarginLimit = viewport.width * maxMarginFactor;
             var bottomMarginLimit = this.bottomMarginLimit = Math.max(CartesianChart.MinBottomMargin, Math.ceil(viewport.height * maxMarginFactor));
 
             var margin = this.margin;
@@ -1029,7 +1029,7 @@ module powerbi.visuals {
             this.hasCategoryAxis = this.yAxisIsCategorical ? axes.y1 && axes.y1.values.length > 0 : axes.x && axes.x.values.length > 0;
 
             var renderXAxis = this.shouldRenderAxis(axes.x);
-            var renderYAxes = this.shouldRenderAxis(axes.y1);
+            var renderY1Axis = this.shouldRenderAxis(axes.y1);
             var renderY2Axis = this.shouldRenderSecondaryAxis(axes.y2);
 
             var width = viewport.width - (margin.left + margin.right);
@@ -1075,7 +1075,7 @@ module powerbi.visuals {
                 numIterations++;
                 var tickLabelMargins = AxisHelper.getTickLabelMargins(
                     { width: width, height: viewport.height },
-                    leftMarginLimit,
+                    leftRightMarginLimit,
                     TextMeasurementService.measureSvgTextWidth,
                     TextMeasurementService.estimateSvgTextHeight,
                     axes,
@@ -1084,10 +1084,10 @@ module powerbi.visuals {
                     this.isXScrollBarVisible || this.isYScrollBarVisible,
                     showOnRight,
                     renderXAxis,
-                    renderYAxes,
+                    renderY1Axis,
                     renderY2Axis);
 
-                // We look at the y axes as main and second sides, if the y axis orientation is right so the main side is represents the right side
+                // We look at the y axes as main and second sides, if the y axis orientation is right so the main side represents the right side
                 var maxMainYaxisSide = showOnRight ? tickLabelMargins.yRight : tickLabelMargins.yLeft,
                     maxSecondYaxisSide = showOnRight ? tickLabelMargins.yLeft : tickLabelMargins.yRight,
                     xMax = tickLabelMargins.xMax;
@@ -1332,7 +1332,7 @@ module powerbi.visuals {
             extent?: number[]) {
 
             var bottomMarginLimit = this.bottomMarginLimit;
-            var leftMarginLimit = this.leftMarginLimit;
+            var leftRightMarginLimit = this.leftRightMarginLimit;
             var layers = this.layers;
             var duration = AnimatorCommon.GetAnimationDuration(this.animator, suppressAnimations);
 
@@ -1411,7 +1411,7 @@ module powerbi.visuals {
                             bottomMarginLimit,
                             TextMeasurementService.svgEllipsis,
                             !axes.x.willLabelsFit,
-                            bottomMarginLimit === margins.xMax,
+                            bottomMarginLimit === tickLabelMargins.xMax,
                             axes.x,
                             this.margin,
                             this.isXScrollBarVisible || this.isYScrollBarVisible);
@@ -1443,11 +1443,11 @@ module powerbi.visuals {
                         .call(CartesianChart.darkenZeroLine);
                 }
 
-                if (tickLabelMargins.yLeft >= leftMarginLimit) {
+                if (tickLabelMargins.yLeft >= leftRightMarginLimit) {
                     y1AxisGraphicsElement.selectAll('text')
                         .call(AxisHelper.LabelLayoutStrategy.clip,
                             // Can't use padding space to render text, so subtract that from available space for ellipses calculations
-                            leftMarginLimit - CartesianChart.LeftPadding,
+                            leftRightMarginLimit - CartesianChart.LeftPadding,
                             TextMeasurementService.svgEllipsis);
                 }
 
@@ -1467,6 +1467,14 @@ module powerbi.visuals {
                         this.y2AxisGraphicsContext
                             .call(axes.y2.axis)
                             .call(CartesianChart.darkenZeroLine);
+                    }
+
+                    if (tickLabelMargins.yRight >= leftRightMarginLimit) {
+                        this.y2AxisGraphicsContext.selectAll('text')
+                            .call(AxisHelper.LabelLayoutStrategy.clip,
+                                // Can't use padding space to render text, so subtract that from available space for ellipses calculations
+                                leftRightMarginLimit - CartesianChart.RightPadding,
+                                TextMeasurementService.svgEllipsis);
                     }
                 }
                 else {

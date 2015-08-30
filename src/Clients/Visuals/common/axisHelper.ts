@@ -387,12 +387,11 @@ module powerbi.visuals {
             textHeightMeasurer: ITextAsSVGMeasurer,
             axes: CartesianAxisProperties,
             bottomMarginLimit: number,
-            maxHeight: number,
             properties: TextProperties,
             scrollbarVisible?: boolean,
             showOnRight?: boolean,
             renderXAxis?: boolean,
-            renderYAxes?: boolean,
+            renderY1Axis?: boolean,
             renderY2Axis?: boolean) {
 
             debug.assertValue(axes, 'axes');
@@ -432,7 +431,7 @@ module powerbi.visuals {
                 else
                     rotation = LabelLayoutStrategy.DefaultRotation;
 
-                if (renderYAxes) {
+                if (renderY1Axis) {
                     for (var i = 0, len = y1Labels.length; i < len; i++) {
                         properties.text = y1Labels[i];
                         maxWidthY1 = Math.max(maxWidthY1, textWidthMeasurer(properties));
@@ -448,20 +447,20 @@ module powerbi.visuals {
                 }
 
                 let textHeight = textHeightMeasurer(properties);
-                let maxNumLines = Math.floor(maxHeight / textHeight);
+                let maxNumLines = Math.floor(bottomMarginLimit / textHeight);
                 if (renderXAxis && xLabels.length > 0) {
                     for (var i = 0, len = xLabels.length; i < len; i++) {
                         var height: number;
                         properties.text = xLabels[i];
-                        var size = textWidthMeasurer(properties);
+                        var width = textWidthMeasurer(properties);
                         if (xAxisProperties.willLabelsWordBreak && isOrdinal(xAxisProperties.axisType)) {
                             // Split label and count rows
                             let wordBreaks = jsCommon.WordBreaker.splitByWidth(properties.text, properties, textWidthMeasurer, xAxisProperties.xLabelMaxWidth, maxNumLines);
                             height = wordBreaks.length * textHeight;
                         }
                         else if (!xAxisProperties.willLabelsFit) {
-                            height = size * rotation.sine;
-                            size = size * rotation.cosine;
+                            height = width * rotation.sine;
+                            width = width * rotation.cosine;
                         }
                         else {
                             height = TextHeightConstant;
@@ -471,13 +470,13 @@ module powerbi.visuals {
                         var overflow = 0;
                         if (i === 0) {
                             if (!xAxisProperties.willLabelsFit /*rotated text*/)
-                                overflow = size - labelOffset - xLabelOuterPadding;
+                                overflow = width - labelOffset - xLabelOuterPadding;
                             else
-                                overflow = (size / 2) - labelOffset - xLabelOuterPadding;
+                                overflow = (width / 2) - labelOffset - xLabelOuterPadding;
                             leftOverflow = Math.max(leftOverflow, overflow);
                         } else if (i === len - 1 && xAxisProperties.willLabelsFit) {
                             // if we are rotating text (!willLabelsFit) there won't be any right overflow
-                            overflow = (size / 2) - labelOffset - xLabelOuterPadding;
+                            overflow = (width / 2) - labelOffset - xLabelOuterPadding;
                             rightOverflow = Math.max(rightOverflow, overflow);
                         }
 

@@ -3594,7 +3594,7 @@ module powerbitests {
                 }
                 else {
                     // 179.(6) in Mac OS and 178.8 in Windows
-                    expect(powerbitests.helpers.isInRange(x, 178, 180)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(x, 177, 180)).toBe(true);
                     // 48.6 in Mac OS and 48 in Windows
                     expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
                 }
@@ -3647,7 +3647,7 @@ module powerbitests {
                 else {
                     expect($('.column').length).toBe(6);
                     // 179.(6) in Mac OS and 178.8 in Windows
-                    expect(powerbitests.helpers.isInRange(x, 178, 180)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(x, 177, 180)).toBe(true);
                     // 48.6 in Mac OS and 48 in Windows
                     expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
                 }
@@ -9012,10 +9012,10 @@ module powerbitests {
                 expect(transform.y).toBe('0');
                 expect(transform.x).toBeLessThan(element.width());
 
-                // 22,90 for Windows and 21,90 for Mac OS
+                // Windows and Mac OS differ
                 expect(powerbitests.helpers.isTranslateCloseTo($('.brush').attr('transform'), 22, 90)).toBe(true);
                 var width = parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0);
-                // 13 for Windows and 14 for Mac OS
+                // Windows and Mac OS differ
                 expect(powerbitests.helpers.isInRange(width, 8, 10)).toBe(true);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
                 done();

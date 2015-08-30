@@ -859,7 +859,6 @@ module powerbitests {
             expect(margins.yRight).toBe(12);
         });
 
-
         it("xOverflowRight, disable both Y axes", () => {
             var localTickLabelBuilder = new AxisHelperTickLabelBuilder(undefined, ['Cars', 'Trucks', 'Boats', 'RVs', 'CrazyOutdoorDuneBuggies']);
             var margins = localTickLabelBuilder.buildTickLabelMargins(false, false, false, true, false, false);

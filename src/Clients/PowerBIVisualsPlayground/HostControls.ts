@@ -96,7 +96,15 @@ module powerbi.visuals {
             };
 
             if (this.visualElement) {
-                this.visualElement.onResizing(this.viewport);
+                if (this.visualElement.update) {
+                    this.visualElement.update({
+                        dataViews: this.sampleDataViews.getDataViews(),
+                        suppressAnimations: this.suppressAnimations,
+                        viewport: this.viewport
+                    });
+                } else {
+                    this.visualElement.onResizing(this.viewport);
+                }
             }
         }
 

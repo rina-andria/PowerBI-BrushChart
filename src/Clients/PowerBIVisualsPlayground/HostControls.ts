@@ -99,7 +99,7 @@ module powerbi.visuals {
                 if (this.visualElement.update) {
                     this.visualElement.update({
                         dataViews: this.sampleDataViews.getDataViews(),
-                        suppressAnimations: this.suppressAnimations,
+                        suppressAnimations: true,
                         viewport: this.viewport
                     });
                 } else {

@@ -3594,7 +3594,7 @@ module powerbitests {
                 }
                 else {
                     // 179.(6) in Mac OS and 178.8 in Windows
-                    expect(powerbitests.helpers.isInRange(x, 178, 180)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(x, 177, 180)).toBe(true);
                     // 48.6 in Mac OS and 48 in Windows
                     expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
                 }
@@ -3641,13 +3641,13 @@ module powerbitests {
                 var width = +$('.column')[1].attributes.getNamedItem('width').value;
                 if (scalarSetting) {
                     expect($('.column').length).toBe(4);                    
-                    expect(powerbitests.helpers.isInRange(x, 363, 365)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(x, 359, 363)).toBe(true);
                     expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
                 }
                 else {
                     expect($('.column').length).toBe(6);
                     // 179.(6) in Mac OS and 178.8 in Windows
-                    expect(powerbitests.helpers.isInRange(x, 178, 180)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(x, 177, 180)).toBe(true);
                     // 48.6 in Mac OS and 48 in Windows
                     expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
                 }
@@ -4408,7 +4408,7 @@ module powerbitests {
                 expect($('.columnChart')).toBeInDOM();
 
                 // Data should be spliced down to a smaller set that will fit inside the view
-                expect($('.column').length).toBe(13);
+                expect($('.column').length).toBe(12);
 
                 // The max value in the view is ...
                 expect($('.columnChart .axisGraphicsContext .y.axis .tick').find('text').last().text()).toBe('25');
@@ -9011,12 +9011,12 @@ module powerbitests {
                 var transform = SVGUtil.parseTranslateTransform($('.columnChart .axisGraphicsContext .x.axis .tick').last().attr('transform'));
                 expect(transform.y).toBe('0');
                 expect(transform.x).toBeLessThan(element.width());
-                // 22,90 for Windows and 21,90 for Mac OS
-                expect(powerbitests.helpers.isTranslateCloseTo($('.brush').attr('transform'), 22, 90)).toBe(true);
 
+                // Windows and Mac OS differ
+                expect(powerbitests.helpers.isTranslateCloseTo($('.brush').attr('transform'), 22, 90)).toBe(true);
                 var width = parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0);
-                // 13 for Windows and 14 for Mac OS
-                expect(powerbitests.helpers.isInRange(width, 13, 14)).toBe(true);
+                // Windows and Mac OS differ
+                expect(powerbitests.helpers.isInRange(width, 8, 10)).toBe(true);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
                 done();
             }, DefaultWaitForRender);
@@ -10144,9 +10144,10 @@ module powerbitests {
                 }
             };
 
+            // initial size is 500x500
             v.onDataChanged({ dataViews: [dataView] });
             if (chartType === 'barChart' || chartType === 'hundredPercentStackedBarChart' || chartType === 'clusteredBarChart') {
-                v.onResizing({ height: 500, width: 75 });
+                v.onResizing({ height: 500, width: 85 });
             }
             else {
                 v.onResizing({ height: 500, width: 200 });
@@ -10164,7 +10165,7 @@ module powerbitests {
                     case 'clusteredBarChart':
                     case 'columnChart':
                     case 'clusteredColumnChart':
-                        expect(labels.length).toBe(2);                   
+                        expect(labels.length).toBe(2);
                         break;
                 }
 

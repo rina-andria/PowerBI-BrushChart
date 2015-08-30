@@ -160,7 +160,7 @@ module powerbi.visuals {
         isScrollable?: boolean;
     }
 
-    interface CartesianAxisProperties {
+    export interface CartesianAxisProperties {
         x: IAxisProperties;
         y1: IAxisProperties;
         y2?: IAxisProperties;
@@ -224,7 +224,7 @@ module powerbi.visuals {
         private secValueAxisHasUnitType: boolean;
         private yAxisOrientation: string;
         private bottomMarginLimit: number;
-        private leftMarginLimit: number;
+        private leftRightMarginLimit: number;
         private sharedColorPalette: SharedColorPalette;
 
         public animator: IGenericAnimator;
@@ -456,6 +456,7 @@ module powerbi.visuals {
             }
         }
 
+        // Margin convention: http://bl.ocks.org/mbostock/3019563
         private updateAxis(viewport: IViewport): void {
             this.adjustMargins(viewport);
             var margin = this.margin;
@@ -470,7 +471,7 @@ module powerbi.visuals {
                 .attr('transform', SVGUtil.translate(0, height));
 
             this.y1AxisGraphicsContext
-                .attr('transform', SVGUtil.translate(showOnRight ? 0 : width, 0));
+                .attr('transform', SVGUtil.translate(showOnRight ? width : 0, 0));
 
             this.y2AxisGraphicsContext
                 .attr('transform', SVGUtil.translate(showOnRight ? 0 : width, 0));
@@ -980,6 +981,9 @@ module powerbi.visuals {
         }
 
         private shouldRenderSecondaryAxis(axisProperties: IAxisProperties): boolean {
+            if (!axisProperties) {
+                return false;
+            }
             if (!this.valueAxisProperties || this.valueAxisProperties["secShow"] == null || this.valueAxisProperties["secShow"]) {
                 return true;
             }
@@ -991,11 +995,9 @@ module powerbi.visuals {
             if (!axisProperties) {
                 return false;
             }
-
             else if (axisProperties.isCategoryAxis && (!this.categoryAxisProperties || this.categoryAxisProperties[propertyName] == null || this.categoryAxisProperties[propertyName])) {
                 return true;
             }
-
             else if (!axisProperties.isCategoryAxis && (!this.valueAxisProperties || this.valueAxisProperties[propertyName] == null || this.valueAxisProperties[propertyName])) {
                 return true;
             }
@@ -1011,8 +1013,8 @@ module powerbi.visuals {
             };
 
             var maxMarginFactor = this.getMaxMarginFactor();
-            var leftMarginLimit = this.leftMarginLimit = viewport.width * maxMarginFactor;
-            var bottomMarginLimit = this.bottomMarginLimit = Math.max(CartesianChart.MinBottomMargin, viewport.height * maxMarginFactor);
+            var leftRightMarginLimit = this.leftRightMarginLimit = viewport.width * maxMarginFactor;
+            var bottomMarginLimit = this.bottomMarginLimit = Math.max(CartesianChart.MinBottomMargin, Math.ceil(viewport.height * maxMarginFactor));
 
             var margin = this.margin;
             // reset defaults
@@ -1027,7 +1029,7 @@ module powerbi.visuals {
             this.hasCategoryAxis = this.yAxisIsCategorical ? axes.y1 && axes.y1.values.length > 0 : axes.x && axes.x.values.length > 0;
 
             var renderXAxis = this.shouldRenderAxis(axes.x);
-            var renderYAxes = this.shouldRenderAxis(axes.y1);
+            var renderY1Axis = this.shouldRenderAxis(axes.y1);
             var renderY2Axis = this.shouldRenderSecondaryAxis(axes.y2);
 
             var width = viewport.width - (margin.left + margin.right);
@@ -1064,80 +1066,90 @@ module powerbi.visuals {
             // Recalculate axes now that scrollbar visible variables have been set
             axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
 
-            // Calculate margins with axis properties
-            var margins = AxisHelper.getTickLabelMargins(
-                { width: width, height: viewport.height },
-                leftMarginLimit,
-                TextMeasurementService.measureSvgTextWidth,
-                TextMeasurementService.estimateSvgTextHeight,
-                axes.x,
-                axes.y1,
-                bottomMarginLimit,
-                CartesianChart.TextProperties,
-                axes.y2,
-                this.isXScrollBarVisible || this.isYScrollBarVisible,
-                showOnRight,
-                renderXAxis,
-                renderYAxes,
-                renderY2Axis);
+            // we need to make two passes because the margin changes affect the chosen tick values, which then affect the margins again.
+            // after the second pass the margins are correct.
+            var doneWithMargins = false,
+                maxIterations = 2,
+                numIterations = 0;
+            while (!doneWithMargins && numIterations < maxIterations) {
+                numIterations++;
+                var tickLabelMargins = AxisHelper.getTickLabelMargins(
+                    { width: width, height: viewport.height },
+                    leftRightMarginLimit,
+                    TextMeasurementService.measureSvgTextWidth,
+                    TextMeasurementService.estimateSvgTextHeight,
+                    axes,
+                    bottomMarginLimit,
+                    CartesianChart.TextProperties,
+                    this.isXScrollBarVisible || this.isYScrollBarVisible,
+                    showOnRight,
+                    renderXAxis,
+                    renderY1Axis,
+                    renderY2Axis);
 
-            // We look at the y axes as main and second sides, if the y axis orientation is right so the main side is represents the right side
-            var maxMainYaxisSide = showOnRight ? margins.yRight : margins.yLeft,
-                maxSecondYaxisSide = showOnRight ? margins.yLeft : margins.yRight,
-                xMax = margins.xMax;
+                // We look at the y axes as main and second sides, if the y axis orientation is right so the main side represents the right side
+                var maxMainYaxisSide = showOnRight ? tickLabelMargins.yRight : tickLabelMargins.yLeft,
+                    maxSecondYaxisSide = showOnRight ? tickLabelMargins.yLeft : tickLabelMargins.yRight,
+                    xMax = tickLabelMargins.xMax;
 
-            maxMainYaxisSide += CartesianChart.LeftPadding;
-            if (hasMultipleYAxes(this.layers))
+                maxMainYaxisSide += CartesianChart.LeftPadding;
                 maxSecondYaxisSide += CartesianChart.RightPadding;
-            xMax += CartesianChart.BottomPadding;
+                xMax += CartesianChart.BottomPadding;
 
-            if (this.hideAxisLabels(legendMargins)) {
-                axes.x.axisLabel = null;
-                axes.y1.axisLabel = null;
-                if (axes.y2) {
-                    axes.y2.axisLabel = null;
+                if (this.hideAxisLabels(legendMargins)) {
+                    axes.x.axisLabel = null;
+                    axes.y1.axisLabel = null;
+                    if (axes.y2) {
+                        axes.y2.axisLabel = null;
+                    }
                 }
-            }
 
-            this.addUnitTypeToAxisLabel(axes);
+                this.addUnitTypeToAxisLabel(axes);
 
-            var axisLabels: ChartAxesLabels = { x: axes.x.axisLabel, y: axes.y1.axisLabel, y2: axes.y2 ? axes.y2.axisLabel : null };
-            var chartHasAxisLabels = (axisLabels.x != null) || (axisLabels.y != null || axisLabels.y2 != null);
+                var axisLabels: ChartAxesLabels = { x: axes.x.axisLabel, y: axes.y1.axisLabel, y2: axes.y2 ? axes.y2.axisLabel : null };
+                var chartHasAxisLabels = (axisLabels.x != null) || (axisLabels.y != null || axisLabels.y2 != null);
 
-            if (axisLabels.x != null)
-                xMax += CartesianChart.XAxisLabelPadding;
+                if (axisLabels.x != null)
+                    xMax += CartesianChart.XAxisLabelPadding;
 
-            if (axisLabels.y != null)
-                maxMainYaxisSide += CartesianChart.YAxisLabelPadding;
+                if (axisLabels.y != null)
+                    maxMainYaxisSide += CartesianChart.YAxisLabelPadding;
 
-            if (axisLabels.y2 != null)
-                maxSecondYaxisSide += CartesianChart.YAxisLabelPadding;
-
-            if ((showOnRight && (maxMainYaxisSide !== margin.right || maxSecondYaxisSide !== margin.left)) ||
-                (!showOnRight && (maxMainYaxisSide !== margin.left || maxSecondYaxisSide !== margin.right)) ||
-                xMax !== margin.bottom || this.currentViewport.height !== viewport.height || this.isXScrollBarVisible || this.isYScrollBarVisible) {
+                if (axisLabels.y2 != null)
+                    maxSecondYaxisSide += CartesianChart.YAxisLabelPadding;
+                
                 margin.left = showOnRight ? maxSecondYaxisSide : maxMainYaxisSide;
                 margin.right = showOnRight ? maxMainYaxisSide : maxSecondYaxisSide;
                 margin.bottom = xMax;
                 this.margin = margin;
-                axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
+
                 width = viewport.width - (margin.left + margin.right);
+
+                // re-calculate the axes with the new margins
+                var previousTickCountY1 = axes.y1.values.length;
+                var previousTickCountY2 = axes.y2 && axes.y2.values.length;
+                axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
+
+                // the minor padding adjustments could have affected the chosen tick values, which would then need to calculate margins again
+                // e.g. [0,2,4,6,8] vs. [0,5,10] the 10 is wider and needs more margin.
+                if (axes.y1.values.length === previousTickCountY1 && (!axes.y2 || axes.y2.values.length === previousTickCountY2))
+                    doneWithMargins = true;
             }
 
             if (this.isXScrollBarVisible) {
                 mainAxisScale = axes.x.scale;
                 var brushX = this.margin.left;
                 var brushY = viewport.height;
-                this.renderChartWithScrollBar(mainAxisScale, brushX, brushY, preferredViewport.width, viewport, axes, width, margins, chartHasAxisLabels, axisLabels, suppressAnimations);
+                this.renderChartWithScrollBar(mainAxisScale, brushX, brushY, preferredViewport.width, viewport, axes, width, tickLabelMargins, chartHasAxisLabels, axisLabels, suppressAnimations);
             }
             else if (this.isYScrollBarVisible) {
                 mainAxisScale = axes.y1.scale;
                 var brushX = viewport.width;
                 var brushY = this.margin.top;
-                this.renderChartWithScrollBar(mainAxisScale, brushX, brushY, preferredViewport.height, viewport, axes, width, margins, chartHasAxisLabels, axisLabels, suppressAnimations);
+                this.renderChartWithScrollBar(mainAxisScale, brushX, brushY, preferredViewport.height, viewport, axes, width, tickLabelMargins, chartHasAxisLabels, axisLabels, suppressAnimations);
             }
             else {
-                this.renderChart(mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, suppressAnimations);
+                this.renderChart(mainAxisScale, axes, width, tickLabelMargins, chartHasAxisLabels, axisLabels, viewport, suppressAnimations);
             }
 
             this.updateAxis(viewport);
@@ -1166,7 +1178,7 @@ module powerbi.visuals {
             viewport: IViewport,
             axes: CartesianAxisProperties,
             width: number,
-            margins: any,
+            tickLabelMargins: any,
             chartHasAxisLabels: boolean,
             axisLabels: ChartAxesLabels,
             suppressAnimations: boolean): void {
@@ -1199,7 +1211,7 @@ module powerbi.visuals {
             this.brushMinExtent = minExtent;
 
             brush
-                .on("brush", () => window.requestAnimationFrame(() => this.onBrushed(scrollScale, mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, scrollSpaceLength)))
+                .on("brush", () => window.requestAnimationFrame(() => this.onBrushed(scrollScale, mainAxisScale, axes, width, tickLabelMargins, chartHasAxisLabels, axisLabels, viewport, scrollSpaceLength)))
                 .on("brushend", () => this.onBrushEnd(minExtent));
 
             var brushContext = this.brushContext = this.brushGraphicsContext
@@ -1229,7 +1241,7 @@ module powerbi.visuals {
 
             if (mainAxisScale && scrollScale) {
                 mainAxisScale.rangeBands([0, scrollSpaceLength]);
-                this.renderChart(mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, suppressAnimations, scrollScale, brush.extent());
+                this.renderChart(mainAxisScale, axes, width, tickLabelMargins, chartHasAxisLabels, axisLabels, viewport, suppressAnimations, scrollScale, brush.extent());
             }
         }
 
@@ -1246,13 +1258,13 @@ module powerbi.visuals {
                 brushContext.select(".extent").attr("height", minExtent);
         }
 
-        private onBrushed(scrollScale: any, mainAxisScale: any, axes: CartesianAxisProperties, width: number, margins: any, chartHasAxisLabels: boolean, axisLabels: ChartAxesLabels, viewport: IViewport, scrollSpaceLength: number): void {
+        private onBrushed(scrollScale: any, mainAxisScale: any, axes: CartesianAxisProperties, width: number, tickLabelMargins: any, chartHasAxisLabels: boolean, axisLabels: ChartAxesLabels, viewport: IViewport, scrollSpaceLength: number): void {
             var brush = this.brush;
 
             if (mainAxisScale && scrollScale) {
                 CartesianChart.clampBrushExtent(this.brush, scrollSpaceLength, this.brushMinExtent);
                 var extent = brush.extent();
-                this.renderChart(mainAxisScale, axes, width, margins, chartHasAxisLabels, axisLabels, viewport, true /* suppressAnimations */, scrollScale, extent);
+                this.renderChart(mainAxisScale, axes, width, tickLabelMargins, chartHasAxisLabels, axisLabels, viewport, true /* suppressAnimations */, scrollScale, extent);
             }
         }
         
@@ -1311,7 +1323,7 @@ module powerbi.visuals {
             mainAxisScale: any,
             axes: CartesianAxisProperties,
             width: number,
-            margins: any,
+            tickLabelMargins: any,
             chartHasAxisLabels: boolean,
             axisLabels: ChartAxesLabels,
             viewport: IViewport,
@@ -1320,7 +1332,7 @@ module powerbi.visuals {
             extent?: number[]) {
 
             var bottomMarginLimit = this.bottomMarginLimit;
-            var leftMarginLimit = this.leftMarginLimit;
+            var leftRightMarginLimit = this.leftRightMarginLimit;
             var layers = this.layers;
             var duration = AnimatorCommon.GetAnimationDuration(this.animator, suppressAnimations);
 
@@ -1399,7 +1411,7 @@ module powerbi.visuals {
                             bottomMarginLimit,
                             TextMeasurementService.svgEllipsis,
                             !axes.x.willLabelsFit,
-                            bottomMarginLimit === margins.xMax,
+                            bottomMarginLimit === tickLabelMargins.xMax,
                             axes.x,
                             this.margin,
                             this.isXScrollBarVisible || this.isYScrollBarVisible);
@@ -1413,7 +1425,7 @@ module powerbi.visuals {
                 var yAxisOrientation = this.yAxisOrientation;
                 var showOnRight = yAxisOrientation === yAxisPosition.right;
                 axes.y1.axis
-                    .tickSize(width)
+                    .tickSize(-width)
                     .tickPadding(CartesianChart.TickPaddingY)
                     .orient(yAxisOrientation.toLowerCase());
 
@@ -1429,6 +1441,14 @@ module powerbi.visuals {
                     y1AxisGraphicsElement
                         .call(axes.y1.axis)
                         .call(CartesianChart.darkenZeroLine);
+                }
+
+                if (tickLabelMargins.yLeft >= leftRightMarginLimit) {
+                    y1AxisGraphicsElement.selectAll('text')
+                        .call(AxisHelper.LabelLayoutStrategy.clip,
+                            // Can't use padding space to render text, so subtract that from available space for ellipses calculations
+                            leftRightMarginLimit - CartesianChart.LeftPadding,
+                            TextMeasurementService.svgEllipsis);
                 }
 
                 if (axes.y2 && (!this.valueAxisProperties || this.valueAxisProperties['secShow'] == null || this.valueAxisProperties['secShow'])) {
@@ -1448,23 +1468,26 @@ module powerbi.visuals {
                             .call(axes.y2.axis)
                             .call(CartesianChart.darkenZeroLine);
                     }
+
+                    if (tickLabelMargins.yRight >= leftRightMarginLimit) {
+                        this.y2AxisGraphicsContext.selectAll('text')
+                            .call(AxisHelper.LabelLayoutStrategy.clip,
+                                // Can't use padding space to render text, so subtract that from available space for ellipses calculations
+                                leftRightMarginLimit - CartesianChart.RightPadding,
+                                TextMeasurementService.svgEllipsis);
+                    }
                 }
                 else {
                     this.y2AxisGraphicsContext.selectAll('*').remove();
                 }
 
-                if (margins.yLeft >= leftMarginLimit) {
-                    y1AxisGraphicsElement.selectAll('text')
-                        .call(AxisHelper.LabelLayoutStrategy.clip,
-                            // Can't use padding space to render text, so subtract that from available space for ellipses calculations
-                            leftMarginLimit - CartesianChart.LeftPadding,
-                            TextMeasurementService.svgEllipsis);
-                }
+                // TODO: clip (svgEllipsis) the Y2 labels
             }
             else {
                 this.y1AxisGraphicsContext.selectAll('*').remove();
                 this.y2AxisGraphicsContext.selectAll('*').remove();
             }
+
             // Axis labels
             //TODO: Add label for second Y axis for combo chart
             if (chartHasAxisLabels) {

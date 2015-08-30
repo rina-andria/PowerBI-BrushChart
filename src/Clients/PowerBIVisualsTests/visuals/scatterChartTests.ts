@@ -3901,7 +3901,7 @@ module powerbitests {
             var selectedCircle = scatterChart.mainGraphicsContext.selectAll('circle.dot').filter(function (d, i) { return d.category === 'd'; });
             var x = selectedCircle.attr('cx');
             var y = selectedCircle.attr('cy');
-            var mouseCordinate = { x: x + 3, y: y + 2 };
+            var mouseCordinate = { x: x - 5, y: y + 6 };
             spyOn(scatterChart.interactivityService.behavior, 'getMouseCoordinates').and.returnValue(mouseCordinate);
             scatterChart.interactivityService.behavior.onClick();
             setTimeout(() => {

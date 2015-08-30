@@ -1530,16 +1530,16 @@ module powerbitests {
                 if (interactiveChart) {
                     setTimeout(() => {
                         expect(svgBox.height).toBeCloseTo(405, 0);
-                        // 384 for Windows and 385 for Mac OS
-                        expect(Helpers.isInRange(svgBox.width, 384, 385)).toBe(true);
+                        // 374 for Windows and 385 for Mac OS
+                        expect(Helpers.isInRange(svgBox.width, 374, 375)).toBe(true);
                         done();
                     }, DefaultWaitForRender);
                 }
                 else {
                     setTimeout(() => {
                         expect(svgBox.height).toBeCloseTo(470, 0);
-                        // 384 for Windows and 385 for Mac OS
-                        expect(Helpers.isInRange(svgBox.width, 384, 385)).toBe(true);
+                        // 374 for Windows and 385 for Mac OS
+                        expect(Helpers.isInRange(svgBox.width, 374, 375)).toBe(true);
                         done();
                     }, DefaultWaitForRender);
                 }
@@ -1702,7 +1702,7 @@ module powerbitests {
                 });
                 setTimeout(() => {
                     var yTranslate = parseFloat($('.lineChart .axisGraphicsContext .x.axis').attr('transform').split(',')[1].replace('(', ''));
-                    var xTranslate = parseFloat($('.lineChart .axisGraphicsContext .y.axis').attr('transform').split(',')[0].split('(')[1]);
+                    var xTranslate = parseFloat($('.lineChart .axisGraphicsContext').attr('transform').split(',')[0].split('(')[1]);
                     v.onDataChanged({
                         dataViews: [{
                             metadata: dataViewMetadata,
@@ -1720,9 +1720,9 @@ module powerbitests {
                     });
                     setTimeout(() => {
                         var newYTranslate = parseFloat($('.lineChart .axisGraphicsContext .x.axis').attr('transform').split(',')[1].replace('(', ''));
-                        var newXTranslate = parseFloat($('.lineChart .axisGraphicsContext .y.axis').attr('transform').split(',')[0].split('(')[1]);
+                        var newXTranslate = parseFloat($('.lineChart .axisGraphicsContext').attr('transform').split(',')[0].split('(')[1]);
                         expect(yTranslate).toBeLessThan(newYTranslate);
-                        expect(xTranslate).toBeLessThan(newXTranslate);
+                        expect(xTranslate).toBeGreaterThan(newXTranslate);
                         done();
                     }, DefaultWaitForRender);
                 }, DefaultWaitForRender);
@@ -3153,8 +3153,8 @@ module powerbitests {
             expect(item.find('.itemName').text()).toBe('col2');
             expect(item.find('.itemMeasure').text().trim()).toBe('490000');
             expect(lineChart.setHoverLine).toHaveBeenCalled();
-            var arg = lineChart.setHoverLine.calls ? lineChart.setHoverLine.calls.allArgs()[0][0] : 193;
-            expect(Math.floor(arg) === 192 || arg === 193).toBeTruthy();
+            var arg = lineChart.setHoverLine.calls ? lineChart.setHoverLine.calls.allArgs()[0][0] : 187;
+            expect(Math.floor(arg) === 187).toBeTruthy();
             expect(hoverLine.length).toBe(1);
         });
     });
@@ -3324,7 +3324,7 @@ module powerbitests {
         };
 
         beforeEach(() => {
-            element = powerbitests.helpers.testDom('150', '50');
+            element = powerbitests.helpers.testDom('150', '75');
             v = powerbi.visuals.visualPluginFactory.createMinerva({
                 scrollableVisuals: true,
             }).getPlugin('lineChart').create();
@@ -3365,9 +3365,9 @@ module powerbitests {
                 expect($('rect.extent').length).toBe(1);
                 var transform = SVGUtil.parseTranslateTransform($('.lineChart .axisGraphicsContext .x.axis .tick').last().attr('transform'));
                 expect(transform.x).toBeLessThan(element.width());
-                expect($('.brush').first().attr('transform').split(',')[0].split('(')[1]).toBe('22.5');
+                expect($('.brush').first().attr('transform').split(',')[0].split('(')[1]).toBe('29');
                 expect($('.brush').first().attr('transform').split(',')[1].split(')')[0]).toBe('75');
-                expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0)).toBeGreaterThan(1);
+                expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 10)).toBeGreaterThan(1);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
                 done();
             }, DefaultWaitForRender);
@@ -3603,7 +3603,7 @@ module powerbitests {
         };
 
         beforeEach(() => {
-            element = powerbitests.helpers.testDom('150', '50');
+            element = powerbitests.helpers.testDom('150', '75');
             v = powerbi.visuals.visualPluginFactory.createMinerva({
                 scrollableVisuals: true,
             }).getPlugin('areaChart').create();
@@ -3644,9 +3644,9 @@ module powerbitests {
                 expect($('rect.extent').length).toBe(1);
                 var transform = SVGUtil.parseTranslateTransform($('.lineChart .axisGraphicsContext .x.axis .tick').last().attr('transform'));
                 expect(transform.x).toBeLessThan(element.width());
-                expect($('.brush').first().attr('transform').split(',')[0].split('(')[1]).toBe('22.5');
+                expect($('.brush').first().attr('transform').split(',')[0].split('(')[1]).toBe('29');
                 expect($('.brush').first().attr('transform').split(',')[1].split(')')[0]).toBe('75');
-                expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0)).toBeGreaterThan(1);
+                expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 10)).toBeGreaterThan(1);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
                 done();
             }, DefaultWaitForRender);

@@ -161,8 +161,7 @@ module powerbi.visuals {
     }
 
     export module AxisHelper {
-        var XLabelOffsetForOrdinal = 25;
-        var XLabelOffsetForNonOrdinal = 10;
+        var XLabelMaxAllowedOverflow = 25;
         var TextHeightConstant = 10;
         var MinTickCount = 2;
         var DefaultBestTickCount = 3;
@@ -380,21 +379,25 @@ module powerbi.visuals {
             };
         }
 
-        export function getTickLabelMargins(//todo: Put the parameters into one object
+        // TODO: Put the parameters into one object
+        export function getTickLabelMargins(
             viewport: IViewport,
-            leftMarginLimit: number,
+            yMarginLimit: number,
             textWidthMeasurer: ITextAsSVGMeasurer,
             textHeightMeasurer: ITextAsSVGMeasurer,
-            xAxisProperties: IAxisProperties,
-            y1AxisProperties: IAxisProperties,
-            maxHeight: number,
+            axes: CartesianAxisProperties,
+            bottomMarginLimit: number,
             properties: TextProperties,
-            y2AxisProperties?: IAxisProperties,
             scrollbarVisible?: boolean,
             showOnRight?: boolean,
             renderXAxis?: boolean,
-            renderYAxes?: boolean,
+            renderY1Axis?: boolean,
             renderY2Axis?: boolean) {
+
+            debug.assertValue(axes, 'axes');
+            var xAxisProperties: IAxisProperties = axes.x;
+            var y1AxisProperties: IAxisProperties = axes.y1;
+            var y2AxisProperties: IAxisProperties = axes.y2;
 
             debug.assertValue(viewport, 'viewport');
             debug.assertValue(textWidthMeasurer, 'textWidthMeasurer');
@@ -403,17 +406,21 @@ module powerbi.visuals {
             debug.assertValue(y1AxisProperties, 'yAxis');
 
             var xLabels = xAxisProperties.values;
-            var yLeftLabels = y1AxisProperties.values;
-            var xAxisType = xAxisProperties.axisType;
+            var y1Labels = y1AxisProperties.values;
 
-            var maxLeft = 0;
-            var maxRight = 0;
-            var xMax = 0;
-            var labelOffset = isOrdinal(xAxisType) ? XLabelOffsetForOrdinal : XLabelOffsetForNonOrdinal;
-            var xLabelPadding = 0;
+            var leftOverflow = 0;
+            var rightOverflow = 0;
+            var maxWidthY1 = 0;
+            var maxWidthY2 = 0;
+            var xMax = 0; // bottom margin
+            var labelOffset = xAxisProperties.categoryThickness ? xAxisProperties.categoryThickness / 2 : 0; 
+            var xLabelOuterPadding = 0;
 
-            if (xAxisProperties.xLabelMaxWidth !== undefined) {
-                xLabelPadding = Math.max(0, (viewport.width - xAxisProperties.xLabelMaxWidth * xLabels.length) / 2);
+            if (xAxisProperties.outerPadding !== undefined) {
+                xLabelOuterPadding = xAxisProperties.outerPadding;
+            }
+            else if (xAxisProperties.xLabelMaxWidth !== undefined) {
+                xLabelOuterPadding = Math.max(0, (viewport.width - xAxisProperties.xLabelMaxWidth * xLabels.length) / 2);
             }
 
             if (getRecommendedNumberOfTicksForXAxis(viewport.width) !== 0
@@ -424,81 +431,81 @@ module powerbi.visuals {
                 else
                     rotation = LabelLayoutStrategy.DefaultRotation;
 
-                for (var i = 0, len = yLeftLabels.length; i < len; i++) {
-                    properties.text = yLeftLabels[i];
-                    maxLeft = Math.max(maxLeft, textWidthMeasurer(properties));
+                if (renderY1Axis) {
+                    for (var i = 0, len = y1Labels.length; i < len; i++) {
+                        properties.text = y1Labels[i];
+                        maxWidthY1 = Math.max(maxWidthY1, textWidthMeasurer(properties));
+                    }
                 }
 
-                if (y2AxisProperties) {
-                    var yRightLabels = y2AxisProperties.values;
-                    for (var i = 0, len = yRightLabels.length; i < len; i++) {
-                        properties.text = yRightLabels[i];
-                        maxRight = Math.max(maxRight, textWidthMeasurer(properties));
+                if (y2AxisProperties && renderY2Axis) {
+                    var y2Labels = y2AxisProperties.values;
+                    for (var i = 0, len = y2Labels.length; i < len; i++) {
+                        properties.text = y2Labels[i];
+                        maxWidthY2 = Math.max(maxWidthY2, textWidthMeasurer(properties));
                     }
                 }
 
                 let textHeight = textHeightMeasurer(properties);
-                let maxNumLines = Math.floor(maxHeight / textHeight);
-                for (var i = 0, len = xLabels.length; i < len; i++) {
-                    var height: number;
-                    properties.text = xLabels[i];
-                    var size = textWidthMeasurer(properties);
-                    if (xAxisProperties.willLabelsWordBreak && isOrdinal(xAxisProperties.axisType)) {
-                        // Split label and count rows
-                        let wordBreaks = jsCommon.WordBreaker.splitByWidth(properties.text, properties, textWidthMeasurer, xAxisProperties.xLabelMaxWidth, maxNumLines);
-                        height = wordBreaks.length * textHeight;
-                    }
-                    else if (!xAxisProperties.willLabelsFit) {
-                        height = size * rotation.sine;
-                    }
-                    else {
-                        height = TextHeightConstant;
-
-                        // Account for wide X label
-                        if (i === 0) {
-                            var width = (size / 2) - labelOffset - xLabelPadding;
-                            maxLeft = Math.max(maxLeft, width);
-                        } else if (i === len - 1) {
-                            var width = (size / 2);
-                            maxRight = Math.max(maxRight, width);
+                let maxNumLines = Math.floor(bottomMarginLimit / textHeight);
+                if (renderXAxis && xLabels.length > 0) {
+                    for (var i = 0, len = xLabels.length; i < len; i++) {
+                        var height: number;
+                        properties.text = xLabels[i];
+                        var width = textWidthMeasurer(properties);
+                        if (xAxisProperties.willLabelsWordBreak && isOrdinal(xAxisProperties.axisType)) {
+                            // Split label and count rows
+                            let wordBreaks = jsCommon.WordBreaker.splitByWidth(properties.text, properties, textWidthMeasurer, xAxisProperties.xLabelMaxWidth, maxNumLines);
+                            height = wordBreaks.length * textHeight;
                         }
-                    }
+                        else if (!xAxisProperties.willLabelsFit) {
+                            height = width * rotation.sine;
+                            width = width * rotation.cosine;
+                        }
+                        else {
+                            height = TextHeightConstant;
+                        }
 
-                    xMax = Math.max(xMax, height);
-                };
+                        // Account for wide X label (Note: no right overflow when rotated)
+                        var overflow = 0;
+                        if (i === 0) {
+                            if (!xAxisProperties.willLabelsFit /*rotated text*/)
+                                overflow = width - labelOffset - xLabelOuterPadding;
+                            else
+                                overflow = (width / 2) - labelOffset - xLabelOuterPadding;
+                            leftOverflow = Math.max(leftOverflow, overflow);
+                        } else if (i === len - 1 && xAxisProperties.willLabelsFit) {
+                            // if we are rotating text (!willLabelsFit) there won't be any right overflow
+                            overflow = (width / 2) - labelOffset - xLabelOuterPadding;
+                            rightOverflow = Math.max(rightOverflow, overflow);
+                        }
+
+                        xMax = Math.max(xMax, height);
+                    }
+                    // trim any actual overflow to the limit
+                    leftOverflow = Math.min(leftOverflow, XLabelMaxAllowedOverflow);
+                    rightOverflow = Math.min(rightOverflow, XLabelMaxAllowedOverflow);
+                }
             }
+
+            var rightMargin = 0,
+                leftMargin = 0,
+                bottomMargin = Math.min(Math.ceil(xMax), bottomMarginLimit);
 
             if (showOnRight) {
-                var temp = maxLeft;
-                maxLeft = maxRight;
-                maxRight = temp;
+                leftMargin = Math.min(Math.max(leftOverflow, maxWidthY2), yMarginLimit);
+                rightMargin = Math.min(Math.max(rightOverflow, maxWidthY1), yMarginLimit);
+            }
+            else {
+                leftMargin = Math.min(Math.max(leftOverflow, maxWidthY1), yMarginLimit);
+                rightMargin = Math.min(Math.max(rightOverflow, maxWidthY2), yMarginLimit);
             }
 
-            var calulatedMargins = {
-                xMax: Math.min(maxHeight, Math.ceil(xMax)),
-                yLeft: Math.min(Math.ceil(maxLeft), leftMarginLimit),
-                yRight: Math.ceil(maxRight),
+            return {
+                xMax: Math.ceil(bottomMargin),
+                yLeft: Math.ceil(leftMargin),
+                yRight: Math.ceil(rightMargin),
             };
-
-            //*******Adjust the axes based on if it's turn on or not
-            if (!renderYAxes) {
-                calulatedMargins.yLeft = 0;
-                calulatedMargins.yRight = 0;
-            }
-
-            if (!renderY2Axis && showOnRight) {
-                calulatedMargins.yLeft = 0;
-            }
-
-            if (!renderY2Axis && !showOnRight) {
-                calulatedMargins.yRight = 0;
-            }
-            if (!renderXAxis) {
-                calulatedMargins.xMax = 0;
-            }
-            //*******
-
-            return calulatedMargins;
         }
 
         export function columnDataTypeHasValue(dataType: ValueType) {

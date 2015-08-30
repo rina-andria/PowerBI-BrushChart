@@ -89,6 +89,9 @@ module powerbi.visuals {
                 this.append(element);
             
                 Playground.createVisualElement(element, plugin, dataView);
+                
+                powerbi.visuals.DefaultVisualHostServices.initialize();
+
                 return this;
             };
 

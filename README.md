@@ -82,9 +82,9 @@ To run sample app:
 
 2. Right click on the project root folder then select 'Property Pages'. In the window opened select 'Build' and then in 'Before running startup page' select 'No Build'.
 
-3. Ensure under task explorer, the bindings for the 'build' gulp task is set to Before Build.
+3. Task runner should have kicked off an incremental build task, which will build each time you make changes.
 
-4. Run.
+4. Ctrl + F5 to launch the Playground.
 
 ### Copyrights
 

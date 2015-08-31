@@ -30,10 +30,10 @@ There are many ways in which you can contribute to Power BI visuals:
 To build the library and run the sample application you will need:
 
 - A Windows 8.1 or Windows 10 64-bit machine with at least 4 GB of RAM
-- [Visual Studio Community 2015](https://www.visualstudio.com/vs-2015-product-editions) (Free for use)
- -  Be sure to install the "Microsoft Web Developer Tools" optional feature. To install, go to Add/Remove Programs, right-click on Visual Studio, select Change, then Modify. Check the "Microsoft Web Developer Tools" checkbox and finish the install.
 - [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git#Installing-on-Windows)
 - [Node.js](https://nodejs.org/download/)
+- Recommended IDE - [Visual Studio Community 2015](https://www.visualstudio.com/vs-2015-product-editions) (Free for use)
+ -  Be sure to install the "Microsoft Web Developer Tools" optional feature. To install, go to Add/Remove Programs, right-click on Visual Studio, select Change, then Modify. Check the "Microsoft Web Developer Tools" checkbox and finish the install.
 
 ### One-Time Setup
 In order to build the Power BI visuals, ensure that you have [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git#Installing-on-Windows) and [Node.js](http://nodejs.org/download/) installed.

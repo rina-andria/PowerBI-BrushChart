@@ -350,6 +350,11 @@ gulp.task("build_visuals_playground", function (callback) {
 });
 
 gulp.task('build', function (callback) {
+     if (isDebug)
+    runSequence(
+        "build_projects",
+        callback); 
+     else
     runSequence(
         "tslint",
         "build_projects",

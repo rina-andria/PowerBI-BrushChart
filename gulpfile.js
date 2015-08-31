@@ -1,4 +1,4 @@
-/// <binding BeforeBuild='preload_debug' />
+/// <binding ProjectOpened='preload_debug' />
 /*
  *  Power BI Visualizations
  *

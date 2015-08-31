@@ -354,7 +354,14 @@ gulp.task('build', function (callback) {
         "build_projects",
         callback);
 });
-gulp.task('default', ['build']);
+gulp.task('build_debug', function (callback) {
+    isDebug = true;
+    runSequence(
+        "build_projects",
+        callback);
+});
+
+gulp.task('default', ['build_debug']);
 
 /* --------------------------- WATCHERS ---------------------------------- */
 var lintErrors = false;

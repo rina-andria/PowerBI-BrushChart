@@ -46,6 +46,7 @@ var fs = require("fs");
 var minimist = require("minimist");
 var os = require("os");
 var open = require("gulp-open");
+var gutil = require('gulp-util');
 
 // Command line option:
 //  --fatal=[warning|error|off]

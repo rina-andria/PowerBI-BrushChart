@@ -1,3 +1,4 @@
+/// <binding BeforeBuild='preload_debug' />
 /*
  *  Power BI Visualizations
  *
@@ -23,7 +24,6 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-/// <binding BeforeBuild='build' />
 var gulp = require('gulp');
 var merge = require('merge2');
 var concat = require('gulp-concat');

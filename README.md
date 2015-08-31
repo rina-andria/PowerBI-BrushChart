@@ -4,8 +4,8 @@ The Microsoft Power BI visuals project provides high quality data visualizations
 
 ## What is included
 
-1. `src` folder contains the project source code for your experiments and if you will desire to create a new visual.
-2. `src\Clients\PowerBIVisualsPlayground\index.html` is a sample application which could be used to try the existing visualization types or as an example how to run visuals you create.
+1. Source code of all the visuals used in Power BI.
+2. A Playground app to help you try out the existing visuals, and experiment with the ones you have created.
 
 ## How to Engage, Contribute and Provide Feedback
 

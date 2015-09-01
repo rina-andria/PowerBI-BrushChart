@@ -38,6 +38,7 @@ src/Clients/Visuals/styles/sprites.less
 src/Clients/PowerBIVisualsPlayground/**/*.js
 src/Clients/PowerBIVisualsPlayground/**/*.d.ts
 src/Clients/PowerBIVisualsPlayground/visuals.min.css
+src/Clients/PowerBIVisualsPlayground/visuals.css
 
 # Test Files
 VisualsTests

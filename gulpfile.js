@@ -383,19 +383,8 @@ const lintReporter = function (output, file, options) {
     // options is a reference to the reporter options, e.g. including the emitError boolean 
 };
 
-gulp.task('preload_debug', function (callback) {
-    isDebug = true;
-    runSequence(
-        "preload",
-        callback);
-});
-gulp.task('preload', function (callback) {
-    dontEmitTSbuildErrors = true;
-// first time build 
-    runSequence(
-//        "tslint", -- not really need to lint here
-        "build_projects",
-        callback);
+gulp.task('start_watchers', function (callback) {
+
     //do stuff
     gulp.watch(getBuildPaths("src/Clients/VisualsCommon", "VisualsCommon")).on("change", function (file) {
         lintErrors = false;
@@ -434,6 +423,24 @@ gulp.task('preload', function (callback) {
     gulp.watch(["src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.css", "src/Clients/Visuals/styles/visuals.less", "src/Clients/Visuals/images/visuals.sprites.png", "src/Clients/Visuals/styles/sprites.less"], ["build_visuals_less"]);
     gulp.watch(externalsPath, ['combine_external_js']);
     gulp.watch(internalsPaths, ['combine_internal_js']);
+
+    });
+
+gulp.task('preload_debug', function (callback) {
+    isDebug = true;
+    runSequence(
+        "preload",
+        callback);
+});
+gulp.task('preload', function (callback) {
+    dontEmitTSbuildErrors = true;
+// first time build 
+    runSequence(
+//        "tslint", -- not really need to lint here
+        "build_projects",
+        'start_watchers',
+        callback);
+
 });
 /** ---------------------------------- DOWNLOADs ------------------------------------------*/
 /** --------------------------Download 'JASMINE-jquery.js' --------------------------------*/

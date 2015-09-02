@@ -277,7 +277,6 @@ module powerbitests {
             });
             setTimeout(() => {
                 expect($('.scatterChart .axisGraphicsContext .x.axis .tick').length).toBeGreaterThan(0);
-                expect($('.scatterChart .axisGraphicsContext .y.axis .tick').length).toBeGreaterThan(0);
                 expect($('.scatterChart .axisGraphicsContext .x.axis .tick').find('text').first().text()).toBe('480K');
                 done();
             }, DefaultWaitForRender);
@@ -442,21 +441,26 @@ module powerbitests {
                     metadata: dataViewMetadata,
                     categorical: {
                         categories: [{
-                            source: dataViewMetadata.columns[0],
+                            source: dataViewMetadataFourColumn.columns[0],
                             values: ['a', 'b', 'c', 'd', 'e'],
                             identity: categoryIdentities,
                         }],
                         values: DataViewTransform.createValueColumns([{
-                            source: dataViewMetadata.columns[1],
+                            source: dataViewMetadataFourColumn.columns[1],
                             values: [50000, 49500, 49000, 48000, 50000],
                             subtotal: 246500
+                        },{
+                            source: dataViewMetadataFourColumn.columns[2],
+                            values: [200, 400, 600, 800, 1000]
+                        }, {
+                            source: dataViewMetadataFourColumn.columns[3],
+                            values: [1, 2, 3, 4, 5]
                         }])
                     }
                 }]
             });
             setTimeout(() => {
                 expect($('.scatterChart .axisGraphicsContext .x.axis .tick').length).toBeGreaterThan(0);
-                expect($('.scatterChart .axisGraphicsContext .y.axis .tick').length).toBeGreaterThan(0);
                 expect($('.scatterChart .axisGraphicsContext .x.axis.showLinesOnAxis').length).toBe(1);
                 expect($('.scatterChart .axisGraphicsContext .y.axis.showLinesOnAxis').length).toBe(2);
                 done();
@@ -1082,7 +1086,7 @@ module powerbitests {
 
             setTimeout(() => {
                 var zeroTicks = $('g.tick:has(line.zero-line)');
-
+                expect($('.brush')).not.toBeInDOM();
                 expect(zeroTicks.length).toBe(2);
                 zeroTicks.each(function (i, item) {
                     expect(d3.select(item).datum() === 0).toBe(true);
@@ -1104,7 +1108,8 @@ module powerbitests {
             columns: [
                 {
                     displayName: 'col1',
-                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text),
+                    queryName: 'col1'
                 },
                 {
                     displayName: 'col2',
@@ -1127,6 +1132,14 @@ module powerbitests {
         var dataViewMetadataWithLabelsOffObject = powerbi.Prototype.inherit(dataViewMetadata);
         dataViewMetadataWithLabelsOffObject.objects = { categoryLabels: { show: false } };
 
+        var categoryIdentities: powerbi.DataViewScopeIdentity[] = [
+            mocks.dataViewScopeIdentity('a'),
+            mocks.dataViewScopeIdentity('b'),
+            mocks.dataViewScopeIdentity('c'),
+            mocks.dataViewScopeIdentity('d'),
+            mocks.dataViewScopeIdentity('e'),
+        ];
+        
         beforeEach(() => {
             element = powerbitests.helpers.testDom('500', '500');
             v = powerbi.visuals.visualPluginFactory.create().getPlugin('scatterChart').create();
@@ -1150,7 +1163,8 @@ module powerbitests {
                     categorical: {
                         categories: [{
                             source: dataViewMetadataWithLabelsOnObject.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
+                            values: ['a', 'b', 'c', 'd', 'e'],
+                            identity: categoryIdentities,
                         }],
                         values: DataViewTransform.createValueColumns([{
                             source: dataViewMetadataWithLabelsOnObject.columns[1],
@@ -1174,7 +1188,8 @@ module powerbitests {
                     categorical: {
                         categories: [{
                             source: dataViewMetadataWithLabelsOnObject.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
+                            values: ['a', 'b', 'c', 'd', 'e'],
+                            identity: categoryIdentities,
                         }],
                         values: DataViewTransform.createValueColumns([{
                             source: dataViewMetadataWithLabelsOnObject.columns[1],
@@ -1204,7 +1219,8 @@ module powerbitests {
                     categorical: {
                         categories: [{
                             source: dataViewMetadataWithLabelsFillObject.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
+                            values: ['a', 'b', 'c', 'd', 'e'],
+                            identity: categoryIdentities,
                         }],
                         values: DataViewTransform.createValueColumns([{
                             source: dataViewMetadataWithLabelsFillObject.columns[1],
@@ -1228,7 +1244,8 @@ module powerbitests {
                     categorical: {
                         categories: [{
                             source: dataViewMetadata.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
+                            values: ['a', 'b', 'c', 'd', 'e'],
+                            identity: categoryIdentities,
                         }],
                         values: DataViewTransform.createValueColumns([{
                             source: dataViewMetadataWithLabelsOffObject.columns[1],
@@ -1438,12 +1455,13 @@ module powerbitests {
                     categorical: {
                         categories: [{
                             source: dataViewMetadata.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
+                            values: ['a', 'b', 'c', 'd', 'e'],
+                            identity: categoryIdentities,
                         }],
                         values: DataViewTransform.createValueColumns([{
                             source: dataViewMetadata.columns[1],
                             values: [null, 10, null, 15, null],
-                            subtotal: 20
+                            subtotal: 20,
                         }])
                     }
                 }]
@@ -1461,7 +1479,8 @@ module powerbitests {
                     categorical: {
                         categories: [{
                             source: dataViewMetadata.columns[0],
-                            values: ['a', 'b', 'c', 'd', 'e']
+                            values: ['a', 'b', 'c', 'd', 'e'],
+                            identity: categoryIdentities,
                         }],
                         values: DataViewTransform.createValueColumns([{
                             source: dataViewMetadataWithLabelsOnObject.columns[1],
@@ -1481,7 +1500,8 @@ module powerbitests {
                         categorical: {
                             categories: [{
                                 source: dataViewMetadata.columns[0],
-                                values: ['q', 'w', 'r', 't']
+                                values: ['q', 'w', 'r', 't'],
+                                identity: categoryIdentities,
                             }],
                             values: DataViewTransform.createValueColumns([{
                                 source: dataViewMetadataWithLabelsOnObject.columns[1],
@@ -3899,8 +3919,8 @@ module powerbitests {
         it('Interaction scatter chart click validation', (done) => {
             var scatterChart = (<any>v).layers[0];
             var selectedCircle = scatterChart.mainGraphicsContext.selectAll('circle.dot').filter(function (d, i) { return d.category === 'd'; });
-            var x = selectedCircle.attr('cx');
-            var y = selectedCircle.attr('cy');
+            var x = parseFloat(selectedCircle.attr('cx'));
+            var y = parseFloat(selectedCircle.attr('cy'));
             var mouseCordinate = { x: x - 5, y: y + 6 };
             spyOn(scatterChart.interactivityService.behavior, 'getMouseCoordinates').and.returnValue(mouseCordinate);
             scatterChart.interactivityService.behavior.onClick();
@@ -4208,9 +4228,20 @@ module powerbitests {
                     metadata: dataViewMetadataFourColumn,
                     categorical: {
                         categories: [{
-                            source: dataViewMetadataFourColumn.columns[0],
+                            source: dataViewMetadataFourColumn.columns[1],
                             values: [1, 2, 3, 4, 5],
-                        }]
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataFourColumn.columns[1],
+                                values: [100, 200, 300, 400, 500]
+                            }, {
+                                source: dataViewMetadataFourColumn.columns[2],
+                                values: [200, 400, 600, 800, 1000]
+                            }, {
+                                source: dataViewMetadataFourColumn.columns[3],
+                                values: [1, 2, 3, 4, 5]
+                            }])
                     }
                 }]
             };
@@ -4220,7 +4251,6 @@ module powerbitests {
 
             expect(labels[0].textContent).toBe('0');
             expect(labels[labels.length -1].textContent).toBe('25');
-
         });
 
         it('Y-axis customization: Test forced domain (start and end)',() => {
@@ -4241,7 +4271,18 @@ module powerbitests {
                         categories: [{
                             source: dataViewMetadataFourColumn.columns[0],
                             values: [1, 2, 3, 4, 5],
-                        }]
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataFourColumn.columns[1],
+                                values: [100, 200, 300, 400, 500]
+                            }, {
+                                source: dataViewMetadataFourColumn.columns[2],
+                                values: [200, 400, 600, 800, 1000]
+                            }, {
+                                source: dataViewMetadataFourColumn.columns[3],
+                                values: [1, 2, 3, 4, 5]
+                            }])
                     }
                 }]
             };
@@ -4251,7 +4292,6 @@ module powerbitests {
 
             expect(labels[0].textContent).toBe('0');
             expect(labels[labels.length - 1].textContent).toBe('500');
-
         });
     });
 

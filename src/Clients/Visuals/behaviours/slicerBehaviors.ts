@@ -37,18 +37,18 @@ module powerbi.visuals {
     }
 
     export class SlicerWebBehavior {
-        public selectLabels(selectionLabels: D3.Selection): void {
+        public updateLabels(selectionLabels: D3.Selection, slicerSettings:SlicerSettings) {
             selectionLabels.style({
                 'color': (d: SlicerDataPoint) => {
                     if (d.selected)
-                        return Slicer.DefaultStyleProperties.slicerText.selectionColor;
+                        return slicerSettings.slicerText.selectionColor;
                     else
-                        return Slicer.DefaultStyleProperties.slicerText.color;
+                        return slicerSettings.slicerText.color;
                 }
             });
         }
 
-        public selectInputs(slicerItemInputs: D3.Selection, dataPoint: SlicerDataPoint): void {
+        public updateItemsInputOnSelectAll(slicerItemInputs: D3.Selection, dataPoint: SlicerDataPoint): void {
             if (dataPoint == null)
                 return;
 
@@ -63,29 +63,26 @@ module powerbi.visuals {
             });
         }
 
-        public updateSelectAll(slicerItemInputs: D3.Selection, dataPoint: SlicerDataPoint, isNotSelectedQueryMode: boolean): void {
-            if (dataPoint == null)
-                return;
-
+        public updateSelectAll(slicerItemInputs: D3.Selection, isInvertedSelectionMode: boolean): void {
             slicerItemInputs.select('input').each(function (d: SlicerDataPoint) {
-                if (d.value === dataPoint.value) {
+                if (d.isSelectAllDataPoint) {
                     var input = d3.select(this);
-                    input.classed('partiallySelected', isNotSelectedQueryMode);
+                    input.classed('partiallySelected', isInvertedSelectionMode);
                 }
             });
         }
 
-        public mouseInteractions(selectionLabels: D3.Selection): void {
+        public mouseInteractions(selectionLabels: D3.Selection, slicerSettings: SlicerSettings) {
             selectionLabels.style({
                 'color': (d: SlicerDataPoint) => {
                     if (d.mouseOver)
-                        return Slicer.DefaultStyleProperties.slicerText.hoverColor;
+                        return slicerSettings.slicerText.hoverColor;
 
                     if (d.mouseOut) {
                         if (d.selected)
-                            return Slicer.DefaultStyleProperties.slicerText.selectionColor;
+                            return slicerSettings.slicerText.selectionColor;
                         else
-                            return Slicer.DefaultStyleProperties.slicerText.color;
+                            return slicerSettings.slicerText.color;
                     }
                 }
             });
@@ -93,7 +90,7 @@ module powerbi.visuals {
 
         public clearSlicers(selectionLabels: D3.Selection, slicerItemInputs: D3.Selection): void {
             slicerItemInputs.selectAll('input').property('checked', false);
-            selectionLabels.style('color', Slicer.DefaultStyleProperties.slicerText.color);
+            selectionLabels.style('color', Slicer.DefaultStyleProperties().slicerText.color);
         }
     }
 }  

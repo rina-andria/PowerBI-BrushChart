@@ -35,18 +35,9 @@ module powerbi.visuals {
                 displayName: powerbi.data.createDisplayNameGetter('Role_DisplayName_Field'),
             }
         ],
-        dataViewMappings: [{
-            conditions: [{ 'Values': { max: 1 } }],
-            categorical: {
-                categories: {
-                    for: { in: 'Values' },
-                    dataReductionAlgorithm: { window: {} }
-                },
-                includeEmptyGroups: true,
-            }
-        }],
         objects: {
             general: {
+                displayName: data.createDisplayNameGetter('Visual_General'),
                 properties: {
                     selected: {
                         type: { bool: true }
@@ -63,9 +54,66 @@ module powerbi.visuals {
                     formatString: {
                         type: { formatting: { formatString: true } },
                     },
+                    outlineColor: {
+                        displayName: data.createDisplayNameGetter('Visual_outlineColor'),
+                        type: { fill: { solid: { color: true } } }
+                    },
+                    outlineWeight: {
+                        displayName: data.createDisplayNameGetter('Visual_outlineWeight'),
+                        type: { numeric: true }
+                    }
+                },
+            },
+            header: {
+                displayName: data.createDisplayNameGetter('Visual_Header'),
+                properties: {
+                    show: {
+                        displayName: data.createDisplayNameGetter('Visual_Show'),
+                        type: { bool: true }
+                    },
+                    fontColor: {
+                        displayName: data.createDisplayNameGetter('Visual_FontColor'),
+                        type: { fill: { solid: { color: true } } }
+                    },
+                    background: {
+                        displayName: data.createDisplayNameGetter('Visual_Background'),
+                        type: { fill: { solid: { color: true } } }
+                    },
+                    outline: {
+                        displayName: data.createDisplayNameGetter('Visual_Outline'),
+                        type: { formatting: { outline: true } }
+                    }
+                }
+            },
+            Rows: {
+                displayName: data.createDisplayNameGetter('Role_DisplayName_Rows'),
+                properties: {
+                    fontColor: {
+                        displayName: data.createDisplayNameGetter('Visual_FontColor'),
+                        type: { fill: { solid: { color: true } } }
+                    },
+                    background: {
+                        displayName: data.createDisplayNameGetter('Visual_Background'),
+                        type: { fill: { solid: { color: true } } }
+                    },
+                    outline: {
+                        displayName: data.createDisplayNameGetter('Visual_Outline'),
+                        type: { formatting: { outline: true } }
+                    }
                 }
             }
         },
+        dataViewMappings: [{
+            conditions: [{ 'Values': { max: 1 } }],
+            categorical: {
+                categories: {
+                    for: { in: 'Values' },
+                    dataReductionAlgorithm: { window: {} }
+                },
+                includeEmptyGroups: true,
+            }
+        }],
+
         sorting: {
             default: {},
         },
@@ -73,20 +121,25 @@ module powerbi.visuals {
     };
 
     export var slicerProps = {
-        selectedPropertyIdentifier: <DataViewObjectPropertyIdentifier>{
-            objectName: 'general',
-            propertyName: 'selected'
+        general: {
+            outlineColor: <DataViewObjectPropertyIdentifier>{ objectName: 'general', propertyName: 'outlineColor' },
+            outlineWeight: <DataViewObjectPropertyIdentifier>{ objectName: 'general', propertyName: 'outlineWeight' }
         },
+        header: {
+            show: <DataViewObjectPropertyIdentifier>{ objectName: 'header', propertyName: 'show' },
+            fontColor: <DataViewObjectPropertyIdentifier>{ objectName: 'header', propertyName: 'fontColor' },
+            background: <DataViewObjectPropertyIdentifier>{ objectName: 'header', propertyName: 'background' },
+            outline: <DataViewObjectPropertyIdentifier>{ objectName: 'header', propertyName: 'outline' }
+        },
+        Rows: {
+            fontColor: <DataViewObjectPropertyIdentifier>{ objectName: 'Rows', propertyName: 'fontColor' },
+            background: <DataViewObjectPropertyIdentifier>{ objectName: 'Rows', propertyName: 'background' },
+            outline: <DataViewObjectPropertyIdentifier>{ objectName: 'Rows', propertyName: 'outline' }
+        },
+        selectedPropertyIdentifier: <DataViewObjectPropertyIdentifier>{ objectName: 'general', propertyName: 'selected' },
+        filterPropertyIdentifier: <DataViewObjectPropertyIdentifier> { objectName: 'general', propertyName: 'filter' },
+        formatString: <DataViewObjectPropertyIdentifier> { objectName: 'general', propertyName: 'formatString' },
 
-        filterPropertyIdentifier: <DataViewObjectPropertyIdentifier> {
-            objectName: 'general',
-            propertyName: 'filter'
-        },
-
-        formatString: <DataViewObjectPropertyIdentifier> {
-            objectName: 'general',
-            propertyName: 'formatString'
-        },
     };
 
 }

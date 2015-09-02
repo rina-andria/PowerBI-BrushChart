@@ -35,7 +35,17 @@ module powerbi.visuals {
                         type: { misc: { imageUrl: true } }
                     }
                 }
-            }
-        }
+            },
+            imageScaling: {
+                displayName: data.createDisplayNameGetter('Visual_Image_Scaling_Type'),
+                properties: {
+                    imageScalingType: {
+                        displayName: data.createDisplayNameGetter('Visual_Image_Scaling_Type'),
+                        type: { formatting: { imageScalingType: true } }
+                    },
+                }
+            },
+        },
+        suppressDefaultTitle: true,
     };
 } 

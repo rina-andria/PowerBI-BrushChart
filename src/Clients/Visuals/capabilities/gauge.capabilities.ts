@@ -61,6 +61,23 @@ module powerbi.visuals {
                         type: { formatting: { formatString: true } },
                     },
                 },
+            },
+            axis: {
+                displayName: data.createDisplayNameGetter('Visual_Gauge_Axis'),
+                properties: {
+                    min: {
+                        displayName: data.createDisplayNameGetter('Visual_Gauge_Axis_Min'),
+                        type: { numeric: true }
+                    },
+                    max: {
+                        displayName: data.createDisplayNameGetter('Visual_Gauge_Axis_Max'),
+                        type: { numeric: true }
+                    },
+                    target: {
+                        displayName: data.createDisplayNameGetter('Visual_Gauge_Axis_Target'),
+                        type: { numeric: true }
+                    },
+                },
             }
         },
         dataViewMappings: [{

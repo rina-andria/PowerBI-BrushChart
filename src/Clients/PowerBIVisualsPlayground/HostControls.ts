@@ -42,7 +42,7 @@ module powerbi.visuals {
         /** Represents sample data views used by visualization elements.*/
         private sampleDataViews;
         private animation_duration: number = 250;
-        private suppressAnimations: boolean = true;
+        private suppressAnimations: boolean = false;
 
         private suppressAnimationsElement: JQuery;
         private animationDurationElement: JQuery;
@@ -96,15 +96,7 @@ module powerbi.visuals {
             };
 
             if (this.visualElement) {
-                if (this.visualElement.update) {
-                    this.visualElement.update({
-                        dataViews: this.sampleDataViews.getDataViews(),
-                        suppressAnimations: true,
-                        viewport: this.viewport
-                    });
-                } else {
-                    this.visualElement.onResizing(this.viewport);
-                }
+                this.visualElement.onResizing(this.viewport);
             }
         }
 
@@ -114,20 +106,20 @@ module powerbi.visuals {
 
         private randomize(): void {
             this.sampleDataViews.randomize();
-            this.update();
+            this.onChange();
         }
 
         private onChangeDuration(): void {
             this.animation_duration = parseInt(this.animationDurationElement.val(), 10);
-            this.update();
+            this.onChange();
         }
 
         private onChangeSuppressAnimations(): void {
-            this.suppressAnimations = !this.suppressAnimationsElement.is(':checked');
-            this.update();
+            this.suppressAnimations = this.suppressAnimationsElement.val();
+            this.onChange();
         }
-
-        public update(): void {
+                
+        private onChange(): void {
             if (this.visualElement.update) {
                 this.visualElement.update({
                     dataViews: this.sampleDataViews.getDataViews(),
@@ -172,7 +164,7 @@ module powerbi.visuals {
         
         private onChangeDataViewSelection(sampleName: string): void {
             this.sampleDataViews = SampleData.getDataViewsBySampleName(sampleName);
-            this.update();
+            this.onChange();
         }
 
     }

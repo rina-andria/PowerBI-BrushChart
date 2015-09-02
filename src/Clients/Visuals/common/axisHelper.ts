@@ -90,6 +90,10 @@ module powerbi.visuals {
         willLabelsFit?: boolean;
         /** (optional) word break axis labels */
         willLabelsWordBreak?: boolean;
+        /** 
+         * (optional) Whether log scale is possible on the current domain.
+         */
+        isLogScaleAllowed?: boolean;
     }
 
     export interface IMargin {
@@ -152,6 +156,8 @@ module powerbi.visuals {
          * (optional) The width/height of each category on the axis.
          */
         categoryThickness?: number;
+        /** (optional) the scale type of the axis. e.g. log, linear */
+        scaleType?: string;
     }
 
     export interface CreateScaleResult {
@@ -243,7 +249,7 @@ module powerbi.visuals {
             else if (isDateTime(axisType)) {
                 return getRecommendedTickValuesForADateTimeRange(maxTicks, scale.domain());
             }
-            return getRecommendedTickValuesForALinearRange(maxTicks, scale, minTickInterval);
+            return getRecommendedTickValuesForAQuantitativeRange(maxTicks, scale, minTickInterval);
         }
 
         export function getRecommendedTickValuesForAnOrdinalRange(maxTicks: number, labels: string[]): string[] {
@@ -265,20 +271,20 @@ module powerbi.visuals {
             return tickLabels;
         }
 
-        export function getRecommendedTickValuesForALinearRange(maxTicks: number, scale: D3.Scale.GenericScale<any>, minInterval?: number): number[] {
+        export function getRecommendedTickValuesForAQuantitativeRange(maxTicks: number, scale: D3.Scale.GenericScale<any>, minInterval?: number): number[] {
             var tickLabels: number[] = [];
 
             //if maxticks is zero return none
             if (maxTicks === 0)
                 return tickLabels;
 
-            var linearScale = <D3.Scale.LinearScale>scale;
-            if (linearScale.ticks) {
-                tickLabels = linearScale.ticks(maxTicks);
+            var quantitiveScale = <D3.Scale.QuantitativeScale>scale;
+            if (quantitiveScale.ticks) {
+                tickLabels = quantitiveScale.ticks(maxTicks);
                 if (tickLabels.length > maxTicks && maxTicks > 1)
-                    tickLabels = linearScale.ticks(maxTicks - 1);
+                    tickLabels = quantitiveScale.ticks(maxTicks - 1);
                 if (tickLabels.length < MinTickCount) {
-                    tickLabels = linearScale.ticks(maxTicks + 1);
+                    tickLabels = quantitiveScale.ticks(maxTicks + 1);
                 }
                 tickLabels = createTrueZeroTickLabel(tickLabels);
 
@@ -296,11 +302,11 @@ module powerbi.visuals {
                         tickLabels.push(tickLabels[0] + minInterval);
                     }
                 }
-
                 return tickLabels;
             }
 
-            debug.assertFail('must pass a linear scale to this method');
+            debug.assertFail('must pass a quantitative scale to this method');
+            
             return tickLabels;
         }
 
@@ -377,7 +383,7 @@ module powerbi.visuals {
                 bottom: 40,
                 left: 30
             };
-        }
+        }        
 
         // TODO: Put the parameters into one object
         export function getTickLabelMargins(
@@ -429,7 +435,7 @@ module powerbi.visuals {
                 if (scrollbarVisible)
                     rotation = LabelLayoutStrategy.DefaultRotationWithScrollbar;
                 else
-                    rotation = LabelLayoutStrategy.DefaultRotation;
+                    rotation = LabelLayoutStrategy.DefaultRotation;                     
 
                 if (renderY1Axis) {
                     for (var i = 0, len = y1Labels.length; i < len; i++) {
@@ -642,6 +648,7 @@ module powerbi.visuals {
             var scale = scaleResult.scale;
             var bestTickCount = scaleResult.bestTickCount;
             var scaleDomain = scale.domain();
+            var isLogScaleAllowed = AxisHelper.isLogScalePossible(dataDomain, dataType);
 
             // fix categoryThickness if scalar and the domain was adjusted when making the scale "nice"
             if (categoryThickness && isScalar && dataDomain && dataDomain.length === 2) {
@@ -660,6 +667,10 @@ module powerbi.visuals {
             else {
                 var minTickInterval = isScalar ? getMinTickValueInterval(formatString, dataType) : undefined;
                 tickValues = getRecommendedTickValues(bestTickCount, scale, dataType, isScalar, minTickInterval);
+            }
+
+            if (options.scaleType && options.scaleType === axisScale.log && isLogScaleAllowed) {
+                tickValues = tickValues.filter((d) => { return AxisHelper.powerOfTen(d); });
             }
 
             var formatter = createFormatter(
@@ -692,7 +703,7 @@ module powerbi.visuals {
                 xLabelMaxWidth = Math.max(1, categoryThickness - CartesianChart.TickLabelPadding * 2);
             }
             else {
-                // When there are 0 or 1 ticks, then xLabelMaxWidth = pixelSpan
+                // When there are 0 or 1 ticks, then xLabelMaxWidth = pixelSpan       
                 // When there is > 1 ticks then we need to +1 so that their widths don't overlap
                 // Example: 2 ticks are drawn at 33.33% and 66.66%, their width needs to be 33.33% so they don't overlap.
                 var labelAreaCount = tickValues.length > 1 ? tickValues.length + 1 : tickValues.length;
@@ -712,6 +723,7 @@ module powerbi.visuals {
                 categoryThickness: categoryThickness,
                 outerPadding: outerPadding,
                 usingDefaultDomain: scaleResult.usingDefaultDomain,
+                isLogScaleAllowed: isLogScaleAllowed
             };
         }
 
@@ -747,7 +759,7 @@ module powerbi.visuals {
                     scale = createOrdinalScale(pixelSpan, dataDomain, categoryThickness ? outerPadding / categoryThickness : 0);
                 }
                 else {
-                    scale = createLinearScale(pixelSpan, dataDomain, outerPadding, bestTickCount);
+                    scale = createNumericalScale(options.scaleType, pixelSpan, dataDomain, dataType, outerPadding, bestTickCount);
                 }
             }
             else {
@@ -760,7 +772,7 @@ module powerbi.visuals {
                 }
 
                 if (isScalar && dataType.numeric && !dataType.dateTime) {
-                    scale = createLinearScale(pixelSpan, scalarDomain, outerPadding, bestTickCount);
+                    scale = createNumericalScale(options.scaleType, pixelSpan, scalarDomain, dataType, outerPadding, bestTickCount);
                 }
                 else if (isScalar && dataType.dateTime) {
                     // Use of a linear scale, instead of a D3.time.scale, is intentional since we want
@@ -998,7 +1010,7 @@ module powerbi.visuals {
                 var defaultRotation: any;
 
                 if (scrollbarVisible) 
-                    defaultRotation = DefaultRotationWithScrollbar;
+                    defaultRotation = DefaultRotationWithScrollbar;               
                 else
                     defaultRotation = DefaultRotation;  
 
@@ -1140,6 +1152,37 @@ module powerbi.visuals {
             return scale;
         }
 
+        export function isLogScalePossible(domain: any[], axisType?: ValueType): boolean {
+            if (domain == null)
+                return false;
+            if (isDateTime(axisType))
+                return false;
+
+            return (domain[0] > 0 && domain[1] > 0) || (domain[0] < 0 && domain[1] < 0);//doman must exclude 0
+        }
+
+        //this function can return different scales e.g. log, linear
+        export function createNumericalScale(axisScaleType: string, pixelSpan: number, dataDomain: any[], dataType:ValueType, outerPadding: number = 0, niceCount?: number): D3.Scale.GenericScale<any> {                      
+            if (axisScaleType === axisScale.log && isLogScalePossible(dataDomain,dataType)) {
+                return createLogScale(pixelSpan, dataDomain, outerPadding, niceCount);
+            }
+            else {
+                return createLinearScale(pixelSpan, dataDomain, outerPadding, niceCount);
+            }            
+        }
+
+        function createLogScale(pixelSpan: number, dataDomain: any[], outerPadding: number = 0, niceCount?: number): D3.Scale.LinearScale {
+            debug.assert(isLogScalePossible(dataDomain), "dataDomain cannot include 0");
+            var scale = d3.scale.log()
+                .range([outerPadding, pixelSpan - outerPadding])
+                .domain([dataDomain[0], dataDomain[1]]);
+            
+            if (niceCount) {
+                scale.nice(niceCount);
+            }
+            return scale;
+        }
+
         export function createLinearScale(pixelSpan: number, dataDomain: any[], outerPadding: number = 0, niceCount?: number): D3.Scale.LinearScale {
             var scale = d3.scale.linear()
                 .range([outerPadding, pixelSpan - outerPadding])
@@ -1251,6 +1294,10 @@ module powerbi.visuals {
                 return -Number.MAX_VALUE;
 
             return value;
+        }
+
+        export function powerOfTen(d:any): boolean {
+            return d / Math.pow(10, Math.ceil(Math.log(d) / Math.LN10 - 1e-12)) === 1;
         }
     }
 }

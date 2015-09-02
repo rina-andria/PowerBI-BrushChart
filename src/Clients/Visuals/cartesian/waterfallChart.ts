@@ -198,23 +198,18 @@ module powerbi.visuals {
                     posMin = 0;
                 }
                 else {
-                    var categoryIdentities = categories[0].identity;
-                    categoryMetadata = categories[0].source;
-                    categoryValues = categories[0].values.slice();
+                    var categoryColumn = categories[0];
+                    categoryMetadata = categoryColumn.source;
+                    categoryValues = categoryColumn.values.slice();
                     categoryValues.push(totalLabel);
 
                     for (var categoryIndex = 0, catLen = column.values.length; categoryIndex < catLen; categoryIndex++) {
                         var category = categoryValues[categoryIndex];
                         var value = column.values[categoryIndex] || 0;
 
-                        var identity: SelectionId;
-                        if (categoryIdentities) {
-                            let dataMap: SelectorForColumn = {};
-                            dataMap[categoryMetadata.queryName] = categoryIdentities[categoryIndex];
-                            identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, null);
-                        } else {
-                            identity = SelectionId.createNull();
-                        }
+                        var identity = SelectionIdBuilder.builder()
+                            .withCategory(categoryColumn, categoryIndex)
+                            .createSelectionId();
 
                         var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, dataView.categorical, category, value);
                         var color = value > 0 ? increaseColor : decreaseColor;

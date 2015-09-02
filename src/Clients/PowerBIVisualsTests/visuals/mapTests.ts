@@ -1644,6 +1644,19 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
+        it("should gracefully handle null data", (done) => {
+            var dataBuilder = new MapDataBuilder();
+            var dataView = dataBuilder.withNullValue().build(true, false);
+            v.onDataChanged({ dataViews: [dataView] });
+
+            setTimeout(() => {
+                var shapes = getShapes();
+                expect(shapes.length).toBe(dataBuilder.categoryValues.length - 1);
+
+                done();
+            }, DefaultWaitForRender);
+        });
+
         function getShapes(): JQuery {
             return $('.mapControl polygon.shape');
         }
@@ -1723,6 +1736,11 @@ module powerbitests {
 
         public withoutCategory(): MapDataBuilder {
             this.suppressCategories = true;
+            return this;
+        }
+
+        public withNullValue(): MapDataBuilder {
+            this.sizeValues.values[1] = null;
             return this;
         }
     }

@@ -43,6 +43,7 @@ module powerbi.visuals {
                     toReturn = {
                         show: categoryAxisObject['show'],
                         axisType: categoryAxisObject['axisType'],
+                        axisScale: categoryAxisObject['axisScale'],
                         start: categoryAxisObject['start'],
                         end: categoryAxisObject['end'],
                         showAxisTitle: categoryAxisObject['showAxisTitle'] == null ? axisTitleOnByDefault : categoryAxisObject['showAxisTitle'],
@@ -65,13 +66,15 @@ module powerbi.visuals {
                 if (valueAxisObject) {
                     toReturn = {
                         show: valueAxisObject['show'],
-                        position: valueAxisObject['position'],                        
+                        position: valueAxisObject['position'],   
+                        axisScale: valueAxisObject['axisScale'],                      
                         start: valueAxisObject['start'],
                         end: valueAxisObject['end'],                        
                         showAxisTitle: valueAxisObject['showAxisTitle'] == null ? axisTitleOnByDefault : valueAxisObject['showAxisTitle'],
                         axisStyle: valueAxisObject['axisStyle'],
                         secShow: valueAxisObject['secShow'],
                         secPosition: valueAxisObject['secPosition'],
+                        secAxisScale: valueAxisObject['secAxisScale'],
                         secStart: valueAxisObject['secStart'],
                         secEnd: valueAxisObject['secEnd'],
                         secShowAxisTitle: valueAxisObject['secShowAxisTitle'],

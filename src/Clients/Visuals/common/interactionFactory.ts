@@ -35,7 +35,7 @@ module powerbi.visuals {
         visitLegend(options: LegendBehaviorOptions);
         visitMap(options: MapBehaviorOptions);
         visitScatterChart(options: ScatterBehaviorOptions);
-        visitSlicer(options: SlicerBehaviorOptions);
+        visitSlicer(options: SlicerBehaviorOptions, slicerSettings: SlicerSettings);
         visitTreemap(options: TreemapBehaviorOptions);
         visitWaterfallChart(options: WaterfallChartBehaviorOptions);
         visitLegend(options: LegendBehaviorOptions);

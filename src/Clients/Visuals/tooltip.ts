@@ -574,7 +574,7 @@ module powerbi.visuals {
                 var dynamicValue: string;
                 if (seriesValues.length > 0) {
                     var dynamicValueMetadata: DataViewMetadataColumn = seriesValues[0].metadata.source;
-                    dynamicValue = getFormattedValue(dynamicValueMetadata, formatStringProp, dynamicValueMetadata.groupName);
+                    dynamicValue = getFormattedValue(valuesSource, formatStringProp, dynamicValueMetadata.groupName);
                 }
                 items.push({ displayName: valuesSource.displayName, value: dynamicValue });
             }

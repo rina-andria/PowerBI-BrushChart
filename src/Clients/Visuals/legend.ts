@@ -971,7 +971,6 @@ module powerbi.visuals {
                 .append('span')
                 .html(CartesianChartInteractiveLegend.legendPlaceSelector)
                 .attr('class', CartesianChartInteractiveLegend.legendIconClass)
-                .style('color', (d: LegendDataPoint) => d.color)
                 .attr('white-space', 'nowrap');
             cellSpanEnter.append('span').attr('class', CartesianChartInteractiveLegend.legendItemNameClass);
             cellSpanEnter.append('span').attr('class', CartesianChartInteractiveLegend.legendItemMeasureClass);
@@ -980,6 +979,7 @@ module powerbi.visuals {
             var legendCells: D3.UpdateSelection = legendItemsContainer.selectAll('td').data((d: LegendDataPoint[]) => d, (d: LegendDataPoint) => d.label);
             legendCells.select('span.' + CartesianChartInteractiveLegend.legendItemNameClass).html((d: LegendDataPoint) => powerbi.visuals.TextUtil.removeBreakingSpaces(d.label));
             legendCells.select('span.' + CartesianChartInteractiveLegend.legendItemMeasureClass).html((d: LegendDataPoint) => '&nbsp;' + d.measure);
+            legendCells.select('span.' + CartesianChartInteractiveLegend.legendIconClass).style('color', (d: LegendDataPoint) => d.color);
 
             // Exit
             legendCells.exit().remove();

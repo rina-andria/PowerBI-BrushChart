@@ -24,20 +24,19 @@
  *  THE SOFTWARE.
  */
 
-/// <vs BeforeBuild='default' Clean='clean' />
-gruntConfig = require('../gruntConfig.js');
+/// <reference path="../_references.ts"/>
 
-module.exports = function (grunt) {
+module powerbi.visuals {
 
-	var opts = gruntConfig.getOpts();
+    export module CanvasBackgroundHelper {
+        export function getDefaultColor(): string {
+            return '#FFFFFF';
+        }
 
-    grunt.initConfig({
-		name: opts[0],
-        pkg: grunt.file.readJSON('package.json'),
-		uglify: gruntConfig.uglifyConfig(opts[1])
-    });
-
-	gruntConfig.loadParentNpmTasks(grunt, 'grunt-contrib-uglify');
-
-    grunt.registerTask('default', ['uglify']);
-};
+        export function getDefaultValues() {
+            return {
+                color: getDefaultColor(),
+            };
+        }
+    }
+} 

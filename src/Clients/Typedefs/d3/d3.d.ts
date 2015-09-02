@@ -922,6 +922,7 @@ declare module D3 {
                 (name: string): string;
                 (name: string, value: any, priority?: string): Transition;
                 (name: string, valueFunction: (data: any, index: number) => any, priority?: string): Transition;
+                (styleValueMap : Object): Transition;
             };
             call(callback: (selection: Selection) => void): Transition;
             call(callback: (selection: any, anything: any) => void, ...arguments: any[]): Transition;

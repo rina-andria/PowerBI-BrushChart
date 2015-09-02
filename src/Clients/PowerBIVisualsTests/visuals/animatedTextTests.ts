@@ -29,160 +29,188 @@
 module powerbitests {
     import AnimatedText = powerbi.visuals.AnimatedText;
 
-    describe("AnimatedText",() => {
+    describe("AnimatedText", () => {
+        var animatedText: AnimatedText;
+        
+        beforeEach(() => {
+            animatedText = new AnimatedText("animatedText");
+        });
 
-        it('AnimatedText_getSeedFontHeight does not exceed style maximum',() => {
-            var animatedText = new AnimatedText('animatedText');
+        it("AnimatedText_getSeedFontHeight does not exceed style maximum", () => {
             animatedText.style = powerbi.visuals.visualStyles.create();
 
             expect(animatedText.getSeedFontHeight(100, 90)).toBeLessThan(100);
         });
 
-        it('AnimatedText_getSeedFontHeight returns a smaller number than the height',() => {
-            var animatedText = new AnimatedText('animatedText');
+        it("AnimatedText_getSeedFontHeight returns a smaller number than the height", () => {
             animatedText.style = powerbi.visuals.visualStyles.create();
 
             expect(animatedText.getSeedFontHeight(100, 90)).toBeLessThan(100);
         });
 
-        it('AnimatedText_getTextAnchor when the aligment is "left"',() => {
-            var animatedText = new AnimatedText('animatedText');
+        it("AnimatedText_getTextAnchor when the aligment is 'left'", () => {
             animatedText.visualConfiguration = {
-                align: 'left'
+                align: "left"
             };
-            expect(animatedText.getTextAnchor()).toBe('start');
+            expect(animatedText.getTextAnchor()).toBe("start");
         });
 
-        it('AnimatedText_getTextAnchor when the aligment is "right"',() => {
-            var animatedText = new AnimatedText('animatedText');
-
+        it("AnimatedText_getTextAnchor when the aligment is 'right'", () => {
             animatedText.visualConfiguration = {
-                align: 'right'
+                align: "right"
             };
-            expect(animatedText.getTextAnchor()).toBe('end');
+            expect(animatedText.getTextAnchor()).toBe("end");
         });
 
-        it('AnimatedText_getTextAnchor when the aligment is undefined',() => {
-            var animatedText = new AnimatedText('animatedText');
+        it("AnimatedText_getTextAnchor when the aligment is undefined", () => {
             animatedText.visualConfiguration = undefined;
-            expect(animatedText.getTextAnchor()).toBe('middle');
+            expect(animatedText.getTextAnchor()).toBe("middle");
 
             animatedText.visualConfiguration = {
-                align: 'center'
+                align: "center"
             };
-            expect(animatedText.getTextAnchor()).toBe('middle');
+            expect(animatedText.getTextAnchor()).toBe("middle");
         });
 
-        it('AnimatedText_getTranslateX alignment is "left"',() => {
-            var animatedText = new AnimatedText('animatedText');
+        it("AnimatedText_getTranslateX alignment is 'left'", () => {
             animatedText.visualConfiguration = {
-                align: 'left'
+                align: "left"
             };
             expect(animatedText.getTranslateX(0)).toBe(0);
             expect(animatedText.getTranslateX(100)).toBe(0);
         });
 
-        it('AnimatedText_getTranslateX alignment is "right"',() => {
-            var animatedText = new AnimatedText('animatedText');
+        it("AnimatedText_getTranslateX alignment is 'right'", () => {
             animatedText.visualConfiguration = {
-                align: 'right'
+                align: "right"
             };
             expect(animatedText.getTranslateX(0)).toBe(0);
             expect(animatedText.getTranslateX(100)).toBe(100);
         });
 
-        it('AnimatedText_getTranslateX when alignment is undefined, returns the center',() => {
-            var animatedText = new AnimatedText('animatedText');
+        it("AnimatedText_getTranslateX when alignment is undefined, returns the center", () => {
             animatedText.visualConfiguration = undefined;
             expect(animatedText.getTranslateX(0)).toBe(0);
             expect(animatedText.getTranslateX(100)).toBe(50);
         });
     });
 
-    describe("AnimatedText DOM tests",() => {
-        var v: AnimatedText, element: JQuery;
+    describe("AnimatedText DOM tests", () => {
+        var animatedTextBuilder: AnimatedTextBuilder;
 
         var animationOptions: powerbi.AnimationOptions = {
             transitionImmediate: true
         };
 
         beforeEach((done) => {
-
-            element = powerbitests.helpers.testDom('200', '300');
-            v = new AnimatedText('animatedText');
-
-            v.currentViewport = {
-                height: element.height(),
-                width: element.width()
-            };
-
-            v.hostServices = powerbitests.mocks.createVisualHostServices();
-            v.svg = d3.select(element.get(0)).append('svg');
-            v.style = powerbi.visuals.visualStyles.create();
+            animatedTextBuilder = 
+                new AnimatedTextBuilder("200", "300", "animatedText", animationOptions);
+            
             done();
         });
 
-        it('AnimatedText_getAdjustedFontHeight when seed font width is bigger than the width',() => {
+        it("AnimatedText_getAdjustedFontHeight when seed font width is bigger than the width", () => {
             // parameters are availableWidth, textToMeasure, seedFontHeight
             // When the measured text with the seed height is bigger than availableWidth, decrease the font height
-            expect(v.getAdjustedFontHeight(4, "text", 10)).toBeLessThan(10);
+            expect(animatedTextBuilder.animatedText.getAdjustedFontHeight(4, "text", 10)).toBeLessThan(10);
         });
 
-        it('AnimatedText_getAdjustedFontHeight when seed font width is smaller or equal to the width',() => {
+        it("AnimatedText_getAdjustedFontHeight when seed font width is smaller or equal to the width", () => {
             // parameters are availableWidth, textToMeasure, seedFontHeight
             // When the measured text with the seed height is equal/smaller than availableWidth, return the font height
-            expect(v.getAdjustedFontHeight(30, "text", 3)).toBe(3);
+            expect(animatedTextBuilder.animatedText.getAdjustedFontHeight(30, "text", 3)).toBe(3);
         });
 
-        it('AnimatedText doValueTransition sets text',(done) => {
-            v.doValueTransition(3, 4, null, animationOptions, 0, false);
-            expect($('.animatedText')).toBeInDOM();
-            expect($('.mainText')).toBeInDOM();
+        it("AnimatedText doValueTransition sets text", (done) => {
+            animatedTextBuilder.doValueTransition(3, 4);
+            expect($(".animatedText")).toBeInDOM();
+            expect($(".mainText")).toBeInDOM();
             setTimeout(() => {
-                expect($('.mainText').text()).toEqual('4');
+                expect($(".mainText").text()).toEqual("4");
                 done();
             }, DefaultWaitForRender);
         });
 
-        it('AnimatedText doValueTransition formats number > 10000',(done) => {
-            v.doValueTransition(3, 4534353, null, animationOptions, 0, false);
-            expect($('.animatedText')).toBeInDOM();
-            expect($('.mainText')).toBeInDOM();
+        it("AnimatedText doValueTransition formats number > 10000", (done) => {
+            animatedTextBuilder.doValueTransition(3, 4534353);
+            expect($(".animatedText")).toBeInDOM();
+            expect($(".mainText")).toBeInDOM();
             setTimeout(() => {
-                expect($('.mainText').text()).toEqual('4.53M');
+                expect($(".mainText").text()).toEqual("4.53M");
                 done();
             }, DefaultWaitForRender);
         });
 
-        it('AnimatedText doValueTransition sets translateY correctly',(done) => {
-            v.doValueTransition(3, 4, null, animationOptions, 0, false);
-            expect($('.animatedText')).toBeInDOM();
-            expect($('.mainText')).toBeInDOM();
+        it("AnimatedText doValueTransition sets translateY correctly", (done) => {
+            animatedTextBuilder.doValueTransition(3, 4);
+            expect($(".animatedText")).toBeInDOM();
+            expect($(".mainText")).toBeInDOM();
             setTimeout(() => {
                 // IE and Chrome represent the transform differently
-                expect($(".mainText").attr('transform')).toMatch(/translate\(\d+(,| )130\)/);
+                expect($(".mainText").attr("transform")).toMatch(/translate\(\d+(,| )130\)/);
                 done();
             }, DefaultWaitForRender);
         });
 
-        it('AnimatedText doValueTransition to 0',(done) => {
-            v.doValueTransition(null, 0, null, animationOptions, 0, false);
-            expect($('.animatedText')).toBeInDOM();
-            expect($('.mainText')).toBeInDOM();
+        it("AnimatedText doValueTransition to 0", (done) => {
+            animatedTextBuilder.doValueTransition(null, 0);
+            expect($(".animatedText")).toBeInDOM();
+            expect($(".mainText")).toBeInDOM();
             setTimeout(() => {
-                expect($('.mainText').text()).toEqual('0');
+                expect($(".mainText").text()).toEqual("0");
                 done();
             }, DefaultWaitForRender);
         });
 
-        it('AnimatedText doValueTransition to null', (done) => {
-            v.doValueTransition(null, null, null, animationOptions, 0, false);
-            expect($('.animatedText')).toBeInDOM();
-            expect($('.mainText')).toBeInDOM();
+        it("AnimatedText doValueTransition to null", (done) => {
+            animatedTextBuilder.doValueTransition(null, null);
+            expect($(".animatedText")).toBeInDOM();
+            expect($(".mainText")).toBeInDOM();
             setTimeout(() => {
-                expect($('.mainText').text()).toEqual('(Blank)');
+                expect($(".mainText").text()).toEqual("(Blank)");
                 done();
             }, DefaultWaitForRender);
-        });       
+        });
     });
+    
+    class AnimatedTextBuilder {
+        private element: JQuery;
+        
+        private animationOptions: powerbi.AnimationOptions;
+        
+        private animatedTextVisual: AnimatedText;
+        
+        public get animatedText(): AnimatedText {
+            return this.animatedTextVisual;
+        }
+        
+        constructor(
+            height: string, 
+            width: string, 
+            animatedTextName: string, 
+            animationOptions: powerbi.AnimationOptions) {
+                
+            this.animationOptions = animationOptions;
+            
+            this.element = powerbitests.helpers.testDom(height, width);
+            this.animatedTextVisual = new AnimatedText(animatedTextName);
+            
+            this.init();
+        }
+        
+        private init(): void {
+            this.animatedText.currentViewport = {
+                height: this.element.height(),
+                width: this.element.width()
+            };
+            
+            this.animatedText.hostServices = powerbitests.mocks.createVisualHostServices();
+            this.animatedText.svg = d3.select(this.element.get(0)).append("svg");
+            this.animatedText.style = powerbi.visuals.visualStyles.create();
+        }
+        
+        public doValueTransition(startValue: any, endValue: any): void {
+            this.animatedText.doValueTransition(startValue, endValue, null, this.animationOptions, 0, false);
+        }
+    }
 }

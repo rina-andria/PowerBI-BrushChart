@@ -1494,7 +1494,6 @@ module powerbitests {
             });
 
             it('verify viewport when filtering data', (done) => {
-
                 // Clone in order to keep the original as it is
                 var dataViewMeta = _.clone(dataViewMetadata);
                 dataViewMeta.objects = {
@@ -1526,20 +1525,18 @@ module powerbitests {
                 });
 
                 var svgBox = $('.mainGraphicsContext').parent()[0].getBoundingClientRect();
-
                 if (interactiveChart) {
                     setTimeout(() => {
                         expect(svgBox.height).toBeCloseTo(405, 0);
                         // 374 for Windows and 385 for Mac OS
-                        expect(Helpers.isInRange(svgBox.width, 374, 375)).toBe(true);
+                        expect(Helpers.isInRange(svgBox.width, 384, 388)).toBe(true);
                         done();
                     }, DefaultWaitForRender);
                 }
                 else {
                     setTimeout(() => {
                         expect(svgBox.height).toBeCloseTo(470, 0);
-                        // 374 for Windows and 385 for Mac OS
-                        expect(Helpers.isInRange(svgBox.width, 374, 375)).toBe(true);
+                        expect(Helpers.isInRange(svgBox.width, 384, 388)).toBe(true);
                         done();
                     }, DefaultWaitForRender);
                 }
@@ -1651,8 +1648,8 @@ module powerbitests {
                 v.onDataChanged({ dataViews: [dataView] });
 
                 setTimeout(() => {
-                    expect($('.lineChart .axisGraphicsContext .x.axis .tick').length).toBeGreaterThan(0);
-                    expect($('.lineChart .axisGraphicsContext .y.axis .tick').length).toBeGreaterThan(0);
+                    expect($('.lineChart .axisGraphicsContext .x.axis .tick').length).toBe(0);
+                    expect($('.lineChart .axisGraphicsContext .y.axis .tick').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
 
@@ -2116,8 +2113,7 @@ module powerbitests {
                 });
                 setTimeout(() => {
                     expect($('.lineChart .axisGraphicsContext .x.axis .tick').length).toBe(0);
-                    expect($('.lineChart .axisGraphicsContext .y.axis .tick').length).toBeGreaterThan(0);
-                    expect($('.lineChart .axisGraphicsContext .y.axis .tick').find('text').last().text()).toBe('10');
+                    expect($('.lineChart .axisGraphicsContext .y.axis .tick').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2288,7 +2284,7 @@ module powerbitests {
                 setTimeout(() => {
                     var zeroTicks = $('g.tick:has(line.zero-line)');
 
-                    expect(zeroTicks.length).toBe(2);
+                    expect(zeroTicks.length).toBe(1);
                     zeroTicks.each(function (i, item) {
                         expect(d3.select(item).datum() === 0).toBe(true);
                     });
@@ -2478,8 +2474,7 @@ module powerbitests {
                 });
                 setTimeout(() => {
                     expect($('.lineChart .axisGraphicsContext .x.axis .tick').length).toBe(0);
-                    expect($('.lineChart .axisGraphicsContext .y.axis .tick').length).toBeGreaterThan(0);
-                    expect($('.lineChart .axisGraphicsContext .y.axis .tick').find('text').last().text()).toBe('10');
+                    expect($('.lineChart .axisGraphicsContext .y.axis .tick').length).toBe(0);
                     done();
                 }, DefaultWaitForRender);
             });
@@ -2874,6 +2869,7 @@ module powerbitests {
             });
 
             it('change line chart dom data label validation', (done) => {
+                var seriesScopeIdentities = [mocks.dataViewScopeIdentity('col2'), mocks.dataViewScopeIdentity('col3')];
                 v.onDataChanged({
                     dataViews: [{
                         metadata: dataViewMetadataWithLabelsOnObject,
@@ -2885,6 +2881,7 @@ module powerbitests {
                             values: DataViewTransform.createValueColumns([{
                                 source: dataViewMetadataWithLabelsOnObject.columns[1],
                                 values: [500000, 495000, 490000, 480000, 500000],
+                                identity: seriesScopeIdentities[0],
                             }])
                         }
                     }]
@@ -2893,7 +2890,7 @@ module powerbitests {
                 setTimeout(() => {
                     expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(3);
                     // First and last labels are hidden due to collision detection
-                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('495K');
+                    expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('495K');                   
 
                     v.onDataChanged({
                         dataViews: [{
@@ -2906,6 +2903,7 @@ module powerbitests {
                                 values: DataViewTransform.createValueColumns([{
                                     source: dataViewMetadataWithLabelsOnObject.columns[1],
                                     values: [400, 500, 300, 200],
+                                    identity: seriesScopeIdentities[0],
                                 }])
                             }
                         }]
@@ -2913,8 +2911,12 @@ module powerbitests {
 
                     setTimeout(() => {
                         // One label is hidden due to collision detection
-                        expect($('.lineChart .axisGraphicsContext .labels .data-labels').length).toBe(3);
-                        expect($('.lineChart .axisGraphicsContext .labels .data-labels').first().text()).toBe('400');
+                        var dataLabels = $('.lineChart .axisGraphicsContext .labels .data-labels');
+                        expect(dataLabels.length).toBe(3);
+                        expect(dataLabels.filter('text:contains("500")').length).toBe(0);
+                        expect(dataLabels.filter('text:contains("400")').length).toBe(1);
+                        expect(dataLabels.filter('text:contains("300")').length).toBe(1);
+                        expect(dataLabels.filter('text:contains("200")').length).toBe(1);
                         done();
                     }, DefaultWaitForRender);
                 }, DefaultWaitForRender);
@@ -3153,8 +3155,8 @@ module powerbitests {
             expect(item.find('.itemName').text()).toBe('col2');
             expect(item.find('.itemMeasure').text().trim()).toBe('490000');
             expect(lineChart.setHoverLine).toHaveBeenCalled();
-            var arg = lineChart.setHoverLine.calls ? lineChart.setHoverLine.calls.allArgs()[0][0] : 187;
-            expect(Math.floor(arg) === 187).toBeTruthy();
+            var arg = lineChart.setHoverLine.calls ? lineChart.setHoverLine.calls.allArgs()[0][0] : 193;
+            expect(Helpers.isInRange(arg, 191, 195)).toBe(true);
             expect(hoverLine.length).toBe(1);
         });
     });
@@ -3369,6 +3371,9 @@ module powerbitests {
                 expect($('.brush').first().attr('transform').split(',')[1].split(')')[0]).toBe('75');
                 expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 10)).toBeGreaterThan(1);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
+
+                v.onResizing({ height: 500, width: 500 });
+                expect($('.brush')).not.toBeInDOM();
                 done();
             }, DefaultWaitForRender);
         });

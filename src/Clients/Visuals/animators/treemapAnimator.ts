@@ -33,7 +33,8 @@ module powerbi.visuals {
         highlightNodes: D3.Layout.GraphNode[];
         labeledNodes: D3.Layout.GraphNode[];
         shapeGraphicsContext: D3.Selection;
-        labelGraphicsContext: D3.Selection;
+        mainGraphicsContext: D3.Selection;
+        layout: ITreemapLayout;
     }
 
     export interface TreemapAnimationResult extends IAnimationResult {
@@ -83,25 +84,32 @@ module powerbi.visuals {
             var hasSelection = false;
             var hasHighlights = true;
 
-            var shapes = this.animateDefaultShapes(options.shapeGraphicsContext, options.nodes, hasSelection, hasHighlights);
+            var shapes = this.animateDefaultShapes(options.shapeGraphicsContext, options.nodes, hasSelection, hasHighlights, options.layout);
 
             var highlightShapes = options.shapeGraphicsContext.selectAll('.' + Treemap.HighlightNodeClassName)
                 .data(options.highlightNodes, (d: TreemapNode) => d.key + "highlight");
 
             highlightShapes.enter().append('rect')
-                .attr('class', Treemap.layout.highlightShapeClass)
-                .attr(Treemap.layout.shapeLayout); // Start using the normal shape layout
+                .attr('class', options.layout.highlightShapeClass)
+                .attr(options.layout.shapeLayout); // Start using the normal shape layout
 
             highlightShapes
                 .style("fill", (d: TreemapNode) => Treemap.getFill(d, true))
                 .style("fill-opacity", (d: TreemapNode) => Treemap.getFillOpacity(d, hasSelection, hasHighlights, true))
                 .transition()
                 .duration(this.animationDuration)
-                .attr(Treemap.layout.highlightShapeLayout); // Animate to the highlighted positions
+                .attr(options.layout.highlightShapeLayout); // Animate to the highlighted positions
 
             highlightShapes.exit().remove();
-            var labeledNodes = options.viewModel.dataLabelsSettings.show || options.viewModel.dataLabelsSettings.showCategory ? options.labeledNodes : [];
-            var labels = this.animateDefaultLabels(options.labelGraphicsContext, labeledNodes);
+
+            var labeledNodes: D3.Layout.GraphNode[] = [];
+            var labels: D3.UpdateSelection;
+            if (options.layout.areDataLabelsEnabled()) {
+                labeledNodes = options.labeledNodes;
+                labels = this.animateDefaultLabels(options.mainGraphicsContext, labeledNodes, options.layout);
+            }
+            else
+                Treemap.cleanDataLabels(options.mainGraphicsContext);
 
             return {
                 failed: false,
@@ -115,15 +123,21 @@ module powerbi.visuals {
             var hasSelection = false;
             var hasHighlights = true;
 
-            var shapes = this.animateDefaultShapes(options.shapeGraphicsContext, options.nodes, hasSelection, hasHighlights);
+            var shapes = this.animateDefaultShapes(options.shapeGraphicsContext, options.nodes, hasSelection, hasHighlights, options.layout);
 
             options.shapeGraphicsContext.selectAll('.' + Treemap.HighlightNodeClassName)
                 .data(options.highlightNodes, (d: TreemapNode) => d.key + "highlight");
 
-            var highlightShapes = this.animateDefaultHighlightShapes(options.shapeGraphicsContext, options.highlightNodes, hasSelection, hasHighlights);
+            var highlightShapes = this.animateDefaultHighlightShapes(options.shapeGraphicsContext, options.highlightNodes, hasSelection, hasHighlights, options.layout);
 
-            var labeledNodes = options.viewModel.dataLabelsSettings.show || options.viewModel.dataLabelsSettings.showCategory ? options.labeledNodes : [];
-            var labels = this.animateDefaultLabels(options.labelGraphicsContext, labeledNodes);
+            var labeledNodes: D3.Layout.GraphNode[] = [];
+            var labels: D3.UpdateSelection;
+            if (options.layout.areDataLabelsEnabled()) {
+                labeledNodes = options.labeledNodes;
+                labels = this.animateDefaultLabels(options.mainGraphicsContext, labeledNodes, options.layout);
+            }
+            else
+                Treemap.cleanDataLabels(options.mainGraphicsContext);
 
             return {
                 failed: false,
@@ -140,14 +154,14 @@ module powerbi.visuals {
                 .data(options.nodes, (d: TreemapNode) => d.key);
 
             shapes.enter().append('rect')
-                .attr('class', Treemap.layout.shapeClass);
+                .attr('class', options.layout.shapeClass);
 
             shapes
                 .transition()
                 .duration(this.animationDuration)
                 .style("fill", (d: TreemapNode) => Treemap.getFill(d, false))
                 .style("fill-opacity", (d: TreemapNode) => ColumnUtil.getFillOpacity(d.selected, false, d.selected, !d.selected))
-                .attr(Treemap.layout.shapeLayout)
+                .attr(options.layout.shapeLayout)
                 .transition()
                 .duration(0)
                 .delay(this.animationDuration)
@@ -159,20 +173,26 @@ module powerbi.visuals {
                 .data(options.nodes, (d: TreemapNode) => d.key + "highlight");
 
             highlightShapes.enter().append('rect')
-                .attr('class', Treemap.layout.highlightShapeClass);
+                .attr('class', options.layout.highlightShapeClass);
 
             highlightShapes
                 .style("fill", (d: TreemapNode) => Treemap.getFill(d, true))
                 .style("fill-opacity", (d: TreemapNode) => ColumnUtil.getFillOpacity(d.selected, true, d.selected, !d.selected))
                 .transition()
                 .duration(this.animationDuration)
-                .attr(hasSelection ? Treemap.layout.zeroShapeLayout : Treemap.layout.shapeLayout) // Animate to the normal shape layout or zero shape layout depending on whether we have a selection or not
+                .attr(hasSelection ? options.layout.zeroShapeLayout : options.layout.shapeLayout) // Animate to the normal shape layout or zero shape layout depending on whether we have a selection or not
                 .remove();
 
             highlightShapes.exit().remove();
 
-            var labeledNodes = options.viewModel.dataLabelsSettings.show || options.viewModel.dataLabelsSettings.showCategory ? options.labeledNodes : [];
-            var labels = this.animateDefaultLabels(options.labelGraphicsContext, labeledNodes);
+            var labeledNodes: D3.Layout.GraphNode[] = [];
+            var labels: D3.UpdateSelection;
+            if (options.layout.areDataLabelsEnabled()) {
+                labeledNodes = options.labeledNodes;
+                labels = this.animateDefaultLabels(options.mainGraphicsContext, labeledNodes, options.layout);
+            }
+            else
+                Treemap.cleanDataLabels(options.mainGraphicsContext);
 
             return {
                 failed: false,
@@ -182,60 +202,67 @@ module powerbi.visuals {
             };
         }
 
-        private animateDefaultShapes(context: D3.Selection, nodes: D3.Layout.GraphNode[], hasSelection: boolean, hasHighlights: boolean): D3.UpdateSelection {
+        private animateDefaultShapes(context: D3.Selection, nodes: D3.Layout.GraphNode[], hasSelection: boolean, hasHighlights: boolean, layout: ITreemapLayout): D3.UpdateSelection {
             var isHighlightShape = false;
             var shapes = context.selectAll('.' + Treemap.TreemapNodeClassName)
                 .data(nodes, (d: TreemapNode) => d.key);
 
             shapes.enter().append('rect')
-                .attr('class', Treemap.layout.shapeClass);
+                .attr('class', layout.shapeClass);
 
             shapes
                 .transition()
                 .duration(this.animationDuration)
                 .style("fill", (d: TreemapNode) => Treemap.getFill(d, isHighlightShape))
                 .style("fill-opacity", (d: TreemapNode) => Treemap.getFillOpacity(d, hasSelection, hasHighlights, isHighlightShape))
-                .attr(Treemap.layout.shapeLayout);
+                .attr(layout.shapeLayout);
 
             shapes.exit().remove();
 
             return shapes;
         }
 
-        private animateDefaultHighlightShapes(context: D3.Selection, nodes: D3.Layout.GraphNode[], hasSelection: boolean, hasHighlights: boolean): D3.UpdateSelection {
+        private animateDefaultHighlightShapes(context: D3.Selection, nodes: D3.Layout.GraphNode[], hasSelection: boolean, hasHighlights: boolean, layout: ITreemapLayout): D3.UpdateSelection {
             var isHighlightShape = true;
             var highlightShapes = context.selectAll('.' + Treemap.HighlightNodeClassName)
                 .data(nodes, (d) => d.key + "highlight");
 
             highlightShapes.enter().append('rect')
-                .attr('class', Treemap.layout.highlightShapeClass);
+                .attr('class', layout.highlightShapeClass);
 
             highlightShapes
                 .transition()
                 .duration(this.animationDuration)
                 .style("fill", (d: TreemapNode) => Treemap.getFill(d, isHighlightShape))
                 .style("fill-opacity", (d: TreemapNode) => Treemap.getFillOpacity(d, hasSelection, hasHighlights, isHighlightShape))
-                .attr(Treemap.layout.highlightShapeLayout);
+                .attr(layout.highlightShapeLayout);
 
             highlightShapes.exit().remove();
             return highlightShapes;
         }
 
-        private animateDefaultLabels(context: D3.Selection, nodes: D3.Layout.GraphNode[]): D3.UpdateSelection {
+        private animateDefaultLabels(context: D3.Selection, nodes: D3.Layout.GraphNode[], layout: ITreemapLayout): D3.UpdateSelection {
+
+            // Check if label context already exists
+            if (layout.areDataLabelsEnabled() && context.select('.' + Treemap.LabelsGroupClassName).empty())
+                context.append('g').classed(Treemap.LabelsGroupClassName, true);
+
             var labels = context
+                .select('.' + Treemap.LabelsGroupClassName)
                 .selectAll('text')
                 .data(nodes, (d: TreemapNode) => d.key);
 
             labels.enter().append('text')
-                .attr('class', Treemap.layout.labelClass);
+                .attr('class', layout.labelClass);
 
             labels
                 .transition()
                 .duration(this.animationDuration)
-                .attr(Treemap.layout.labelLayout)
-                .text(Treemap.layout.labelText);
+                .attr(layout.labelLayout)
+                .text(layout.labelText);
 
             labels.exit().remove();
+
             return labels;
         }
     }

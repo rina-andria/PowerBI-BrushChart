@@ -105,6 +105,16 @@ module powerbi.visuals {
         animator?: IGenericAnimator;
     }
 
+    export interface GaugeDataViewObjects extends DataViewObjects {
+        axis: GaugeDataViewObject;
+    }
+
+    export interface GaugeDataViewObject extends DataViewObject {
+        min?: number;
+        max?: number;
+        target?: number;
+    }
+
     /** 
      * Renders a number that can be animate change in value.
      */
@@ -218,6 +228,47 @@ module powerbi.visuals {
                 this.animator = options.animator;
             }
         }
+
+        public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
+            switch (options.objectName) {
+                case 'axis':
+                    return this.enumerateAxis();
+            }
+            return null;
+        }
+
+        private enumerateAxis(): VisualObjectInstance[] {
+            var dataView: DataView = this.dataViews[0];
+
+            if (dataView && dataView.metadata) {
+                var properties: GaugeTargetSettings = Gauge.getGaugeObjectsProperties(dataView);
+
+                return [{
+                    selector: null,
+                    objectName: 'axis',
+                    properties: <any>properties,
+                }];
+            }
+            return null;
+        }
+        
+        private static getGaugeObjectsProperties(dataView: DataView): GaugeTargetSettings {
+            var properties: any = {};
+            var objects: GaugeDataViewObjects = <GaugeDataViewObjects>dataView.metadata.objects;
+            var hasAxisObject: boolean = !!objects && !!objects.axis;
+
+            if (!DataRoleHelper.hasRoleInDataView(dataView, gaugeRoleNames.minValue))
+                properties.min = hasAxisObject ? objects.axis.min : undefined;
+
+            if (!DataRoleHelper.hasRoleInDataView(dataView, gaugeRoleNames.maxValue))
+                properties.max = hasAxisObject ? objects.axis.max : undefined;
+
+            if (!DataRoleHelper.hasRoleInDataView(dataView, gaugeRoleNames.targetValue))
+                properties.target = hasAxisObject ? objects.axis.target : undefined;
+
+            return properties;
+        }
+        
 
         public init(options: VisualInitOptions) {
             this.element = options.element;
@@ -402,11 +453,27 @@ module powerbi.visuals {
                         }
                     }
                 }
+
+                // Override settings according to property pane axis values
+                var gaugeObjectsSettings: GaugeTargetSettings = Gauge.getGaugeObjectsProperties(dataView);
+                if (gaugeObjectsSettings && !$.isEmptyObject(gaugeObjectsSettings))
+                    Gauge.overrideGaugeSettings(settings, gaugeObjectsSettings);
             }
 
             return settings;
         }
+        
+        private static overrideGaugeSettings(settings: GaugeTargetData, gaugeObjectsSettings: GaugeTargetSettings) {
+            if ($.isNumeric(gaugeObjectsSettings.min))
+                settings.min = gaugeObjectsSettings.min;
 
+            if ($.isNumeric(gaugeObjectsSettings.max))
+                settings.max = gaugeObjectsSettings.max;
+
+            if ($.isNumeric(gaugeObjectsSettings.target))
+                settings.target = gaugeObjectsSettings.target;
+        }
+        
         /** Note: Made public for testability */
         public static converter(dataView: DataView): GaugeData {
             var gaugeData = Gauge.getGaugeData(dataView);

@@ -29,6 +29,7 @@
 
 /// <reference path="semanticQuery\sqExprVisitor.ts"/>
 /// <reference path="types\enumType.ts"/>
+/// <reference path="types\axisScale.ts"/>
 /// <reference path="types\axisStyle.ts"/>
 /// <reference path="types\axisType.ts"/>
 /// <reference path="types\basicShapeType.ts"/>

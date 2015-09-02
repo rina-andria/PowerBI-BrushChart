@@ -152,8 +152,8 @@ module powerbi.visuals {
     export interface IColumnChartStrategy {
         setData(data: ColumnChartData): void;
         setupVisualProps(columnChartProps: ColumnChartContext): void;
-        setXScale(is100Pct: boolean, forcedTickCount?: number, forcedXDomain?: any[]): IAxisProperties;
-        setYScale(is100Pct: boolean, forcedTickCount?: number, forcedYDomain?: any[]): IAxisProperties;
+        setXScale(is100Pct: boolean, forcedTickCount?: number, forcedXDomain?: any[], axisScaleType?: string): IAxisProperties;
+        setYScale(is100Pct: boolean, forcedTickCount?: number, forcedYDomain?: any[], axisScaleType?: string): IAxisProperties;
         drawColumns(useAnimation: boolean): ColumnChartDrawInfo;
         selectColumn(selectedColumnIndex: number, lastSelectedColumnIndex: number): void;
         getClosestColumnIndex(x: number, y: number): number;
@@ -582,16 +582,13 @@ module powerbi.visuals {
                         position = baseValuesPos[categoryIndex];
                     }
 
-                    var dataMap: SelectorForColumn = {};
-                    if (categoryMetadata && categoryIdentities)
-                        dataMap[categoryMetadata.queryName] = categoryIdentities[categoryIndex];
-
-                    if (hasDynamicSeries)
-                        dataMap[dataViewCat.values.source.queryName] = grouped[seriesIndex].identity;
-
-                    var identity = SelectionId.createWithSelectorForColumnAndMeasure(
-                        dataMap,
-                        converterStrategy.getMeasureNameByIndex(seriesIndex));
+                    let seriesGroup = grouped && grouped.length > 0 ? grouped[seriesIndex] : null;
+                    let category = dataViewCat.categories && dataViewCat.categories.length > 0 ? dataViewCat.categories[0] : null;
+                    var identity = SelectionIdBuilder.builder()
+                        .withCategory(category, categoryIndex)
+                        .withSeries(dataViewCat.values, seriesGroup)
+                        .withMeasure(converterStrategy.getMeasureNameByIndex(seriesIndex))
+                        .createSelectionId();
 
                     var rawCategoryValue = categories[categoryIndex];
                     var color = ColumnChart.getDataPointColor(legendItem, categoryIndex, dataPointObjects);
@@ -975,14 +972,16 @@ module powerbi.visuals {
             this.ApplyInteractivity(chartContext);
             this.columnChart.setupVisualProps(chartContext);
 
-            if (EnumExtensions.hasFlag(this.chartType, flagBar)) {
+            var isBarChart = EnumExtensions.hasFlag(this.chartType, flagBar);
+
+            if (isBarChart) {
                 var temp = options.forcedXDomain;
                 options.forcedXDomain = options.forcedYDomain;
                 options.forcedYDomain = temp;
             }
 
-            this.xAxisProperties = this.columnChart.setXScale(is100Pct, options.forcedTickCount, options.forcedXDomain);
-            this.yAxisProperties = this.columnChart.setYScale(is100Pct, options.forcedTickCount, options.forcedYDomain);
+            this.xAxisProperties = this.columnChart.setXScale(is100Pct, options.forcedTickCount, options.forcedXDomain, isBarChart ? options.valueAxisScaleType : options.categoryAxisScaleType);
+            this.yAxisProperties = this.columnChart.setYScale(is100Pct, options.forcedTickCount, options.forcedYDomain, isBarChart ? options.categoryAxisScaleType : options.valueAxisScaleType);
 
             if (options.showCategoryAxisLabel && this.xAxisProperties.isCategoryAxis || options.showValueAxisLabel && !this.xAxisProperties.isCategoryAxis) {
                 this.xAxisProperties.axisLabel = data.axesLabels.x;
@@ -1088,7 +1087,13 @@ module powerbi.visuals {
                 var measure = converterStrategy.getValueBySeriesAndCategory(i, columnIndex);
                 var valueMetadata = data.valuesMetadata[i];
                 var formattedLabel = converterHelper.getFormattedLegendLabel(valueMetadata, this.dataViewCat.values, formatStringProp);
-                var dataPointColor = dataPoints.length >= i && dataPoints[i].color;
+                var dataPointColor: string;
+                if (allSeries.length === 1) {
+                    var series = allSeries[0];
+                    dataPointColor = series.data.length > columnIndex && series.data[columnIndex].color;
+                } else {
+                    dataPointColor = dataPoints.length > i && dataPoints[i].color;
+                }
 
                 legendDataPoints.push({
                     color: dataPointColor,

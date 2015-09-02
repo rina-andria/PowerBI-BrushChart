@@ -520,7 +520,8 @@ module powerbi.visuals {
                 forcedTickCount: options.forcedTickCount,
                 useTickIntervalForDisplayUnits: true,
                 isCategoryAxis: false,
-                shouldClamp: AxisHelper.scaleShouldClamp(combinedDomain, valueDomain)
+                shouldClamp: AxisHelper.scaleShouldClamp(combinedDomain, valueDomain),
+                scaleType: options.valueAxisScaleType
             });
 
             var xDomain = AxisHelper.createDomain(data.series, this.xAxisProperties.axisType, this.data.isScalar, options.forcedXDomain);
@@ -536,7 +537,8 @@ module powerbi.visuals {
                 useTickIntervalForDisplayUnits: true,
                 getValueFn: (index, type) => this.lookupXValue(index, type),
                 categoryThickness: CartesianChart.getCategoryThickness(data.series, origCatgSize, this.getAvailableWidth(), xDomain, isScalar),
-                isCategoryAxis: true
+                isCategoryAxis: true,
+                scaleType: options.categoryAxisScaleType
             });
 
             this.xAxisProperties.axisLabel = options.showCategoryAxisLabel ? data.axesLabels.x : null;
@@ -748,7 +750,7 @@ module powerbi.visuals {
                     Array.prototype.push.apply(dataPoints, data.series[i].data);
                 }
 
-                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.mainGraphicsSVG, layout, this.currentViewport);
+                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.mainGraphicsSVG, layout, this.currentViewport, duration > 0, duration);
                 this.mainGraphicsSVG.select('.labels').attr('transform', SVGUtil.translate(LineChart.HorizontalShift + extraLineShift, 0));
             }
             else {

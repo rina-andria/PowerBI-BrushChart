@@ -48,6 +48,7 @@ module powerbitests {
     import LegendIcon = powerbi.visuals.LegendIcon;
     import LegendPosition = powerbi.visuals.LegendPosition;
     import buildSelector = powerbitests.helpers.buildSelectorForColumn;
+    import axisScale = powerbi.axisScale;
 
     var labelColor = powerbi.visuals.dataLabelUtils.defaultLabelColor;
     var defaultInsideLabelColor = '#ffffff';
@@ -3589,14 +3590,14 @@ module powerbitests {
                 var x = +$('.column')[1].attributes.getNamedItem('x').value;
                 var width = +$('.column')[1].attributes.getNamedItem('width').value;
                 if (scalarSetting) {
-                    expect(x).toBeCloseTo(31, 0);
-                    expect(width).toBeCloseTo(12, 0);
+                    expect(powerbitests.helpers.isInRange(x, 31, 33)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(width, 11, 15)).toBe(true);
                 }
                 else {
                     // 179.(6) in Mac OS and 178.8 in Windows
-                    expect(powerbitests.helpers.isInRange(x, 177, 180)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(x, 180, 185)).toBe(true);
                     // 48.6 in Mac OS and 48 in Windows
-                    expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(width, 48, 51)).toBe(true);
                 }
                 done();
             }, DefaultWaitForRender);
@@ -3641,15 +3642,15 @@ module powerbitests {
                 var width = +$('.column')[1].attributes.getNamedItem('width').value;
                 if (scalarSetting) {
                     expect($('.column').length).toBe(4);                    
-                    expect(powerbitests.helpers.isInRange(x, 359, 363)).toBe(true);
-                    expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(x, 371, 375)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(width, 48, 51)).toBe(true);
                 }
                 else {
                     expect($('.column').length).toBe(6);
                     // 179.(6) in Mac OS and 178.8 in Windows
-                    expect(powerbitests.helpers.isInRange(x, 177, 180)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(x, 180, 185)).toBe(true);
                     // 48.6 in Mac OS and 48 in Windows
-                    expect(powerbitests.helpers.isInRange(width, 48, 49)).toBe(true);
+                    expect(powerbitests.helpers.isInRange(width, 48, 51)).toBe(true);
                 }
                 done();
             }, DefaultWaitForRender);
@@ -4408,7 +4409,7 @@ module powerbitests {
                 expect($('.columnChart')).toBeInDOM();
 
                 // Data should be spliced down to a smaller set that will fit inside the view
-                expect($('.column').length).toBe(12);
+                expect($('.column').length).toBeLessThan(15);
 
                 // The max value in the view is ...
                 expect($('.columnChart .axisGraphicsContext .y.axis .tick').find('text').last().text()).toBe('25');
@@ -5158,7 +5159,7 @@ module powerbitests {
                             max: 200000,
                             subtotal: 300000,
                             values: [100000, 200000],
-                            highlights: [50000, 10000]
+                            highlights: [50000, 20000]
                         }])
                     }
                 }]
@@ -5167,7 +5168,7 @@ module powerbitests {
             setTimeout(() => {
                 expect($('.columnChart')).toBeInDOM();
                 var labels = $('.data-labels');
-                expect(labels.length).toBe(1);
+                expect(labels.length).toBe(2);
                 //opacity of highlighted columns
                 expect($(labels[0]).css('fill-opacity')).toEqual('1');
                 done();
@@ -8848,6 +8849,34 @@ module powerbitests {
         });
     });
 
+    it('tooltip has legend formatted date values', () => {
+        var categoryColumn: powerbi.DataViewMetadataColumn = { displayName: 'year', queryName: 'selectYear', type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Date), objects: { general: { formatString: "d" } }, groupName: 'group', };
+        var measureColumn: powerbi.DataViewMetadataColumn = { displayName: 'sales', queryName: 'selectSales', isMeasure: true, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Integer), objects: { general: { formatString: "\$#,0.###############;(\$#,0.###############);\$#,0.###############" } } };
+
+        var categoryIdentities = [
+            mocks.dataViewScopeIdentity("2011"),
+            mocks.dataViewScopeIdentity("2012"),
+        ];
+
+        var dataView: powerbi.DataViewCategorical = {
+            categories: [{
+                source: categoryColumn,
+                values: [new Date(2011, 4, 31), new Date(2012, 6, 30)],
+                identity: categoryIdentities,
+            }],
+            values: DataViewTransform.createValueColumns([{
+                source: measureColumn,
+                values: [100, -200]
+            }])
+        };
+        var colors = powerbi.visuals.visualStyles.create().colorPalette.dataColors;
+
+        var data = ColumnChart.converter(dataView, colors);
+
+        expect(data.series[0].data[0].tooltipInfo).toEqual([{ displayName: "year", value: "5/31/2011" }, { displayName: "sales", value: "$100" }]);
+        expect(data.series[0].data[1].tooltipInfo).toEqual([{ displayName: "year", value: "7/30/2012" }, { displayName: "sales", value: "($200)" }]);
+    });
+
     function getChartWithTooManyValues(chartType: string, element: JQuery): powerbi.IVisual {
         var hostServices = powerbitests.mocks.createVisualHostServices();
         var v: powerbi.IVisual;
@@ -8946,6 +8975,9 @@ module powerbitests {
                 expect($('.brush').attr('transform')).toBe('translate(90,8)');
                 expect(parseInt($('.brush .extent')[0].attributes.getNamedItem('height').value, 0)).toBeGreaterThan(8);
                 expect($('.brush .extent')[0].attributes.getNamedItem('y').value).toBe('0');
+
+                v.onResizing({ height: 500, width: 500 });
+                expect($('.brush')).not.toBeInDOM();
                 done();
             }, DefaultWaitForRender);
         });
@@ -9016,8 +9048,10 @@ module powerbitests {
                 expect(powerbitests.helpers.isTranslateCloseTo($('.brush').attr('transform'), 22, 90)).toBe(true);
                 var width = parseInt($('.brush .extent')[0].attributes.getNamedItem('width').value, 0);
                 // Windows and Mac OS differ
-                expect(powerbitests.helpers.isInRange(width, 8, 10)).toBe(true);
+                expect(powerbitests.helpers.isInRange(width, 13, 15)).toBe(true);
                 expect($('.brush .extent')[0].attributes.getNamedItem('x').value).toBe('0');
+                v.onResizing({ height: 500, width: 500 });
+                expect($('.brush')).not.toBeInDOM();
                 done();
             }, DefaultWaitForRender);
         });
@@ -9128,7 +9162,7 @@ module powerbitests {
             var actualLongLabelTextContent = element.find('.x.axis text')[0].textContent;
             expect(actualLongLabelTextContent).toContain("...");
         });
-    });
+    });    
 
     describe("X Axis Customization: Column Chart",() => {
         var v: powerbi.IVisual, element: JQuery;
@@ -9295,7 +9329,7 @@ module powerbitests {
             //Verify begin&end labels
             expect(labels[0].textContent).toBe('0K');
             expect(labels[labels.length - 1].textContent).toBe('100K');
-        });
+        });      
 
         it('Big Range scale check',() => {
 
@@ -9472,7 +9506,7 @@ module powerbitests {
                 interactivity: { isInteractiveLegend: false },
                 animation: { transitionImmediate: true },
             });
-        });
+        });       
 
         it('verify begin & end',() => {
             var categoryIdentities = [
@@ -9585,9 +9619,9 @@ module powerbitests {
                 });
                 expect(yaxisText['x']['baseVal'].getItem(0).value).toBeLessThan(yaxisLine['x2'].baseVal.value);
             }, DefaultWaitForRender);
-        });
+        });        
     });
-
+    
     describe("X Axis Customization: Bar Chart",() => {
         var v: powerbi.IVisual, element: JQuery;
         var hostServices = powerbitests.mocks.createVisualHostServices();
@@ -11310,5 +11344,150 @@ module powerbitests {
     describe("Column chart format validation", () => columnChartDataLabelsFormatValidation('columnChart'));
     describe("Stacked Bar format validation", () => columnChartDataLabelsFormatValidation('barChart'));
     describe("Clustered Bar Chart Labels Color", () => columnChartDataLabelsFormatValidation('clusteredBarChart'));
-    describe("Clustered Column Chart Labels Color", () => columnChartDataLabelsFormatValidation('clusteredColumnChart'));
+    describe("Clustered Column Chart Labels Color",() => columnChartDataLabelsFormatValidation('clusteredColumnChart'));
+
+    describe("Log scale checks",() => {
+        var v: powerbi.IVisual, element: JQuery;
+        var hostServices = powerbitests.mocks.createVisualHostServices();
+
+        var dataViewMetadataTwoColumn: powerbi.DataViewMetadata = {
+            columns: [
+                {
+                    displayName: 'col1',
+                    queryName: 'col1',
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
+                },
+                {
+                    displayName: 'col2',
+                    queryName: 'col2',
+                    isMeasure: true,
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
+                },
+                {
+                    displayName: 'col3',
+                    queryName: 'col3',
+                    isMeasure: true,
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
+                },
+                {
+                    displayName: 'col4',
+                    queryName: 'col4',
+                    isMeasure: true,
+                    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double)
+                }],
+            objects: {
+                valueAxis: {
+                    show: true,
+                    position: 'Right',
+                    start: 0,
+                    end: 200000,
+                    showAxisTitle: true,
+                    axisStyle: true
+                }
+            }
+        };
+
+        beforeEach(() => {
+            element = powerbitests.helpers.testDom('500', '900');
+            v = powerbi.visuals.visualPluginFactory.create().getPlugin('columnChart').create();
+            v.init({
+                element: element,
+                host: hostServices,
+                style: powerbi.visuals.visualStyles.create(),
+                viewport: {
+                    height: element.height(),
+                    width: element.width()
+                },
+                interactivity: { isInteractiveLegend: false },
+                animation: { transitionImmediate: true },
+            });
+        });
+
+        it('Log scale ticks',() => {
+            var categoryIdentities = [
+                mocks.dataViewScopeIdentity("500"),
+                mocks.dataViewScopeIdentity("2000"),
+                mocks.dataViewScopeIdentity("5000"),
+                mocks.dataViewScopeIdentity("10000"),
+            ];
+            dataViewMetadataTwoColumn.objects = {
+                valueAxis: {
+                    show: true,
+                    start: 10,
+                    end: 100000,
+                    axisType: AxisType.scalar,
+                    showAxisTitle: true,
+                    axisStyle: true,
+                    axisScale: axisScale.log
+                }
+            };
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataTwoColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataTwoColumn.columns[0],
+                            values: [500, 2000, 5000, 10000],
+                            identity: categoryIdentities
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadataTwoColumn.columns[1],
+                            min: 50000,
+                            max: 200000,
+                            subtotal: 500000,
+                            values: [100000, 200000, 150000, 50000]
+                        }])
+                    }
+                }]
+            });
+            var logLabels: any = $('.y.axis').children('.tick');
+            expect(logLabels.length).toBeGreaterThan(0);
+
+            for (var i = 0, ilen = logLabels.length; i < ilen; i++) {
+                var labelValue = +expect(logLabels[i].textContent).actual.replace(',', '');
+                expect(AxisHelper.powerOfTen(labelValue)).toBeTruthy();
+            }
+        });
+
+        it('Log scale starts from zero',() => {
+            var categoryIdentities = [
+                mocks.dataViewScopeIdentity("500"),
+                mocks.dataViewScopeIdentity("2000"),
+                mocks.dataViewScopeIdentity("5000"),
+                mocks.dataViewScopeIdentity("10000"),
+            ];
+            dataViewMetadataTwoColumn.objects = {
+                valueAxis: {
+                    show: true,
+                    start: 0,
+                    end: 100000,
+                    axisType: AxisType.scalar,
+                    showAxisTitle: true,
+                    axisStyle: true,
+                    axisScale: axisScale.log
+                }
+            };
+            v.onDataChanged({
+                dataViews: [{
+                    metadata: dataViewMetadataTwoColumn,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataTwoColumn.columns[0],
+                            values: [500, 2000, 5000, 10000],
+                            identity: categoryIdentities
+                        }],
+                        values: DataViewTransform.createValueColumns([{
+                            source: dataViewMetadataTwoColumn.columns[1],
+                            min: 50000,
+                            max: 200000,
+                            subtotal: 500000,
+                            values: [100000, 200000, 150000, 50000]
+                        }])
+                    }
+                }]
+            });
+            var logLabels: any = $('.y.axis').children('.tick');
+            expect(logLabels.length).toBe(6);
+        });
+    });
 }

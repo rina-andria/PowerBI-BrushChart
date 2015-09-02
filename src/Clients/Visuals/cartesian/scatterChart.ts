@@ -334,16 +334,11 @@ module powerbi.visuals {
                         color = colorHelper.getColorForMeasure(categoryObjects && categoryObjects[categoryIdx], measureSource);
                     }
 
-                    var dataMap: SelectorForColumn = {};
-                    if (categoryIdentities && categoryQueryName) {
-                        dataMap[categoryQueryName] = categoryIdentities[categoryIdx];
-                    }
-
-                    if (hasDynamicSeries) {
-                        dataMap[dataValueSource.queryName] = grouping.identity;
-                    }
-
-                    var identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, null);
+                    let category = categories && categories.length > 0 ? categories[0] : null;
+                    var identity = SelectionIdBuilder.builder()
+                        .withCategory(category, categoryIdx)
+                        .withSeries(dataValues, grouping)
+                        .createSelectionId();
 
                     var seriesData: TooltipSeriesDataItem[] = [];
                     if (dataValueSource) {
@@ -673,7 +668,8 @@ module powerbi.visuals {
                 isVertical: false,
                 forcedTickCount: options.forcedTickCount,
                 useTickIntervalForDisplayUnits: true,
-                isCategoryAxis: true//scatter doesn't have a categorical axis, but this is needed for the pane to react correctly to the x-axis toggle one/off
+                isCategoryAxis: true, //scatter doesn't have a categorical axis, but this is needed for the pane to react correctly to the x-axis toggle one/off
+                scaleType: options.categoryAxisScaleType
             });
             this.xAxisProperties.axis.tickSize(-height, 0);
             this.xAxisProperties.axisLabel = this.data.axesLabels.x;
@@ -690,7 +686,8 @@ module powerbi.visuals {
                 isVertical: true,
                 forcedTickCount: options.forcedTickCount,
                 useTickIntervalForDisplayUnits: true,
-                isCategoryAxis: false
+                isCategoryAxis: false,
+                scaleType: options.valueAxisScaleType
             });
             this.yAxisProperties.axisLabel = this.data.axesLabels.y;
 
@@ -724,11 +721,12 @@ module powerbi.visuals {
                 return b.radius.sizeMeasure ? (b.radius.sizeMeasure.values[b.radius.index] - a.radius.sizeMeasure.values[a.radius.index]) : 0;
             });
 
-            var scatterMarkers = this.drawScatterMarkers(sortedData, hasSelection, data.sizeRange, suppressAnimations);
+            var duration = AnimatorCommon.GetAnimationDuration(this.animator, suppressAnimations);
+            var scatterMarkers = this.drawScatterMarkers(sortedData, hasSelection, data.sizeRange, duration);
 
             if (this.data.dataLabelsSettings.show) {
                 var layout = dataLabelUtils.getScatterChartLabelLayout(xScale, yScale, this.data.dataLabelsSettings, viewport, data.sizeRange);
-                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.mainGraphicsG, layout, this.currentViewport);
+                dataLabelUtils.drawDefaultLabelsForDataPointChart(dataPoints, this.mainGraphicsG, layout, this.currentViewport, !suppressAnimations, duration);
             }
             else {
                 dataLabelUtils.cleanDataLabels(this.mainGraphicsG);
@@ -756,8 +754,7 @@ module powerbi.visuals {
             SVGUtil.flushAllD3TransitionsIfNeeded(this.options);
         }
 
-        private drawScatterMarkers(scatterData: ScatterChartDataPoint[], hasSelection: boolean, sizeRange: NumberRange, suppressAnimations: boolean) {
-            var duration = AnimatorCommon.GetAnimationDuration(this.animator, suppressAnimations);
+        private drawScatterMarkers(scatterData: ScatterChartDataPoint[], hasSelection: boolean, sizeRange: NumberRange, duration: number) {
             var xScale = this.xAxisProperties.scale;
             var yScale = this.yAxisProperties.scale;
             var shouldEnableFill = (!sizeRange || !sizeRange.min) && this.data.fillPoint;

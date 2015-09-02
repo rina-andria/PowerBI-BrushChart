@@ -176,6 +176,6 @@
 
 /// <reference path="visuals/donutChart.ts"/>
 /// <reference path="visuals/samples/helloIVisual.ts"/>
-
+/// <reference path="visuals/samples/asterPlot.ts"/>
 /// <reference path="pluginsCapabilities.ts"/>
 /// <reference path="plugins.ts"/>

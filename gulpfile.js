@@ -1,4 +1,4 @@
-/// <binding ProjectOpened='preload_debug' />
+/// <binding ProjectOpened='continuous_build_debug' />
 /*
  *  Power BI Visualizations
  *
@@ -170,23 +170,23 @@ function buildProject(projectPath, outFileName, includePaths) {
         ]);
 }
 
-gulp.task("build_visuals_common", function () {
+gulp.task("build:visuals_common", function () {
     return buildProject("src/Clients/VisualsCommon", "VisualsCommon");
 });
 
-gulp.task("build_visuals_data", function () {
+gulp.task("build:visuals_data", function () {
     return buildProject("src/Clients/VisualsData", "VisualsData");
 });
 
-gulp.task("build_visuals_project", function () {
+gulp.task("build:visuals_project", function () {
     return buildProject("src/Clients/Visuals", "Visuals");
 });
 
-gulp.task("build_visuals_playground_project", function () {
+gulp.task("build:visuals_playground_project", function () {
     return buildProject("src/Clients/PowerBIVisualsPlayground", "PowerBIVisualsPlayground");
 });
 
-gulp.task("build_visuals_tests", function () {
+gulp.task("build:visuals_tests", function () {
     return buildProject(
         "src/Clients/PowerBIVisualsTests",
         "PowerBIVisualsTests",
@@ -194,7 +194,7 @@ gulp.task("build_visuals_tests", function () {
 });
 
 /* --------------------------- LESS/CSS ---------------------------------- */
-gulp.task("build_visuals_sprite", function () {
+gulp.task("build:visuals_sprite", function () {
     var spriteData = gulp.src("src/Clients/Visuals/images/sprite-src/*.png").pipe(spritesmith({
         imgName: "images/visuals.sprites.png",
         cssName: "styles/sprites.less"
@@ -203,7 +203,7 @@ gulp.task("build_visuals_sprite", function () {
     return spriteData.pipe(gulp.dest("src/Clients/Visuals/"));
 });
 
-gulp.task("build_visuals_less", function () {
+gulp.task("build:visuals_less", function () {
     var css = gulp.src(["src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.css",
         "src/Clients/Visuals/styles/visuals.less"])
         .pipe(less())
@@ -234,7 +234,7 @@ function concatFilesWithSourceMap(source, outFileName) {
 var internalsPaths = ["src/Clients/VisualsCommon/obj/VisualsCommon.js",
     "src/Clients/VisualsData/obj/VisualsData.js",
     "src/Clients/Visuals/obj/Visuals.js"];
-gulp.task("combine_internal_js", function () {
+gulp.task("combine:internal_js", function () {
     var srcResult = gulp.src(internalsPaths);
 
     if (isDebug)
@@ -249,7 +249,7 @@ gulp.task("combine_internal_js", function () {
             .pipe(gulp.dest("src/Clients/PowerBIVisualsPlayground"));
 });
 
-gulp.task("combine_internal_d_ts", function () {
+gulp.task("combine:internal_d_ts", function () {
     return gulp.src([
         "src/Clients/VisualsCommon/obj/VisualsCommon.d.ts",
         "src/Clients/VisualsData/obj/VisualsData.d.ts"
@@ -258,7 +258,7 @@ gulp.task("combine_internal_d_ts", function () {
         .pipe(gulp.dest("build"));
 });
 
-gulp.task("combine_all", function () {
+gulp.task("combine:all", function () {
     var src = [
         "build/scripts/externals.min.js"
     ];
@@ -276,7 +276,7 @@ var externalsPath = ["src/Clients/Externals/ThirdPartyIP/D3/*.min.js",
     "src/Clients/Externals/ThirdPartyIP/JQuery/**/*.min.js",
     "src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.js",
     "src/Clients/Externals/ThirdPartyIP/LoDash/*.min.js"];
-gulp.task("combine_external_js", function () {
+gulp.task("combine:external_js", function () {
     return gulp.src(externalsPath)
         .pipe(concat("externals.min.js"))
         .pipe(gulp.dest("build/scripts"))
@@ -306,7 +306,7 @@ gulp.task("tslint", function () {
         .pipe(tslint.report("verbose"));
 });
 /* --------------------------- COPY FILES ---------------------------------- */
-gulp.task("copy_internal_dependencies_visuals_playground", function () {
+gulp.task("copy:internal_dependencies_visuals_playground", function () {
     var src = [];
     src.push("src/Clients/PowerBIVisualsPlayground/obj/PowerBIVisualsPlayground.js");
 
@@ -315,19 +315,19 @@ gulp.task("copy_internal_dependencies_visuals_playground", function () {
         .pipe(gulp.dest("src/Clients/PowerBIVisualsPlayground"))
 });
 /* --------------------------- BUILD SEQUENCIES ---------------------------------- */
-gulp.task("build_visuals", function (callback) {
-    runSequence("build_visuals_project", "build_visuals_sprite", "build_visuals_less", callback);
+gulp.task("build:visuals", function (callback) {
+    runSequence("build:visuals_project", "build:visuals_sprite", "build:visuals_less", callback);
 });
 
-gulp.task("build_projects", function (callback) {
+gulp.task("build:projects", function (callback) {
     runSequence(
-        "build_visuals_common",
-        "build_visuals_data",
-        "build_visuals",
-        "combine_internal_js",
-        "combine_external_js",
-        //"combine_all",
-        "build_visuals_playground",
+        "build:visuals_common",
+        "build:visuals_data",
+        "build:visuals",
+        "combine:internal_js",
+        "combine:external_js",
+        //"combine:all",
+        "build:visuals_playground",
         callback);
 });
 
@@ -335,35 +335,35 @@ gulp.task("build_projects", function (callback) {
 gulp.task("build_combine", function (callback) {
     runSequence(
         "tslint",
-//         "combine_internal_js",
-//         "combine_external_js",
-        // "combine_all",
-        "build_visuals_playground_project",
+//         "combine:internal_js",
+//         "combine:external_js",
+        // "combine:all",
+        "build:visuals_playground_project",
         callback);
 });
 
-gulp.task("build_visuals_playground", function (callback) {
+gulp.task("build:visuals_playground", function (callback) {
     runSequence(
-        "build_visuals_playground_project",
-        "copy_internal_dependencies_visuals_playground",
+        "build:visuals_playground_project",
+        "copy:internal_dependencies_visuals_playground",
         callback);
 });
 
 gulp.task('build', function (callback) {
      if (isDebug)
     runSequence(
-        "build_projects",
+        "build:projects",
         callback); 
      else
     runSequence(
         "tslint",
-        "build_projects",
+        "build:projects",
         callback);
 });
 gulp.task('build_debug', function (callback) {
     isDebug = true;
     runSequence(
-        "build_projects",
+        "build:projects",
         callback);
 });
 
@@ -383,7 +383,7 @@ const lintReporter = function (output, file, options) {
     // options is a reference to the reporter options, e.g. including the emitError boolean 
 };
 
-gulp.task('start_watchers', function (callback) {
+gulp.task('start:watchers', function (callback) {
 
     //do stuff
     gulp.watch(getBuildPaths("src/Clients/VisualsCommon", "VisualsCommon")).on("change", function (file) {
@@ -391,7 +391,7 @@ gulp.task('start_watchers', function (callback) {
         gulp.src(file.path).pipe(tslint()).pipe(tslint.report(lintReporter).on('error', function (error) {})
             .on('end', function () {
                 if (!lintErrors)
-                    runSequence("build_visuals_common");
+                    runSequence("build:visuals_common");
             }));
     });
     gulp.watch(getBuildPaths("src/Clients/VisualsData", "VisualsData")).on("change", function (file) {
@@ -399,7 +399,7 @@ gulp.task('start_watchers', function (callback) {
         gulp.src(file.path).pipe(tslint()).pipe(tslint.report(lintReporter).on('error', function (error) {})
             .on('end', function () {
                 if (!lintErrors)
-                    runSequence("build_visuals_data");
+                    runSequence("build:visuals_data");
             }));
     });
     gulp.watch(getBuildPaths("src/Clients/Visuals", "Visuals")).on("change", function (file) {
@@ -407,7 +407,7 @@ gulp.task('start_watchers', function (callback) {
         gulp.src(file.path).pipe(tslint()).pipe(tslint.report(lintReporter).on('error', function (error) {})
             .on('end', function () {
                 if (!lintErrors)
-                    runSequence("build_visuals_project");
+                    runSequence("build:visuals_project");
             }));
     });
     gulp.watch(getBuildPaths("src/Clients/PowerBIVisualsPlayground", "PowerBIVisualsPlayground")).on("change", function (file) {
@@ -415,36 +415,36 @@ gulp.task('start_watchers', function (callback) {
         gulp.src(file.path).pipe(tslint()).pipe(tslint.report(lintReporter).on('error', function (error) {})
             .on('end', function () {
                 if (!lintErrors)
-                    runSequence("build_visuals_playground");
+                    runSequence("build:visuals_playground");
             }));
     });
 
-    gulp.watch("src/Clients/Visuals/images/sprite-src/*.png", ['build_visuals_sprite']);
-    gulp.watch(["src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.css", "src/Clients/Visuals/styles/visuals.less", "src/Clients/Visuals/images/visuals.sprites.png", "src/Clients/Visuals/styles/sprites.less"], ["build_visuals_less"]);
-    gulp.watch(externalsPath, ['combine_external_js']);
-    gulp.watch(internalsPaths, ['combine_internal_js']);
+    gulp.watch("src/Clients/Visuals/images/sprite-src/*.png", ['build:visuals_sprite']);
+    gulp.watch(["src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.css", "src/Clients/Visuals/styles/visuals.less", "src/Clients/Visuals/images/visuals.sprites.png", "src/Clients/Visuals/styles/sprites.less"], ["build:visuals_less"]);
+    gulp.watch(externalsPath, ['combine:external_js']);
+    gulp.watch(internalsPaths, ['combine:internal_js']);
 
     });
 
-gulp.task('preload_debug', function (callback) {
+gulp.task('continuous_build_debug', function (callback) {
     isDebug = true;
     runSequence(
-        "preload",
+        "continuous_build",
         callback);
 });
-gulp.task('preload', function (callback) {
+gulp.task('continuous_build', function (callback) {
     dontEmitTSbuildErrors = true;
 // first time build 
     runSequence(
 //        "tslint", -- not really need to lint here
-        "build_projects",
-        'start_watchers',
+        "build:projects",
+        'start:watchers',
         callback);
 
 });
 /** ---------------------------------- DOWNLOADs ------------------------------------------*/
 /** --------------------------Download 'JASMINE-jquery.js' --------------------------------*/
-gulp.task('jasmine-dependency', function (callback) {
+gulp.task('install:jasmine', function (callback) {
     fs.exists('src/Clients/Externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js', function (exists) {
         if (!exists) {
             console.log('Jasmine test dependency missing. Downloading dependency.');
@@ -459,7 +459,7 @@ gulp.task('jasmine-dependency', function (callback) {
 });
 
 /** ------------------------------ Download PHANTOM --------------------------------------- */
-gulp.task('phantomjs-dependency', function (callback) {
+gulp.task('install:phantomjs', function (callback) {
     var zipUrl = "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.0.0-windows.zip";
     var phantomExe = "phantomjs.exe";
     var jasmineBrowserDir = "./node_modules/gulp-jasmine-browser/lib/";
@@ -511,7 +511,7 @@ gulp.task('phantomjs-dependency', function (callback) {
 });
 
 /** ----------------------------- TESTS ------------------------------------------- */
-gulp.task("copy_internal_dependencies_visuals_tests", function () {
+gulp.task("copy:internal_dependencies_visuals_tests", function () {
     var src = [];
     src.push("src/Clients/PowerBIVisualsTests/obj/PowerBIVisualsTests.js");
 
@@ -520,17 +520,17 @@ gulp.task("copy_internal_dependencies_visuals_tests", function () {
         .pipe(gulp.dest("VisualsTests"));
 });
 
-gulp.task("copy_external_dependencies_visuals_tests", function () {
+gulp.task("copy:external_dependencies_visuals_tests", function () {
     return gulp.src([
         "build/scripts/powerbi-visuals.all.js"
     ])
         .pipe(gulp.dest("VisualsTests"));
 });
 
-gulp.task("copy_dependencies_visuals_tests", function (callback) {
+gulp.task("copy:dependencies_visuals_tests", function (callback) {
     runSequence(
-        "copy_internal_dependencies_visuals_tests",
-        "copy_external_dependencies_visuals_tests",
+        "copy:internal_dependencies_visuals_tests",
+        "copy:external_dependencies_visuals_tests",
         callback
         );
 });
@@ -568,7 +568,7 @@ function createHtmlTestRunner(fileName, scripts, styles, testName) {
     fs.writeFileSync(fileName, html);
 }
 
-gulp.task("run_tests", function () {
+gulp.task("run:tests", function () {
     var src = [
         "powerbi-visuals.all.js",
         "../src/Clients/externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js",
@@ -609,7 +609,7 @@ gulp.task("run_tests", function () {
     }
 });
 
-gulp.task("run_performance_tests", function (callback) {
+gulp.task("run:performance_tests", function (callback) {
     filesOption.push("performance/performanceTests.ts");
     runSequence("test", callback);
 });
@@ -617,12 +617,12 @@ gulp.task("run_performance_tests", function (callback) {
 gulp.task("test", function (callback) {
     runSequence(
         "build",
-        "build_visuals_tests",
-        "jasmine-dependency",
-        "phantomjs-dependency",
-        "combine_all",
-        "copy_dependencies_visuals_tests",
-        "run_tests",
+        "build:visuals_tests",
+        "install:jasmine",
+        "install:phantomjs",
+        "combine:all",
+        "copy:dependencies_visuals_tests",
+        "run:tests",
         callback);
 });
 
@@ -654,7 +654,7 @@ gulp.task("createdocs", function () {
 gulp.task("gendocs", function (callback) {
     runSequence(
         "build",
-        "combine_internal_d_ts",
+        "combine:internal_d_ts",
         "createdocs",
         callback);
 });
@@ -704,7 +704,7 @@ gulp.task('pull_gh_pages', function () {
         console.log(stderr);
     });
 });
-gulp.task('copy_docs', function () {
+gulp.task('copy:docs', function () {
     return gulp.src(['docs/**/*']).pipe(gulp.dest('.docs'));
 });
 gulp.task('add_all_gh_pages', function (cb) {
@@ -757,12 +757,12 @@ gulp.task('push_gh_pages', function (cb) {
 gulp.task('git_update_gh_pages', function (cb) {
     runSequence(
         "pull_rebase",
-        "build_projects",
-        "combine_internal_d_ts",
+        "build:projects",
+        "combine:internal_d_ts",
         "checkout_gh_pages",
         "pull_gh_pages",
         "createdocs",
-        "copy_docs",
+        "copy:docs",
         "add_all_gh_pages",
         "commit_gh_pages",
         "push_gh_pages",

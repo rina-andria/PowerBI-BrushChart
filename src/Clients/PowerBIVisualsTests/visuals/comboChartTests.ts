@@ -426,6 +426,9 @@ module powerbitests {
                 expect($("rect.extent").length).toBe(1);
                 expect(parseInt($(".brush .extent")[0].attributes.getNamedItem("width").value, 0)).toBeGreaterThan(8);
 
+                visualBuilder.setSize("500", "500");
+                expect($('.brush')).not.toBeInDOM();
+
                 done();
             }, DefaultWaitForRender);
         });
@@ -1504,12 +1507,12 @@ module powerbitests {
             dataViewBuilder.columns = columns;
             dataViewBuilder.categoriesValues = ["John Domo", "Delta Force", "Jean Tablau", "Cat1", "Cat2", "Cat3"];
             dataViewBuilder.values = [
-                [100, 200, 700],
-                [1000, 2000, 7000],
-                [10000, 200, 700],
-                [10000, 20000, 70000],
-                [10000, 200, 700],
-                [10000, 20000, 70000]
+                [100, 200, 700, 1100, 800, 300],
+                [1000, 2000, 7000, 11000, 8000, 2000],
+                [10000, 200, 700, 300, 200, 500],
+                [10000, 20000, 70000, 15000, 25000, 33000],
+                [10000, 200, 700, 900, 500, 200],
+                [10000, 20000, 70000, 15000, 29000, 39000]
             ];
 
             return build(dataViewBuilder);

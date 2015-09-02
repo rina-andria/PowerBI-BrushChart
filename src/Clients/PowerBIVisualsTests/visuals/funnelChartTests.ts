@@ -840,8 +840,8 @@ module powerbitests {
         var translate = 62;
         var dataViewMetadata: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'col1' },
-                { displayName: 'col2', isMeasure: true, objects: { general: { formatString: '$0' } } },
+                { displayName: 'col1', queryName: 'select0' },
+                { displayName: 'col2', queryName: 'select1', isMeasure: true, objects: { general: { formatString: '$0' } } },
             ],
             objects: {
                 labels: { show: true, labelPrecision: 0 }
@@ -1749,9 +1749,9 @@ module powerbitests {
         var v: powerbi.IVisual, element: JQuery;
         var dataViewMetadata: powerbi.DataViewMetadata = {
             columns: [
-                { displayName: 'col1' },
-                { displayName: 'col2' },
-                { displayName: 'col3' }
+                { displayName: 'col1', queryName: 'col1' },
+                { displayName: 'col2', queryName: 'col2' },
+                { displayName: 'col3', queryName: 'col3' }
             ]
         };
         var categoryColumnRef = powerbi.data.SQExprBuilder.fieldDef({ schema: 's', entity: 'e', column: 'col1' });

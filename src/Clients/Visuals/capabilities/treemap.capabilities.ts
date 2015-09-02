@@ -101,25 +101,20 @@ module powerbi.visuals {
                 properties: {
                     show: {
                         displayName: data.createDisplayNameGetter('Visual_Show'),
-                        type: { bool: true, mainShow: true }
+                        type: { bool: true }
                     },
                     color: {
                         displayName: data.createDisplayNameGetter('Visual_LabelsFill'),
                         type: { fill: { solid: { color: true } } }
                     },
-                    //TODO: enable that when descriptors are ready
-                    /*labelPosition: {
-                        displayName: data.createDisplayNameGetter('Visual_Position'),
-                        type: { labelPosition: true }
-                    },
                     labelDisplayUnits: {
                         displayName: data.createDisplayNameGetter('Visual_DisplayUnits'),
-                        type: { labelDisplayUnits: true }
+                        type: { formatting: { labelDisplayUnits: true } }
                     },
                     labelPrecision: {
                         displayName: data.createDisplayNameGetter('Visual_Precision'),
-                        type: { labelPrecision: true }
-                    },*/
+                        type: { numeric: true }
+                    },
                 }
             },
             categoryLabels: {
@@ -175,6 +170,12 @@ module powerbi.visuals {
             position: <DataViewObjectPropertyIdentifier>{ objectName: 'legend', propertyName: 'position' },
             showTitle: <DataViewObjectPropertyIdentifier>{ objectName: 'legend', propertyName: 'showTitle' },
             titleText: <DataViewObjectPropertyIdentifier>{ objectName: 'legend', propertyName: 'titleText' },
+        },
+        labels: {
+            show: <DataViewObjectPropertyIdentifier>{ objectName: 'labels', propertyName: 'show' },
+            color: <DataViewObjectPropertyIdentifier>{ objectName: 'labels', propertyName: 'color' },
+            labelDisplayUnits: <DataViewObjectPropertyIdentifier>{ objectName: 'labels', propertyName: 'labelDisplayUnits' },
+            labelPrecision: <DataViewObjectPropertyIdentifier>{ objectName: 'labels', propertyName: 'labelPrecision' },
         },
         categoryLabels: {
             show: <DataViewObjectPropertyIdentifier>{ objectName: 'categoryLabels', propertyName: 'show' },

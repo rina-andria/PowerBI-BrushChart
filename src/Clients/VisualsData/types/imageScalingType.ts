@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  Power BI Visualizations
  *
  *  Copyright (c) Microsoft Corporation
@@ -24,28 +24,18 @@
  *  THE SOFTWARE.
  */
 
-/// <vs BeforeBuild='default' Clean='clean' />
-gruntConfig = require('../gruntConfig.js');
+/// <reference path="../_references.ts"/>
 
-module.exports = function (grunt) {
+module powerbi {
+    export module imageScalingType {
+        export const normal: string = 'Normal';
+        export const fit: string = 'Fit';
+        export const fill: string = 'Fill';
 
-    var opts = gruntConfig.getOpts();
-
-    grunt.initConfig({
-        name: opts[0],
-        pkg: grunt.file.readJSON('package.json'),
-        uglify: gruntConfig.uglifyConfig(opts[1]),
-        sprite: gruntConfig.spriteSmithConfig(opts[0], opts[3]),
-        less: gruntConfig.lessConfig(opts[2], opts[2] + '/visuals.less'),
-        cssmin: gruntConfig.cssMinConfig(opts[2], opts[2] + '/visuals.css'),
-        cssjanus: gruntConfig.cssJanusConfig(opts[2], opts[2] + '/visuals.css', opts[2] + '/visuals.min.css'),
-    });
-
-    gruntConfig.loadParentNpmTasks(grunt, 'grunt-contrib-uglify');
-    gruntConfig.loadParentNpmTasks(grunt, 'grunt-contrib-less');
-    gruntConfig.loadParentNpmTasks(grunt, 'grunt-spritesmith');
-    gruntConfig.loadParentNpmTasks(grunt, 'grunt-contrib-cssmin');
-    gruntConfig.loadParentNpmTasks(grunt, 'grunt-cssjanus');
-
-    grunt.registerTask('default', ['uglify', 'sprite', 'less', 'cssmin', 'cssjanus']);
-};
+        export const type: IEnumType = createEnumType([
+            { value: normal, displayName: resources => resources.get('Visual_ImageScalingType_Normal') },
+            { value: fit, displayName: resources => resources.get('Visual_ImageScalingType_Fit') },
+            { value: fill, displayName: resources => resources.get('Visual_ImageScalingType_Fill') },
+        ]);
+    }
+}

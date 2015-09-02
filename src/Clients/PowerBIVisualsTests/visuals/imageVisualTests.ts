@@ -32,6 +32,21 @@ module powerbitests {
 
     describe("ImageVisual", () => {
         var imageVisualDataBuilder: ImageVisualDataBuilder;
+        var imageBase64value =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAkFBMVEX" +
+            "////+/v78+/vz8e/29PLr5+Tw7etwWEdbPyzTy8Tj3trn4t78+/mTgHOsnZLCt69PMRzX0cvJwLml" +
+            "lYm1qJ53YE8zEQBsUj9QMR68sKZHKRREJA+aiHx+aViGcF7q5t6NeWpkSDafjoAvCwA4FgC4rKSnm" +
+            "JE+HAaKdWhVOCeHeG1TPi5jT0BxX1J5aFtlSznQd83pAAACIklEQVQYGZXBiVraQBiG0ff7s8BMQs" +
+            "JkEaNsalspXbj/u2us1Scg7TM9B64R/0X8H6FMxBPu53ePiCS6bz/qkljCfatK4hnHIxjRjPURiWj" +
+            "Cf69AIpYIP44eRCxRdj/bBBFLkHZHh4glQbYOiGgykgoRT2QDIprIhxwRr3AJ8VTuChDvJPFPZQri" +
+            "jQyQuE6vTC94IUiLHMRHMnFGQmSHu+f7vkBckIDcN0PXfR7qJmR5Caj4+mnR1LN5InFGENrDYVHVL" +
+            "viiKIJzIWQp65uG0anCmBKu7ytvTCjNdmVwmJWqDogJEU4NIzPTG0YlCEzdAjFhDPOMP/QbryTAWF" +
+            "cYE4L262lfucx4l7jq0CFAtvGICeGTpN6v5svl/DTrN5t+9rB8/vR0WyMw6kfElHiYMUp8XS22/Wx" +
+            "1WvWbRRXESOT7RGJKrOYmE5cEIm094oxY32cISTaSkMxMYpQOHnHOcDcO443Eu9TliAtSulxjXFHu" +
+            "SsQHxn4ucYVAfCT8vZOIV3KYYUSznfLlgBFHZBk0S09JFOEzjM8PASQuyMQFEQpkNLPOQBITxjVJj" +
+            "WTkj4s6Y0oi/eIQ54QbwAzyuhtclpa8kAT17VODuCCaKgczIE2LXSnJDAj9022D+ECExy5jJEbiRV" +
+            "r3N3ePCeIKoXq/HnzKq9R3m+XzvMpBXCWQa7f9ZrvdbvrV/O521gbAxN+IURKGqm3brvElIxP/ImN" +
+            "CJi78AkZVGOZlPDldAAAAAElFTkSuQmCC";
 
         beforeEach(() => {
             imageVisualDataBuilder = new ImageVisualDataBuilder();
@@ -54,30 +69,38 @@ module powerbitests {
             imageVisualDataBuilder.onDataChanged();
 
             //invalid image data url
-            expect(imageVisualDataBuilder.element.find(".imageBackground").css("backgroundImage")).toBe("none");
+            expect(imageVisualDataBuilder.imageBackgroundElement.css("backgroundImage")).toBe("none");
         });
 
         it("Image from base64 string", () => {
-            var imageBase64value =
-                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAkFBMVEX" +
-                "////+/v78+/vz8e/29PLr5+Tw7etwWEdbPyzTy8Tj3trn4t78+/mTgHOsnZLCt69PMRzX0cvJwLml" +
-                "lYm1qJ53YE8zEQBsUj9QMR68sKZHKRREJA+aiHx+aViGcF7q5t6NeWpkSDafjoAvCwA4FgC4rKSnm" +
-                "JE+HAaKdWhVOCeHeG1TPi5jT0BxX1J5aFtlSznQd83pAAACIklEQVQYGZXBiVraQBiG0ff7s8BMQs" +
-                "JkEaNsalspXbj/u2us1Scg7TM9B64R/0X8H6FMxBPu53ePiCS6bz/qkljCfatK4hnHIxjRjPURiWj" +
-                "Cf69AIpYIP44eRCxRdj/bBBFLkHZHh4glQbYOiGgykgoRT2QDIprIhxwRr3AJ8VTuChDvJPFPZQri" +
-                "jQyQuE6vTC94IUiLHMRHMnFGQmSHu+f7vkBckIDcN0PXfR7qJmR5Caj4+mnR1LN5InFGENrDYVHVL" +
-                "viiKIJzIWQp65uG0anCmBKu7ytvTCjNdmVwmJWqDogJEU4NIzPTG0YlCEzdAjFhDPOMP/QbryTAWF" +
-                "cYE4L262lfucx4l7jq0CFAtvGICeGTpN6v5svl/DTrN5t+9rB8/vR0WyMw6kfElHiYMUp8XS22/Wx" +
-                "1WvWbRRXESOT7RGJKrOYmE5cEIm094oxY32cISTaSkMxMYpQOHnHOcDcO443Eu9TliAtSulxjXFHu" +
-                "SsQHxn4ucYVAfCT8vZOIV3KYYUSznfLlgBFHZBk0S09JFOEzjM8PASQuyMQFEQpkNLPOQBITxjVJj" +
-                "WTkj4s6Y0oi/eIQ54QbwAzyuhtclpa8kAT17VODuCCaKgczIE2LXSnJDAj9022D+ECExy5jJEbiRV" +
-                "r3N3ePCeIKoXq/HnzKq9R3m+XzvMpBXCWQa7f9ZrvdbvrV/O521gbAxN+IURKGqm3brvElIxP/ImN" +
-                "CJi78AkZVGOZlPDldAAAAAElFTkSuQmCC";
-
             imageVisualDataBuilder.imageUrl = imageBase64value;
             imageVisualDataBuilder.onDataChanged();
 
-            expect(imageVisualDataBuilder.element.find(".imageBackground").css("backgroundImage")).toBe("url(" + imageBase64value + ")");
+            expect(imageVisualDataBuilder.imageBackgroundElement.css("backgroundImage")).toBe("url(" + imageBase64value + ")");
+        });
+
+        it('Image scaling types', () => {
+            imageVisualDataBuilder.imageUrl = imageBase64value;
+
+            // Fit
+            imageVisualDataBuilder.imageScalingType = "Fit";
+            imageVisualDataBuilder.onDataChanged();
+            expect(imageVisualDataBuilder.imageBackgroundElement.css('background-size')).toBe('100% 100%');
+
+            // Fill
+            imageVisualDataBuilder.imageScalingType = "Fill";
+            imageVisualDataBuilder.onDataChanged();
+            expect(imageVisualDataBuilder.imageBackgroundElement.css('background-size')).toBe('cover');
+
+            // Reset to default
+            imageVisualDataBuilder.imageScalingType = null;
+            imageVisualDataBuilder.onDataChanged();
+            expect(imageVisualDataBuilder.imageBackgroundElement.css('background-size')).toBe('contain');
+
+            // Normal
+            imageVisualDataBuilder.imageScalingType = "Normal";
+            imageVisualDataBuilder.onDataChanged();
+            expect(imageVisualDataBuilder.imageBackgroundElement.css('background-size')).toBe('contain');
         });
     });
 
@@ -86,6 +109,10 @@ module powerbitests {
 
         public get element(): JQuery {
             return this._element;
+        }
+
+        public get imageBackgroundElement(): JQuery {
+            return this._element.find('.imageBackground');
         }
 
         private _hostService: powerbi.IVisualHostServices;
@@ -106,6 +133,16 @@ module powerbitests {
 
         public set imageUrl(value: string) {
             this._imageUrl = value;
+        }
+
+        private _imageScalingType: string;
+
+        public get imageScalingType(): string {
+            return this._imageScalingType;
+        }
+
+        public set imageScalingType(value: string) {
+            this._imageScalingType = value;
         }
 
         constructor() {
@@ -133,15 +170,22 @@ module powerbitests {
         }
 
         public onDataChanged() {
+
+            var objects: powerbi.DataViewObjects = {
+                general: {
+                    imageUrl: this.imageUrl
+                }
+            };
+
+            if (this.imageScalingType) {
+                objects["imageScaling"] = { imageScalingType: this.imageScalingType };
+            }
+
             this.image.onDataChanged({
                 dataViews: [{
                     metadata: {
                         columns: [],
-                        objects: {
-                            general: {
-                                imageUrl: this.imageUrl
-                            }
-                        }
+                        objects: objects
                     }
                 }]
             });

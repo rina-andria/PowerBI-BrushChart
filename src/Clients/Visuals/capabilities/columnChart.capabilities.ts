@@ -89,6 +89,10 @@ module powerbi.visuals {
                             displayName: data.createDisplayNameGetter('Visual_YAxis_Position'),                            
                             type: { formatting: { yAxisPosition: true } }
                         },
+                        axisScale: {
+                            displayName: data.createDisplayNameGetter('Visual_Axis_Scale'),
+                            type: { formatting: { axisScale: true } }
+                        },
                         start: {
                             displayName: data.createDisplayNameGetter('Visual_Axis_Start'),                            
                             type: { numeric: true }
@@ -121,6 +125,10 @@ module powerbi.visuals {
                         position: {
                             displayName: data.createDisplayNameGetter('Visual_YAxis_Position'),
                             type: { formatting: { yAxisPosition: true } }
+                        },
+                        axisScale: {
+                            displayName: data.createDisplayNameGetter('Visual_Axis_Scale'),
+                            type: { formatting: { axisScale: true } }
                         },
                         start: {
                             displayName: data.createDisplayNameGetter('Visual_Axis_Start'),

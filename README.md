@@ -23,7 +23,7 @@ There are many ways in which you can contribute to Power BI visuals:
 *  [Power BI visuals playground (see our visuals live in action)](http://microsoft.github.io/PowerBI-visuals/playground/index.html)
 *  [Power BI Homepage](https://powerbi.microsoft.com/)
 
-## How To Setup and Run
+## Getting Started
 
 ### Prerequisites
 
@@ -53,7 +53,7 @@ cd PowerBI-visuals
 Install dev dependencies:
 
 ```
-npm install  				# This command will install Gulp and all necessary modules
+npm install  # This command will install Gulp and all necessary modules
 ```
 You will also need to do the following to run unit tests:
 
@@ -66,23 +66,23 @@ gulp phantomjs-dependency
 ```
 As result, local version of the PhantomJS will be downloaded and installed into the project. For other OS you have to install PhantomJS manually.
 
-### Build Power BI visuals
+### Building & Running tests from the command-line.
 
 Use the following commands to build and test:
 ```
-gulp build                               # Build Power BI visuals into `build` folder
-gulp test                                # Run unit tests (requires 'PhantomJS', see Prerequisites above)
+gulp build  # Build Power BI visuals into `build` folder
+gulp test  # Run unit tests (requires 'PhantomJS', see Prerequisites above)
 ```
 
-### Run Sample App
+### Running the sample app from VS
 
 To run sample app:
 
-1. Open `src\PowerBIClients.sln` in Visual Studio then open src\Clients\PowerBIVisualsPlayground\, right click on index.html file and select 'Set As Start Page'.
+1. Open `src\PowerBIClients.sln` in Visual Studio then under src\Clients\PowerBIVisualsPlayground\, right click on index.html file and select 'Set As Start Page'.
 
 2. Right click on the project root folder then select 'Property Pages'. In the window opened select 'Build' and then in 'Before running startup page' select 'No Build'.
 
-3. Task runner should have kicked off an incremental build task, which will build each time you make changes.
+3. Task runner should have kicked off an incremental build task, which will build each time you make changes. **NOTE:** Sometimes the task runner might kick off two of these tasks at the same time, just close one of them.
 
 4. Ctrl + F5 to launch the Playground.
 

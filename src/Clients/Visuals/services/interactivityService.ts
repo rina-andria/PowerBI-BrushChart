@@ -29,14 +29,14 @@
 module powerbi.visuals {
     import ArrayExtensions = jsCommon.ArrayExtensions;
     import SemanticFilter = powerbi.data.SemanticFilter;
-
+    
     /**
      * Factory method to create an IInteractivityService instance.
      */
     export function createInteractivityService(hostServices: IVisualHostServices): IInteractivityService {
         return new WebInteractivityService(hostServices);
     }
-
+    
     /**
      * Creates a clear an svg rect to catch clear clicks.
      */
@@ -55,7 +55,7 @@ module powerbi.visuals {
     export interface IInteractiveVisual {
         accept(visitor: InteractivityVisitor, options: any): void;
     }
-
+    
     /**
      * Responsible for managing interactivity between the hosting visual and its peers.
      */
@@ -100,7 +100,7 @@ module powerbi.visuals {
 
             this.hostService = hostServices;
         }
-
+        
         /**
          * Sets the selected state of all selectable data points to false and invokes the behavior's select command.
          */
@@ -110,7 +110,7 @@ module powerbi.visuals {
             this.sendSelectionToLegend();
             this.sendSelectionToSecondVisual();
         }
-
+        
         /**
          * Checks whether there is at least one item selected.
          */
@@ -121,7 +121,7 @@ module powerbi.visuals {
         private legendHasSelection(): boolean {
             return dataHasSelection(this.selectableLegendDataPoints);
         }
-
+        
         public isSelectionModeInverted(): boolean {
             return this.isInvertedSelectionMode;
         }
@@ -214,7 +214,7 @@ module powerbi.visuals {
                 };
 
                 var data2: SelectorsByColumn[] = this.selectedIds.filter((value: SelectionId) => value.getSelectorsByColumn() && value.hasIdentity()).map((value: SelectionId) => value.getSelectorsByColumn());
-
+                
                 if (data2 && data2.length > 0)
                     selectArgs.data2 = data2;
 
@@ -379,7 +379,7 @@ module powerbi.visuals {
             // the current datapoint state has to be inverted
             d.selected = !selected;
 
-            if (isInvertedSelectionMode && selected || !isInvertedSelectionMode && !selected) {
+            if ((isInvertedSelectionMode && selected) || (!isInvertedSelectionMode && !selected)) {
                 this.selectedIds.push(id);
             }
             else {
@@ -409,7 +409,7 @@ module powerbi.visuals {
                     }
                 }
             }
-           
+
             this.selectedIds = selectedIds;
         }
 
@@ -712,6 +712,7 @@ module powerbi.visuals {
             shapes.on('click', clickHandler);
             highlightShapes.on('click', clickHandler);
 
+            if (labels)
             labels.on('click', (d: SelectableDataPoint, i: number) => {
                 this.select(d);
                 behavior.select(this.hasSelection(), shapes, hasHighlights);
@@ -724,14 +725,14 @@ module powerbi.visuals {
             };
         }
 
-        public visitSlicer(options: SlicerBehaviorOptions) {
+        public visitSlicer(options: SlicerBehaviorOptions, slicerSettings: SlicerSettings) {
             var behavior: SlicerWebBehavior = this.behavior;
             if (!behavior) {
                 behavior = this.behavior = new SlicerWebBehavior();
             }
 
             var filterPropertyId = slicerProps.filterPropertyIdentifier;
-            var dataPoints = this.selectableDataPoints = options.datapoints;
+            this.selectableDataPoints = options.datapoints;
             var slicers = options.slicerItemContainers;
             var slicerItemLabels = options.slicerItemLabels;
             var slicerItemInputs = options.slicerItemInputs;
@@ -743,32 +744,30 @@ module powerbi.visuals {
             slicers.on("mouseover", (d: SlicerDataPoint) => {
                 d.mouseOver = true;
                 d.mouseOut = false;
-                behavior.mouseInteractions(slicerItemLabels);
+                behavior.mouseInteractions(slicerItemLabels, slicerSettings);
             });
 
             slicers.on("mouseout", (d: SlicerDataPoint) => {
                 d.mouseOver = false;
                 d.mouseOut = true;
-                behavior.mouseInteractions(slicerItemLabels);
+                behavior.mouseInteractions(slicerItemLabels, slicerSettings);
             });
 
             slicerItemLabels.on("click", (d: SlicerDataPoint) => {
                 if (d.isSelectAllDataPoint) {
                     if (!d.selected) {
                         this.toggleSelectAll();
-                        behavior.selectInputs(slicerItemInputs, d);
-                        behavior.selectLabels(slicerItemLabels);
                     }
                     else {
                         this.clearSelection();
                         this.isInvertedSelectionMode = false;
-                        behavior.selectInputs(slicerItemInputs, d);
                     }
+                    behavior.updateItemsInputOnSelectAll(slicerItemInputs, d);
                 }
                 else {
                     this.selectSlicerItem(d);
-                    behavior.selectLabels(slicerItemLabels);
                 }
+                behavior.updateLabels(slicerItemLabels, slicerSettings);
                 this.sendSelectionToHost(filterPropertyId);
             });
 
@@ -780,10 +779,10 @@ module powerbi.visuals {
             });
 
             this.sendSelectionToVisual = () => {
-                behavior.selectLabels(slicerItemLabels);
+                behavior.updateLabels(slicerItemLabels, slicerSettings);
                 // This is needed for rendering the selectAll in partially selected state
                 var isPartiallySelected = this.isInvertedSelectionMode && this.selectedIds && this.selectedIds.length > 0;
-                behavior.updateSelectAll(slicerItemInputs, dataPoints[0], isPartiallySelected);
+                behavior.updateSelectAll(slicerItemInputs, isPartiallySelected);
             };
 
             // Always update the Slicer as it's fully repainting
@@ -959,7 +958,7 @@ module powerbi.visuals {
             };
         }
     };
-
+    
     /**
      * A service for the mobile client to enable & route interactions.
      */
@@ -1050,7 +1049,7 @@ module powerbi.visuals {
             // No mobile interactions declared.
         }
 
-        public visitSlicer(options: SlicerBehaviorOptions) {
+        public visitSlicer(options: SlicerBehaviorOptions, slicerSettings: SlicerSettings) {
             // No mobile interactions declared.
         }
 

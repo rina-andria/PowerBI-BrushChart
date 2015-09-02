@@ -282,4 +282,15 @@ module powerbi.visuals.plugins {
         create: () => new samples.ConsoleWriter()
     };
 
+    export var helloIVisual: IVisualPlugin = {
+        name: 'helloIVisual',
+        capabilities: samples.HelloIVisual.capabilities,
+        create: () => new samples.HelloIVisual()
+    };
+
+    export var asterPlot: IVisualPlugin = {
+        name: 'asterPlot',
+        capabilities: samples.AsterPlot.capabilities,
+        create: () => new samples.AsterPlot()
+    };
 }

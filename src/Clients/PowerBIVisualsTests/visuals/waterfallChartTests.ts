@@ -369,6 +369,9 @@ module powerbitests {
                     expect(parseFloat(brushExtent.attr("width"))).toBeGreaterThan(1);
                     expect(brushExtent.attr("x")).toBe("0");
 
+                    v.onResizing({ height: 500, width: 500 });
+                    expect($('.brush')).not.toBeInDOM();
+
                     done();
                 }, DefaultWaitForRender);
             });

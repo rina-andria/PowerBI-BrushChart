@@ -118,7 +118,7 @@ module powerbitests {
                 viewport: {
                     height: element.height(),
                     width: element.width()
-                }
+        }
             });
 
         });
@@ -236,7 +236,39 @@ module powerbitests {
                         selected: false
                     }];
 
-                expect(slicerData).toEqual({ categorySourceName: "Fruit", formatString: undefined, slicerDataPoints: dataPoints });
+                var slicerSettings = {
+                    general: {
+                        outlineColor: '#000000',
+                        outlineWeight: 2
+                    },
+                    header: {
+                        height: 22,
+                        borderBottomWidth: 1,
+                        show: true,
+                        outline: 'BottomOnly',
+                        fontColor: '#000000',
+                        background: '#ffffff'
+                    },
+                    headerText: {
+                        marginLeft: 8,
+                        marginTop: 0
+                    },
+                    slicerText: {
+                        color: '#666666',
+                        hoverColor: '#212121',
+                        selectionColor: '#212121',
+                        marginLeft: 8,
+                        outline: 'None',
+                        background: '#ffffff'
+                    },
+                    slicerItemContainer: {
+                        height: 24,
+                        marginTop: 5,
+                        marginLeft: 8
+                    },
+                };
+
+                expect(slicerData).toEqual({ categorySourceName: "Fruit", formatString: undefined, slicerSettings: slicerSettings, slicerDataPoints: dataPoints });
                 done();
             }, DefaultWaitForRender);
         });
@@ -370,7 +402,7 @@ module powerbitests {
 
                 (<any>slicers.last()).d3Click(0, 0);
                 (<any>slicers.last()).d3Click(0, 0);
-
+                
                 expect(slicers[5].style.color).toBe("rgb(102, 102, 102)");
 
                 expect(d3.select(slicerCheckboxInput[1]).property("checked")).toBe(true);
@@ -410,7 +442,7 @@ module powerbitests {
 
                 (<any>slicers.last()).d3Click(0, 0);
                 expect(slicers[5].style.color).toBe("rgb(33, 33, 33)");
-                
+
                 /* Slicer clear */
                 (<any>clearBtn.first()).d3Click(0, 0);
 
@@ -420,9 +452,9 @@ module powerbitests {
                 expect(slicers[3].style.color).toBe("rgb(102, 102, 102)");
                 expect(slicers[4].style.color).toBe("rgb(102, 102, 102)");
                 expect(slicers[5].style.color).toBe("rgb(102, 102, 102)");
-
+                
                 expect(hostServices.onSelect).toHaveBeenCalledWith({ data: [] });
-
+                
                 done();
             }, DefaultWaitForRender);
         });
@@ -551,7 +583,7 @@ module powerbitests {
                 // Loading the same categories should NOT reset the scrollbar
                 expect(renderSpy).toHaveBeenCalledWith(/*sizeChanged*/ true, /*resetScrollbarPosition*/ false);
 
-                // LoadMore should NOT reset the scrollbar
+                 // LoadMore should NOT reset the scrollbar
                 v.onDataChanged(interactiveDataViewOptionsWithLoadMore);
                 expect(renderSpy).toHaveBeenCalledWith(/*sizeChanged*/ true, /*resetScrollbarPosition*/ false);
 
@@ -562,5 +594,99 @@ module powerbitests {
                 done();
             }, DefaultWaitForRender);
         });
+
+        it('show hide header test', (done) => {
+            setTimeout(() => {
+                expect($(".slicerHeader").css('display')).toBe('inline');
+
+                dataView.metadata.objects = { header: { show: false } };
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+
+                expect($(".slicerHeader").css('display')).toBe('none');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('background and font slicer text test', (done) => {
+            setTimeout(() => {
+                expect($(".slicerText").css('color')).toBe('rgb(102, 102, 102)');
+
+                dataView.metadata.objects = {
+                    Rows: {
+                        fontColor: { solid: { color: '#f5f5f5' } },
+                        background: { solid: { color: '#f6f6f6' } },
+                    }
+                };
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+
+                expect($(".slicerText").css('color')).toBe('rgb(245, 245, 245)');
+                expect($(".slicerText").css('background-color')).toBe('rgb(246, 246, 246)');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('background and font header test', (done) => {
+            setTimeout(() => {
+                expect($(".slicerHeader .headerText").css('color')).toBe('rgb(0, 0, 0)');
+
+                dataView.metadata.objects = {
+                    header: {
+                        show: true,
+                        fontColor: { solid: { color: '#f5f5f5' } },
+                        background: { solid: { color: '#f6f6f6' } },
+                    }
+                };
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+
+                expect($(".slicerHeader .headerText").css('color')).toBe('rgb(245, 245, 245)');
+                expect($(".slicerHeader .headerText").css('background-color')).toBe('rgb(246, 246, 246)');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+           it('test header border outline', (done) => {
+            setTimeout(() => {
+                expect($(".headerText").css('border-width')).toBe('0px 0px 2px');
+
+                dataView.metadata.objects = { header: { outline: 'None' } };
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+                expect($(".headerText").css('border-width')).toBe('0px');
+
+                dataView.metadata.objects = { header: { outline: 'TopOnly' } };
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+                expect($(".headerText").css('border-width')).toBe('2px 0px 0px');
+
+                dataView.metadata.objects = { header: { outline: 'TopBottom' } };
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+                expect($(".headerText").css('border-width')).toBe('2px 0px');
+
+                dataView.metadata.objects = { header: { outline: 'LeftRight' } };
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+                expect($(".headerText").css('border-width')).toBe('0px 2px');
+
+                dataView.metadata.objects = { header: { outline: 'Frame' } };
+                v.onDataChanged({
+                    dataViews: [dataView]
+                });
+                expect($(".headerText").css('border-width')).toBe('2px');
+
+                done();
+            }, DefaultWaitForRender);
+        });
+
     });
 }

@@ -59,6 +59,8 @@ module powerbi.visuals {
         showCategoryAxisLabel: boolean;
         showValueAxisLabel: boolean;
         forceMerge: boolean;
+        categoryAxisScaleType: string;
+        valueAxisScaleType: string;
     }
 
     export interface MergedValueAxisResult {
@@ -222,6 +224,7 @@ module powerbi.visuals {
         private hasCategoryAxis: boolean;
         private yAxisIsCategorical: boolean;
         private secValueAxisHasUnitType: boolean;
+        private axes: CartesianAxisProperties;        
         private yAxisOrientation: string;
         private bottomMarginLimit: number;
         private leftRightMarginLimit: number;
@@ -333,9 +336,6 @@ module powerbi.visuals {
 
             this.clearCatcher = appendClearCatcher(this.axisGraphicsContextScrollable);
 
-            this.brushGraphicsContext = svg.append("g")
-                .attr('class', 'x brush');
-
             var axisGroup = showLinesOnX ? axisGraphicsContextScrollable : axisGraphicsContext;
 
             this.xAxisGraphicsContext = showLinesOnX ? axisGraphicsContext.append('g').attr('class', 'x axis') : axisGraphicsContextScrollable.append('g').attr('class', 'x axis');
@@ -367,7 +367,7 @@ module powerbi.visuals {
             var height = viewport.height;
             var fontSize = CartesianChart.FontSize;
             var yAxisOrientation = this.yAxisOrientation;
-            var showOnRight = yAxisOrientation === yAxisPosition.right;
+            var showY1OnRight = yAxisOrientation === yAxisPosition.right;
 
             if (!hideXAxisTitle) {
                 var xAxisLabel = this.axisGraphicsContext.append("text")
@@ -398,7 +398,7 @@ module powerbi.visuals {
                             text.attr({
                                 "class": "yAxisLabel",
                                 "transform": "rotate(-90)",
-                                "y": showOnRight ? width + margin.right - fontSize : -margin.left,
+                                "y": showY1OnRight ? width + margin.right - fontSize : -margin.left,
                                 "x": -((height - margin.top - legendMargin) / 2),
                                 "dy": "1em"
                             });
@@ -420,7 +420,7 @@ module powerbi.visuals {
                             text.attr({
                                 "class": "yAxisLabel",
                                 "transform": "rotate(-90)",
-                                "y": showOnRight ? -margin.left : width + margin.right - fontSize,
+                                "y": showY1OnRight ? -margin.left : width + margin.right - fontSize,
                                 "x": -((height - margin.top - legendMargin) / 2),
                                 "dy": "1em"
                             });
@@ -465,16 +465,16 @@ module powerbi.visuals {
             var height = viewport.height - (margin.top + margin.bottom);
 
             var yAxisOrientation = this.yAxisOrientation;
-            var showOnRight = yAxisOrientation === yAxisPosition.right;
+            var showY1OnRight = yAxisOrientation === yAxisPosition.right;
 
             this.xAxisGraphicsContext
                 .attr('transform', SVGUtil.translate(0, height));
 
             this.y1AxisGraphicsContext
-                .attr('transform', SVGUtil.translate(showOnRight ? width : 0, 0));
+                .attr('transform', SVGUtil.translate(showY1OnRight ? width : 0, 0));
 
             this.y2AxisGraphicsContext
-                .attr('transform', SVGUtil.translate(showOnRight ? 0 : width, 0));
+                .attr('transform', SVGUtil.translate(showY1OnRight ? 0 : width, 0));
 
             this.svg.attr({
                 'width': viewport.width,
@@ -729,6 +729,8 @@ module powerbi.visuals {
             var instances: VisualObjectInstance[] = [];
             var supportedType = axisType.both;
             var isScalar = false;
+            var logPossible = !!this.axes.x.isLogScaleAllowed;
+            var scaleOptions = [axisScale.log, axisScale.linear];//until options can be update in propPane, show all options
 
             if (this.layers && this.layers[0].getSupportedCategoryAxisType) {
                 supportedType = this.layers[0].getSupportedCategoryAxisType();
@@ -750,7 +752,10 @@ module powerbi.visuals {
             var instance: VisualObjectInstance = {
                 selector: null,
                 properties: {},
-                objectName: 'categoryAxis'
+                objectName: 'categoryAxis',
+                validValues: {
+                    axisScale: scaleOptions
+                }
             };
 
             instance.properties['show'] = this.categoryAxisProperties && this.categoryAxisProperties['show'] != null ? this.categoryAxisProperties['show'] : true;
@@ -760,6 +765,7 @@ module powerbi.visuals {
                 instance.properties['axisType'] = isScalar ? axisType.scalar : axisType.categorical;
             }
             if (isScalar) {
+                instance.properties['axisScale'] = (this.categoryAxisProperties && this.categoryAxisProperties['axisScale'] != null && logPossible) ? this.categoryAxisProperties['axisScale'] : axisScale.linear;
                 instance.properties['start'] = this.categoryAxisProperties ? this.categoryAxisProperties['start'] : null;
                 instance.properties['end'] = this.categoryAxisProperties ? this.categoryAxisProperties['end'] : null;
             }
@@ -782,10 +788,18 @@ module powerbi.visuals {
         //todo: wrap all these object getters and other related stuff into an interface
         private getValueAxisValues(): VisualObjectInstance[] {
             var instances: VisualObjectInstance[] = [];
+            var scaleOptions = [axisScale.log, axisScale.linear];  //until options can be update in propPane, show all options
+            var logPossible = !!this.axes.y1.isLogScaleAllowed;
+            var secLogPossible = this.axes.y2 != null && this.axes.y2.isLogScaleAllowed;       
+
             var instance: VisualObjectInstance = {
                 selector: null,
                 properties: {},
-                objectName: 'valueAxis'
+                objectName: 'valueAxis',
+                validValues: {
+                    axisScale: scaleOptions,
+                    secAxisScale: scaleOptions
+                }
             };
 
             instance.properties['show'] = this.valueAxisProperties && this.valueAxisProperties['show'] != null ? this.valueAxisProperties['show'] : true;
@@ -795,9 +809,11 @@ module powerbi.visuals {
                     instance.properties['axisLabel'] = '';//this.layers[0].getVisualType();//I will keep or remove this, depending on the decision made
                 }
             }
+            
             if (!this.yAxisIsCategorical) {
                 instance.properties['position'] = this.valueAxisProperties && this.valueAxisProperties['position'] != null ? this.valueAxisProperties['position'] : yAxisPosition.left;
             }
+            instance.properties['axisScale'] = (this.valueAxisProperties && this.valueAxisProperties['axisScale'] != null && logPossible) ? this.valueAxisProperties['axisScale'] : axisScale.linear;
             instance.properties['start'] = this.valueAxisProperties ? this.valueAxisProperties['start'] : null;
             instance.properties['end'] = this.valueAxisProperties ? this.valueAxisProperties['end'] : null;
             instance.properties['showAxisTitle'] = this.valueAxisProperties && this.valueAxisProperties['showAxisTitle'] != null ? this.valueAxisProperties['showAxisTitle'] : false;
@@ -821,6 +837,7 @@ module powerbi.visuals {
                 };
                 secInstance.properties['secAxisLabel'] = ''; //this.layers[1].getVisualType(); //I will keep or remove this, depending on the decision made                        
                 secInstance.properties['secPosition'] = this.valueAxisProperties && this.valueAxisProperties['secPosition'] != null ? this.valueAxisProperties['secPosition'] : yAxisPosition.right;
+                secInstance.properties['secAxisScale'] = this.valueAxisProperties && this.valueAxisProperties['secAxisScale'] != null && secLogPossible? this.valueAxisProperties['secAxisScale'] : axisScale.linear;                
                 secInstance.properties['secStart'] = this.valueAxisProperties ? this.valueAxisProperties['secStart'] : null;
                 secInstance.properties['secEnd'] = this.valueAxisProperties ? this.valueAxisProperties['secEnd'] : null;
                 secInstance.properties['secShowAxisTitle'] = this.valueAxisProperties && this.valueAxisProperties['secShowAxisTitle'] != null ? this.valueAxisProperties['secShowAxisTitle'] : false;
@@ -985,7 +1002,7 @@ module powerbi.visuals {
                 return false;
             }
             if (!this.valueAxisProperties || this.valueAxisProperties["secShow"] == null || this.valueAxisProperties["secShow"]) {
-                return true;
+                return axisProperties.values && axisProperties.values.length > 0;
             }
 
             return false;
@@ -996,10 +1013,10 @@ module powerbi.visuals {
                 return false;
             }
             else if (axisProperties.isCategoryAxis && (!this.categoryAxisProperties || this.categoryAxisProperties[propertyName] == null || this.categoryAxisProperties[propertyName])) {
-                return true;
+                return axisProperties.values && axisProperties.values.length > 0;
             }
             else if (!axisProperties.isCategoryAxis && (!this.valueAxisProperties || this.valueAxisProperties[propertyName] == null || this.valueAxisProperties[propertyName])) {
-                return true;
+                return axisProperties.values && axisProperties.values.length > 0;
             }
 
             return false;
@@ -1022,7 +1039,7 @@ module powerbi.visuals {
             margin.bottom = bottomMarginLimit;
             margin.right = 0;
 
-            var axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
+            var axes = this.axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
 
             this.y2AxisExists = axes.y2 != null;
             this.yAxisIsCategorical = axes.y1.isCategoryAxis;
@@ -1040,7 +1057,7 @@ module powerbi.visuals {
             this.isYScrollBarVisible = false;
 
             var yAxisOrientation = this.yAxisOrientation;
-            var showOnRight = yAxisOrientation === yAxisPosition.right;
+            var showY1OnRight = yAxisOrientation === yAxisPosition.right;
 
             if (this.layers) {
                 if (this.layers[0].getVisualCategoryAxisIsScalar)
@@ -1063,6 +1080,19 @@ module powerbi.visuals {
                 }
             }
 
+            // Only create the g tag where there is a scrollbar
+            if (this.isXScrollBarVisible || this.isYScrollBarVisible) {
+                if (!this.brushGraphicsContext) {
+                    this.brushGraphicsContext = this.svg.append("g")
+                        .classed('x brush', true);
+                }
+            }
+            else {
+                // clear any existing brush if no scrollbar is shown
+                this.svg.selectAll('.brush').remove();
+                this.brushGraphicsContext = undefined;
+            }
+
             // Recalculate axes now that scrollbar visible variables have been set
             axes = calculateAxes(this.layers, viewport, margin, this.categoryAxisProperties, this.valueAxisProperties, CartesianChart.TextProperties, this.isXScrollBarVisible || this.isYScrollBarVisible);
 
@@ -1074,52 +1104,53 @@ module powerbi.visuals {
             while (!doneWithMargins && numIterations < maxIterations) {
                 numIterations++;
                 var tickLabelMargins = AxisHelper.getTickLabelMargins(
-                    { width: width, height: viewport.height },
+                { width: width, height: viewport.height },
                     leftRightMarginLimit,
-                    TextMeasurementService.measureSvgTextWidth,
-                    TextMeasurementService.estimateSvgTextHeight,
+                TextMeasurementService.measureSvgTextWidth,
+                TextMeasurementService.estimateSvgTextHeight,
                     axes,
-                    bottomMarginLimit,
-                    CartesianChart.TextProperties,
-                    this.isXScrollBarVisible || this.isYScrollBarVisible,
-                    showOnRight,
-                    renderXAxis,
+                bottomMarginLimit,
+                CartesianChart.TextProperties,
+                this.isXScrollBarVisible || this.isYScrollBarVisible,
+                    showY1OnRight,
+                renderXAxis,
                     renderY1Axis,
-                    renderY2Axis);
+                renderY2Axis);
 
                 // We look at the y axes as main and second sides, if the y axis orientation is right so the main side represents the right side
-                var maxMainYaxisSide = showOnRight ? tickLabelMargins.yRight : tickLabelMargins.yLeft,
-                    maxSecondYaxisSide = showOnRight ? tickLabelMargins.yLeft : tickLabelMargins.yRight,
+                var maxMainYaxisSide = showY1OnRight ? tickLabelMargins.yRight : tickLabelMargins.yLeft,
+                    maxSecondYaxisSide = showY1OnRight ? tickLabelMargins.yLeft : tickLabelMargins.yRight,
                     xMax = tickLabelMargins.xMax;
 
-                maxMainYaxisSide += CartesianChart.LeftPadding;
+            maxMainYaxisSide += CartesianChart.LeftPadding;
+                if ((renderY2Axis && !showY1OnRight) || (showY1OnRight && renderY1Axis))
                 maxSecondYaxisSide += CartesianChart.RightPadding;
-                xMax += CartesianChart.BottomPadding;
+            xMax += CartesianChart.BottomPadding;
 
-                if (this.hideAxisLabels(legendMargins)) {
-                    axes.x.axisLabel = null;
-                    axes.y1.axisLabel = null;
-                    if (axes.y2) {
-                        axes.y2.axisLabel = null;
-                    }
+            if (this.hideAxisLabels(legendMargins)) {
+                axes.x.axisLabel = null;
+                axes.y1.axisLabel = null;
+                if (axes.y2) {
+                    axes.y2.axisLabel = null;
                 }
+            }
 
-                this.addUnitTypeToAxisLabel(axes);
+            this.addUnitTypeToAxisLabel(axes);
 
-                var axisLabels: ChartAxesLabels = { x: axes.x.axisLabel, y: axes.y1.axisLabel, y2: axes.y2 ? axes.y2.axisLabel : null };
-                var chartHasAxisLabels = (axisLabels.x != null) || (axisLabels.y != null || axisLabels.y2 != null);
+            var axisLabels: ChartAxesLabels = { x: axes.x.axisLabel, y: axes.y1.axisLabel, y2: axes.y2 ? axes.y2.axisLabel : null };
+            var chartHasAxisLabels = (axisLabels.x != null) || (axisLabels.y != null || axisLabels.y2 != null);
 
-                if (axisLabels.x != null)
-                    xMax += CartesianChart.XAxisLabelPadding;
+            if (axisLabels.x != null)
+                xMax += CartesianChart.XAxisLabelPadding;
 
-                if (axisLabels.y != null)
-                    maxMainYaxisSide += CartesianChart.YAxisLabelPadding;
+            if (axisLabels.y != null)
+                maxMainYaxisSide += CartesianChart.YAxisLabelPadding;
 
-                if (axisLabels.y2 != null)
-                    maxSecondYaxisSide += CartesianChart.YAxisLabelPadding;
-                
-                margin.left = showOnRight ? maxSecondYaxisSide : maxMainYaxisSide;
-                margin.right = showOnRight ? maxMainYaxisSide : maxSecondYaxisSide;
+            if (axisLabels.y2 != null)
+                maxSecondYaxisSide += CartesianChart.YAxisLabelPadding;
+
+                margin.left = showY1OnRight ? maxSecondYaxisSide : maxMainYaxisSide;
+                margin.right = showY1OnRight ? maxMainYaxisSide : maxSecondYaxisSide;
                 margin.bottom = xMax;
                 this.margin = margin;
 
@@ -1153,12 +1184,6 @@ module powerbi.visuals {
             }
 
             this.updateAxis(viewport);
-
-            // clear any existing brush if no scrollbar is shown
-            if (!(this.isXScrollBarVisible || this.isYScrollBarVisible)) {
-                this.brushGraphicsContext.selectAll("rect")
-                    .remove();
-            }
         }
 
         private hideAxisLabels(legendMargins: IViewport): boolean {
@@ -1226,12 +1251,12 @@ module powerbi.visuals {
                 .remove();
 
             brushContext.select(".background")
-                .style('cursor', 'pointer');
+                .style('cursor', 'default');
 
             brushContext.selectAll(".extent")
                 .style({
-                    'fill-opacity': CartesianChart.fillOpacity,
-                    'cursor': 'hand',
+                    "fill-opacity": CartesianChart.fillOpacity,
+                    "cursor": "default",
                 });
 
             if (this.isXScrollBarVisible)
@@ -1423,7 +1448,7 @@ module powerbi.visuals {
 
             if (this.shouldRenderAxis(axes.y1)) {
                 var yAxisOrientation = this.yAxisOrientation;
-                var showOnRight = yAxisOrientation === yAxisPosition.right;
+                var showY1OnRight = yAxisOrientation === yAxisPosition.right;
                 axes.y1.axis
                     .tickSize(-width)
                     .tickPadding(CartesianChart.TickPaddingY)
@@ -1454,7 +1479,7 @@ module powerbi.visuals {
                 if (axes.y2 && (!this.valueAxisProperties || this.valueAxisProperties['secShow'] == null || this.valueAxisProperties['secShow'])) {
                     axes.y2.axis
                         .tickPadding(CartesianChart.TickPaddingY)
-                        .orient(showOnRight ? yAxisPosition.left.toLowerCase() : yAxisPosition.right.toLowerCase());
+                        .orient(showY1OnRight ? yAxisPosition.left.toLowerCase() : yAxisPosition.right.toLowerCase());
 
                     if (duration) {
                         this.y2AxisGraphicsContext
@@ -1758,7 +1783,9 @@ module powerbi.visuals {
             forcedXDomain: [categoryAxisProperties ? categoryAxisProperties['start'] : null, categoryAxisProperties ? categoryAxisProperties['end'] : null],
             forceMerge: valueAxisProperties && valueAxisProperties['secShow'] === false,
             showCategoryAxisLabel: false,
-            showValueAxisLabel: false
+            showValueAxisLabel: false,
+            categoryAxisScaleType: categoryAxisProperties && categoryAxisProperties['axisScale'] != null ? <string>categoryAxisProperties['axisScale'] : axisScale.linear,
+            valueAxisScaleType: valueAxisProperties && valueAxisProperties['axisScale'] != null ? <string>valueAxisProperties['axisScale'] : axisScale.linear
         };
 
         var skipMerge = valueAxisProperties && valueAxisProperties['secShow'] === true;
@@ -1785,6 +1812,7 @@ module powerbi.visuals {
 
             if (layerNumber === 1 && !yAxisWillMerge) {
                 visualOptions.forcedYDomain = valueAxisProperties ? [valueAxisProperties['secStart'], valueAxisProperties['secEnd']] : null;
+                visualOptions.valueAxisScaleType = valueAxisProperties && valueAxisProperties['secAxisScale'] != null ? <string>valueAxisProperties['secAxisScale'] : axisScale.linear;
                 if (mergeResult && mergeResult.forceStartToZero) {
                     if (!visualOptions.forcedYDomain) {
                         visualOptions.forcedYDomain = [0, undefined];

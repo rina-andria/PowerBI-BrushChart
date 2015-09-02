@@ -142,7 +142,8 @@ module powerbitests {
                 columns: [
                     {
                         displayName: "col1",
-                        type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text)
+                        type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text),
+                        queryName: "col1",
                     },
                     {
                         displayName: "col2",
@@ -164,8 +165,9 @@ module powerbitests {
             };
 
             beforeEach(() => {
-                visualBuilder = new VisualBuilder("250", "250", "scatterChart");
+                visualBuilder = new VisualBuilder("250", "235", "scatterChart");
 
+                visualBuilder.isIdentity = true;
                 visualBuilder.metadata = dataViewMetadata;
                 visualBuilder.categoriesValues = ["First", "Second", "Third", "Fourth"];
                 visualBuilder.values = [110, 120, 130, 140];
@@ -321,7 +323,7 @@ module powerbitests {
             });
 
             it("Overlap labels validation", (done) => {
-                visualBuilder.setSize("110", "110");
+                visualBuilder.setSize("95", "95");
 
                 visualBuilder.metadata.objects = {
                     labels: {

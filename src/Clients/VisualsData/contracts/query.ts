@@ -42,11 +42,17 @@ module powerbi.data {
         Where: QueryFilter[];
     }
 
+    export enum EntitySourceType {
+        Table = 0,
+        Pod = 1,
+    }
+
     export interface EntitySource {
         Name: string;
         EntitySet?: string; // TODO: Remove this when Q&A Silverlight is removed and make Entity required
         Entity?: string;
         Schema?: string;
+        Type?: EntitySourceType;
     }
 
     export interface QueryFilter {
@@ -196,6 +202,9 @@ module powerbi.data {
         Min = 3,
         Max = 4,
         CountNonNull = 5,
+        Median = 6,
+        StandardDeviation = 7,
+        Variance = 8,
     }
 
     export enum QuerySortDirection {

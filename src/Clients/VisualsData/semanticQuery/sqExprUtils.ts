@@ -35,15 +35,14 @@ module powerbi.data {
             expr: SQExpr,
             isGroupingOnly: boolean,
             schema: FederatedConceptualSchema): QueryAggregateFunction[] {
-            var emptyList: QueryAggregateFunction[] = [];
+            let emptyList: QueryAggregateFunction[] = [];
 
-            var metadata = getMetadataForUnderlyingType(expr, schema);
+            let metadata = getMetadataForUnderlyingType(expr, schema);
             // don't use expr.validate as validate will be using this function and we end up in a recursive loop
-            if (!metadata) {
+            if (!metadata)
                 return emptyList;
-            }
 
-            var valueType = metadata.type,
+            let valueType = metadata.type,
                 fieldKind = metadata.kind,
                 isPropertyIdentity = metadata.idOnEntityKey,
                 Agg = QueryAggregateFunction; // alias
@@ -60,7 +59,12 @@ module powerbi.data {
                 return emptyList;
 
             if (valueType.numeric || valueType.integer) {
-                return [Agg.Sum, Agg.Avg, Agg.Min, Agg.Max, Agg.Count, Agg.CountNonNull];
+                var aggregates = [Agg.Sum, Agg.Avg, Agg.Min, Agg.Max, Agg.Count, Agg.CountNonNull, Agg.StandardDeviation, Agg.Variance];
+                var sqFieldDef = SQExprConverter.asSQFieldDef(expr);
+                var currentSchema = schema.schema(sqFieldDef.schema);
+                if (currentSchema.capabilities.supportsMedian)
+                    aggregates.push(Agg.Median);
+                return aggregates;
             } else if (valueType.text || valueType.bool || valueType.dateTime) {
                 if (isPropertyIdentity)
                     return [Agg.CountNonNull];
@@ -75,7 +79,7 @@ module powerbi.data {
             debug.assertValue(items, 'items');
             debug.assertValue(searchElement, 'searchElement');
 
-            for (var i = 0, len = items.length; i < len; i++) {
+            for (let i = 0, len = items.length; i < len; i++) {
                 if (SQExpr.equals(items[i], searchElement))
                     return i;
             }
@@ -86,11 +90,11 @@ module powerbi.data {
             debug.assertValue(x, 'x');
             debug.assertValue(y, 'y');
 
-            var len = x.length;
+            let len = x.length;
             if (len !== y.length)
                 return false;
 
-            for (var i = 0; i < len; i++) {
+            for (let i = 0; i < len; i++) {
                 if (!SQExpr.equals(x[i], y[i]))
                     return false;
             }
@@ -102,8 +106,8 @@ module powerbi.data {
             debug.assertValue(namedItems, 'namedItems');
 
             // Determine all names
-            var names: { [name: string]: boolean } = {};
-            for (var i = 0, len = namedItems.length; i < len; i++)
+            let names: { [name: string]: boolean } = {};
+            for (let i = 0, len = namedItems.length; i < len; i++)
                 names[namedItems[i].name] = true;
 
             return StringExtensions.findUniqueName(names, defaultName(expr));
@@ -124,9 +128,22 @@ module powerbi.data {
             return expr.accept(IsMeasureVisitor.instance);
         }
 
+        export function discourageAggregation(expr: SQExpr, schema: FederatedConceptualSchema): boolean {
+            debug.assertValue(expr, 'expr');
+            debug.assertValue(schema, 'schema');
+
+            let field = SQExprConverter.asSQFieldDef(expr);
+            if (!field)
+                return;
+
+            let conceptualSchema = schema.schema(field.schema);
+            if (conceptualSchema)
+                return conceptualSchema.capabilities && conceptualSchema.capabilities.discourageQueryAggregateUsage;
+        }
+
         function getMetadataForUnderlyingType(expr: SQExpr, schema: FederatedConceptualSchema): SQExprMetadata {
             // Unwrap the aggregate (if the expr has one), and look at the underlying type.
-            var metadata = SQExprBuilder.removeAggregate(expr).getMetadata(schema);
+            let metadata = SQExprBuilder.removeAggregate(expr).getMetadata(schema);
 
             if (!metadata)
                 metadata = expr.getMetadata(schema);

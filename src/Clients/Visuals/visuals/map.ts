@@ -583,9 +583,9 @@ module powerbi.visuals {
                 var categoryValue = canvasDataPoint.categoryValue;
                 var paths = canvasDataPoint.paths;
                 var sizeValuesForGroup = canvasDataPoint.seriesInfo.sizeValuesForGroup;
+                var sizeValueForGroup: MapPieSlice = sizeValuesForGroup && sizeValuesForGroup[0];
 
-                if (paths) {
-                    var sizeValueForGroup: MapPieSlice = sizeValuesForGroup[0];
+                if (paths && sizeValueForGroup) {
                     var value = sizeValueForGroup.value;
                     var index = sizeValueForGroup.index;
                     var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, index);

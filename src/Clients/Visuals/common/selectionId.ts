@@ -226,4 +226,48 @@ module powerbi.visuals {
             }
         }
     }
+
+    /**
+     * This class is designed to simplify the creation of SelectionId objects
+     * It allows chaining to build up an object before calling 'create' to build a SelectionId
+     */
+    export class SelectionIdBuilder {
+        private dataMap: SelectorForColumn;
+        private measure: string;
+
+        public static builder(): SelectionIdBuilder {
+            return new SelectionIdBuilder();
+        }
+
+        public withCategory(categoryColumn: DataViewCategoryColumn, index: number): SelectionIdBuilder {
+            if (categoryColumn && categoryColumn.source && categoryColumn.source.queryName && categoryColumn.identity)
+                this.ensureDataMap()[categoryColumn.source.queryName] = categoryColumn.identity[index];
+            
+            return this;
+        }
+
+        public withSeries(seriesColumn: DataViewValueColumns, valueColumn: DataViewValueColumn | DataViewValueColumnGroup): SelectionIdBuilder {
+            if (seriesColumn && seriesColumn.source && seriesColumn.source.queryName && valueColumn)
+                this.ensureDataMap()[seriesColumn.source.queryName] = valueColumn.identity;
+
+            return this;
+        }
+
+        public withMeasure(measureId: string): SelectionIdBuilder {
+            this.measure = measureId;
+
+            return this;
+        }
+
+        public createSelectionId(): SelectionId {
+            return SelectionId.createWithSelectorForColumnAndMeasure(this.ensureDataMap(), this.measure);
+        }
+
+        private ensureDataMap(): SelectorForColumn {
+            if (!this.dataMap)
+                this.dataMap = {};
+
+            return this.dataMap;
+        }
+    }
 }

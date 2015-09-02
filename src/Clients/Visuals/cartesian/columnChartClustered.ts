@@ -66,7 +66,7 @@ module powerbi.visuals {
             this.data = data;
         }
 
-        public setXScale(is100Pct: boolean, forcedTickCount?: number, forcedXDomain?: any[]): IAxisProperties {
+        public setXScale(is100Pct: boolean, forcedTickCount?: number, forcedXDomain?: any[], axisScaleType?: string): IAxisProperties {
             var width = this.width;
 
             var forcedXMin, forcedXMax;
@@ -82,7 +82,8 @@ module powerbi.visuals {
                 this.categoryLayout,
                 false,
                 forcedXMin,
-                forcedXMax);
+                forcedXMax,
+                axisScaleType);
 
             // create clustered offset scale
             var seriesLength = this.data.series.length;
@@ -94,7 +95,7 @@ module powerbi.visuals {
             return props;
         }
 
-        public setYScale(is100Pct: boolean, forcedTickCount?: number, forcedYDomain?: any[]): IAxisProperties {
+        public setYScale(is100Pct: boolean, forcedTickCount?: number, forcedYDomain?: any[], axisScaleType?: string): IAxisProperties {
             debug.assert(!is100Pct, 'Cannot have 100% clustered chart.');
 
             var height = this.viewportHeight;
@@ -102,12 +103,17 @@ module powerbi.visuals {
             var maxTickCount = AxisHelper.getRecommendedNumberOfTicksForYAxis(height);
             var bestTickCount = ColumnUtil.getTickCount(valueDomain[0], valueDomain[1], this.data.valuesMetadata, maxTickCount, is100Pct, forcedTickCount);
             var normalizedRange = AxisHelper.normalizeLinearDomain({ min: valueDomain[0], max: valueDomain[1] });
-            valueDomain = [normalizedRange.min, normalizedRange.max];
-           
-            var combinedDomain = AxisHelper.combineDomain(forcedYDomain, valueDomain);
+            var axisType = ValueType.fromDescriptor({ text: true });
 
-            var yScale = d3.scale.linear()
-                .range([height, 0])
+            valueDomain = [normalizedRange.min, normalizedRange.max];
+
+            var combinedDomain = AxisHelper.combineDomain(forcedYDomain, valueDomain);
+            var isLogScaleAllowed = AxisHelper.isLogScalePossible(combinedDomain, axisType);           
+            var useLogScale = axisScaleType && axisScaleType === axisScale.log && isLogScaleAllowed;
+
+            var yScale = useLogScale ? d3.scale.log() : d3.scale.linear();           
+
+            yScale.range([height, 0])
                 .domain(combinedDomain)
                 .nice(bestTickCount || undefined)
                 .clamp(AxisHelper.scaleShouldClamp(combinedDomain, valueDomain));
@@ -117,7 +123,11 @@ module powerbi.visuals {
             var dataType: ValueType = AxisHelper.getCategoryValueType(this.data.valuesMetadata[0], true);
             var formatString = valueFormatter.getFormatString(this.data.valuesMetadata[0], columnChartProps.general.formatString);
             var minTickInterval = AxisHelper.getMinTickValueInterval(formatString, dataType);
-            var yTickValues: any[] = AxisHelper.getRecommendedTickValuesForALinearRange(bestTickCount, yScale, minTickInterval);
+            var yTickValues: any[] = AxisHelper.getRecommendedTickValuesForAQuantitativeRange(bestTickCount, yScale, minTickInterval);
+
+            if (useLogScale) {
+                yTickValues = yTickValues.filter((d) => { return AxisHelper.powerOfTen(d); });
+            }
 
             var yAxis = d3.svg.axis()
                 .scale(yScale)
@@ -129,16 +139,17 @@ module powerbi.visuals {
                 yInterval);
             yAxis.tickFormat(yFormatter.format);
 
-            var values = yTickValues.map((d: ColumnChartDataPoint) => yFormatter.format(d));
+            var values = yTickValues.map((d: ColumnChartDataPoint) => yFormatter.format(d));            
 
             var yProps = this.yProps = {
                 axis: yAxis,
                 scale: yScale,
                 formatter: yFormatter,
                 values: values,
-                axisType: ValueType.fromDescriptor({ text: true }),
+                axisType: axisType,
                 axisLabel: null,
-                isCategoryAxis: false
+                isCategoryAxis: false,
+                isLogScaleAllowed: isLogScaleAllowed
             };
 
             return yProps;
@@ -397,7 +408,7 @@ module powerbi.visuals {
             return props;
         }
 
-        public setXScale(is100Pct: boolean, forcedTickCount?: number, forcedXDomain?: any[]): IAxisProperties {
+        public setXScale(is100Pct: boolean, forcedTickCount?: number, forcedXDomain?: any[], axisScaleType?: string): IAxisProperties {
             debug.assert(!is100Pct, 'Cannot have 100% clustered chart.');
             debug.assert(forcedTickCount === undefined, 'Cannot have clustered bar chart as combo chart.');            
 
@@ -407,22 +418,31 @@ module powerbi.visuals {
             var valueDomain = AxisHelper.createValueDomain(this.data.series, true) || fallBackDomain;
             var bestTickCount = AxisHelper.getBestNumberOfTicks(valueDomain[0], valueDomain[1], this.data.valuesMetadata, AxisHelper.getRecommendedNumberOfTicksForXAxis(width));
             var normalizedRange = AxisHelper.normalizeLinearDomain({ min: valueDomain[0], max: valueDomain[1] });
+            var axisType = ValueType.fromDescriptor({ numeric: true });
+
             valueDomain = [normalizedRange.min, normalizedRange.max];
 
             var combinedDomain = AxisHelper.combineDomain(forcedXDomain, valueDomain);
+            var isLogScaleAllowed = AxisHelper.isLogScalePossible(combinedDomain, axisType);                        
+            var useLogScale = axisScaleType && axisScaleType === axisScale.log && isLogScaleAllowed;
 
-            var xScale = d3.scale.linear()
-                .range([0, width])
+            var xScale = useLogScale ? d3.scale.log() : d3.scale.linear();
+
+            xScale.range([0, width])
                 .domain(combinedDomain)
                 .nice(bestTickCount || undefined)
-                .clamp(AxisHelper.scaleShouldClamp(combinedDomain, valueDomain));
+                .clamp(AxisHelper.scaleShouldClamp(combinedDomain, valueDomain));       
 
             ColumnUtil.normalizeInfinityInScale(xScale);
 
             var dataType: ValueType = AxisHelper.getCategoryValueType(this.data.valuesMetadata[0], true);
             var formatString = valueFormatter.getFormatString(this.data.valuesMetadata[0], columnChartProps.general.formatString);
             var minTickInterval = AxisHelper.getMinTickValueInterval(formatString, dataType);
-            var xTickValues: any[] = AxisHelper.getRecommendedTickValuesForALinearRange(bestTickCount, xScale, minTickInterval);
+            var xTickValues: any[] = AxisHelper.getRecommendedTickValuesForAQuantitativeRange(bestTickCount, xScale, minTickInterval);
+
+            if (useLogScale) {
+                xTickValues = xTickValues.filter((d) => { return AxisHelper.powerOfTen(d); });
+            }
 
             var xAxis = d3.svg.axis()
                 .scale(xScale)
@@ -435,16 +455,17 @@ module powerbi.visuals {
                 xInterval);
             xAxis.tickFormat(xFormatter.format);
 
-            var values = xTickValues.map((d: ColumnChartDataPoint) => xFormatter.format(d));
+            var values = xTickValues.map((d: ColumnChartDataPoint) => xFormatter.format(d));            
 
             var xProps = this.xProps = {
                 axis: xAxis,
                 scale: xScale,
                 formatter: xFormatter,
                 values: values,
-                axisType: ValueType.fromDescriptor({ numeric: true }),
+                axisType: axisType,
                 axisLabel: null,
-                isCategoryAxis: false
+                isCategoryAxis: false,
+                isLogScaleAllowed: isLogScaleAllowed
             };
 
             return xProps;

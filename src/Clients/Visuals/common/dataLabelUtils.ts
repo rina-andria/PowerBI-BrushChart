@@ -139,8 +139,7 @@ module powerbi.visuals {
 
         export function getDefaultTreemapLabelSettings(): VisualDataLabelsSettings {
             return {
-                show: true,
-                position: PointLabelPosition.Above,
+                show: false,
                 displayUnits: 0,
                 precision: defaultLabelPrecision,
                 labelColor: defaultInsideLabelColor,
@@ -186,23 +185,38 @@ module powerbi.visuals {
             var dataLabelManager = new DataLabelManager();
             var filteredData = dataLabelManager.hideCollidedLabels(viewport, data, layout);
 
-            var labels = selectLabels(filteredData, context);
+            var hasAnimation = isAnimator && !!animationDuration;
+            var labels = selectLabels(filteredData, context, false, hasAnimation);
 
             if (!labels)
                 return;
 
-            labels
-                .attr({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY })
-                .text((d: LabelEnabledDataPoint) => d.labeltext)
-                .style(layout.style);
+            if (hasAnimation) {
+                labels
+                    .text((d: LabelEnabledDataPoint) => d.labeltext)
+                    .transition()
+                    .duration(animationDuration)
+                    .style(layout.style)
+                    .style('opacity', 1) //fade in - entering labels have opacity set to zero
+                    .attr({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY });
 
-            if (isAnimator && animationDuration) {
-                labels.transition().duration(animationDuration);
+                labels
+                    .exit()
+                    .transition()
+                    .duration(animationDuration)
+                    .style('opacity', 0) //fade out labels that are removed
+                    .remove();
             }
+            else {
+                labels
+                    .attr({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY })
+                    .text((d: LabelEnabledDataPoint) => d.labeltext)
+                    .style(layout.style);
 
-            labels
-                .exit()
-                .remove();            
+                labels
+                    .exit()
+                    .remove();
+            }
 
             return labels;
         }
@@ -290,7 +304,7 @@ module powerbi.visuals {
                     .remove();
         }
 
-        function selectLabels(filteredData: LabelEnabledDataPoint[], context: D3.Selection, isDonut: boolean = false): D3.UpdateSelection {
+        function selectLabels(filteredData: LabelEnabledDataPoint[], context: D3.Selection, isDonut: boolean = false, forAnimation: boolean = false): D3.UpdateSelection {
 
             // Check for a case where resizing leaves no labels - then we need to remove the labels 'g'
             if (filteredData.length === 0) {
@@ -301,11 +315,26 @@ module powerbi.visuals {
             if (context.select(labelGraphicsContextClass.selector).empty())
                 context.append('g').classed(labelGraphicsContextClass.class, true);
 
-            var labels = isDonut
-                ? context.select(labelGraphicsContextClass.selector).selectAll(labelsClass.selector).data(filteredData, (d: DonutArcDescriptor) => d.data.identity.getKey())
-                : context.select(labelGraphicsContextClass.selector).selectAll(labelsClass.selector).data(filteredData);
+            // line chart ViewModel has a special 'key' property for point identification since the 'identity' field is set to the series identity
+            var hasKey: boolean = (<any>filteredData)[0].key != null;
+            var hasDataPointIdentity: boolean = (<any>filteredData)[0].identity != null;
+            var getIdentifier = hasKey ?
+                (d: any) => d.key
+                : hasDataPointIdentity ?
+                    (d: SelectableDataPoint) => d.identity.getKey()
+                    : undefined;
 
-            labels.enter().append('text').classed(labelsClass.class, true);
+            var labels = isDonut ?
+                context.select(labelGraphicsContextClass.selector).selectAll(labelsClass.selector).data(filteredData, (d: DonutArcDescriptor) => d.data.identity.getKey())
+                : getIdentifier != null ?
+                    context.select(labelGraphicsContextClass.selector).selectAll(labelsClass.selector).data(filteredData, getIdentifier)
+                    : context.select(labelGraphicsContextClass.selector).selectAll(labelsClass.selector).data(filteredData);
+
+            var newLabels = labels.enter()
+                .append('text')
+                .classed(labelsClass.class, true);
+            if (forAnimation)
+                newLabels.style('opacity', 0);
 
             return labels;
         }
@@ -330,14 +359,14 @@ module powerbi.visuals {
         }
 
         export function getLabelFormattedText(label: string | number, maxWidth?: number, format?: string, formatter?: IValueFormatter): string {
-                    var properties: TextProperties = {
+            var properties: TextProperties = {
                 text: formatter
-                ? formatter.format(label)
-                :formattingService.formatValue(label, format),
-                        fontFamily: LabelTextProperties.fontFamily,
-                        fontSize: LabelTextProperties.fontSize,
-                        fontWeight: LabelTextProperties.fontWeight,
-                    };
+                    ? formatter.format(label)
+                    : formattingService.formatValue(label, format),
+                fontFamily: LabelTextProperties.fontFamily,
+                fontSize: LabelTextProperties.fontSize,
+                fontWeight: LabelTextProperties.fontWeight,
+            };
             maxWidth = maxWidth ? maxWidth : maxLabelWidth;
 
             return TextMeasurementService.getTailoredTextOrDefault(properties, maxWidth);
@@ -550,7 +579,7 @@ module powerbi.visuals {
 
             return {
                 labelText: (d: ScatterChartDataPoint) => {
-                    return getLabelFormattedText(d.category);
+                    return getLabelFormattedText(d.category, maxLabelWidth * 2.0);
                 },
                 labelLayout: {
                     x: (d: ScatterChartDataPoint) => xScale(d.x),
@@ -687,7 +716,7 @@ module powerbi.visuals {
 
                         // Try to honor the position, but if the label doesn't fit where specified, then swap the position.
                         var labelPosition = labelSettings.position;
-                        if ((labelPosition === powerbi.labelPosition.outsideEnd && outsideAvailableSpace < textLength) || d.value === 0 )
+                        if ((labelPosition === powerbi.labelPosition.outsideEnd && outsideAvailableSpace < textLength) || d.value === 0)
                             labelPosition = powerbi.labelPosition.insideCenter;
                         else if (labelPosition === powerbi.labelPosition.insideCenter && insideAvailableSpace < textLength) {
                             labelPosition = powerbi.labelPosition.outsideEnd;

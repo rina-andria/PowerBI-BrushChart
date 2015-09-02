@@ -81,13 +81,16 @@ module powerbi {
         color?: boolean;
         formatString?: boolean;
         legendPosition?: boolean;
+        axisScale?: boolean;
         axisType?: boolean;
         yAxisPosition?: boolean;
         axisStyle?: boolean;
         alignment?: boolean;
         labelDisplayUnits?: boolean;
         labelPosition?: boolean;
+        outline?: boolean;
         shapeType?: boolean;
+        imageScalingType?: boolean;
     }
 
     /** Describes a data value type, including a primitive type and extended type if any (derived from data category). */
@@ -166,11 +169,14 @@ module powerbi {
                 if (descriptor.formatting.formatString) return ValueType.fromExtendedType(ExtendedType.FormatString);
                 if (descriptor.formatting.legendPosition) return ValueType.fromExtendedType(ExtendedType.LegendPosition);
                 if (descriptor.formatting.axisType) return ValueType.fromExtendedType(ExtendedType.AxisType);
+                if (descriptor.formatting.axisScale) return ValueType.fromExtendedType(ExtendedType.AxisScale);
                 if (descriptor.formatting.yAxisPosition) return ValueType.fromExtendedType(ExtendedType.YAxisPosition);
                 if (descriptor.formatting.axisStyle) return ValueType.fromExtendedType(ExtendedType.AxisStyle);
                 if (descriptor.formatting.alignment) return ValueType.fromExtendedType(ExtendedType.Alignment);
                 if (descriptor.formatting.labelDisplayUnits) return ValueType.fromExtendedType(ExtendedType.LabelDisplayUnits);
                 if (descriptor.formatting.labelPosition) return ValueType.fromExtendedType(ExtendedType.LabelPosition);
+                if (descriptor.formatting.outline) return ValueType.fromExtendedType(ExtendedType.Outline);
+                if (descriptor.formatting.imageScalingType) return ValueType.fromExtendedType(ExtendedType.ImageScalingType);
                 if (descriptor.formatting.shapeType) return ValueType.fromExtendedType(ExtendedType.ShapeType);
             }
             if (descriptor.extendedType) {
@@ -374,6 +380,10 @@ module powerbi {
             return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.LegendPosition);
         }
 
+        public get axisScale(): boolean {
+            return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.AxisScale);
+        }
+
         public get axisType(): boolean {
             return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.AxisType);
         }
@@ -398,8 +408,16 @@ module powerbi {
             return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.LabelPosition);
         }
 
+        public get outline(): boolean {
+            return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Outline);
+        }
+
         public get shapeType(): boolean {
             return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.ShapeType);
+        }
+
+        public get imageScalingType(): boolean {
+            return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.ImageScalingType);
         }
     }
 
@@ -490,7 +508,10 @@ module powerbi {
         Alignment = Text | Formatting | (306 << 16),
         LabelDisplayUnits = Text | Formatting | (307 << 16),
         LabelPosition = Text | Formatting | (308 << 16),
-        ShapeType = Text | Formatting | (309 << 16),
+        Outline = Text | Formatting | (309 << 16),
+        ShapeType = Text | Formatting | (310 << 16),
+        ImageScalingType = Text | Formatting | (311 << 16),
+        AxisScale = Text | Formatting | (312 << 16)
 
         // NOTE: To avoid confusion, underscores should be used only to delimit primitive type variants of an extended type
         // (e.g. Year_Integer or Latitude_Double above)

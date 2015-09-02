@@ -615,7 +615,105 @@ module powerbitests {
             }, DefaultWaitForRender);
         });
 
-        it('only category labels should be visible', (done) => {
+        it('Verify values when labels are on and categoryLabels are on', (done) => {
+
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: true, labelPrecision: 0 },
+                categoryLabels: { show: true }
+            };
+
+            var dataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110, 120],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210, 220],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310, 320],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(dataChangedOptions);
+
+            setTimeout(() => {
+                expect($('.treemap .labels .majorLabel').length).toEqual(2);
+                expect($('.treemap .labels .minorLabel').first().text()).toBe('201501 110');
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('201503 320');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Verify values when labels are on and categoryLabels are off', (done) => {
+
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: true, labelPrecision: 0 },
+                categoryLabels: { show: false }
+            };
+
+            var dataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110, 120],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210, 220],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310, 320],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(dataChangedOptions);
+
+            setTimeout(() => {
+                expect($('.treemap .labels .majorLabel').length).toEqual(2);
+                expect($('.treemap .labels .minorLabel').first().text()).toBe('110');
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('320');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Verify values when labels are off and categoryLabels are on', (done) => {
 
             dataViewMetadataCategorySeriesColumns.objects = {
                 labels: { show: false },
@@ -657,8 +755,205 @@ module powerbitests {
             v.onDataChanged(dataChangedOptions);
 
             setTimeout(() => {
-                expect($('.treemap .labels .majorLabel').length).toEqual(0);
+                expect($('.treemap .labels .majorLabel').length).toEqual(2);
+                expect($('.treemap .labels .minorLabel').first().text()).toBe('201501');
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('201503');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Verify values for labels with display units and precision', (done) => {
+
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: true, labelDisplayUnits: 1000000, labelPrecision: 3 },
+                categoryLabels: { show: false }
+            };
+
+            var dataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110000, 120000],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210000, 220000],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310000, 320000],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(dataChangedOptions);
+
+            setTimeout(() => {
                 expect($('.treemap .labels .minorLabel').length).toEqual(6);
+                expect($('.treemap .labels .minorLabel').first().text()).toBe('0.110M');
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('0.320M');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Verify values for labels with display units and no precision', (done) => {
+
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: true, labelDisplayUnits: 1000000, labelPrecision: 0 },
+                categoryLabels: { show: false }
+            };
+
+            var dataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110000, 120000],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210000, 220000],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310000, 320000],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(dataChangedOptions);
+
+            setTimeout(() => {
+                expect($('.treemap .labels .minorLabel').length).toEqual(6);
+                expect($('.treemap .labels .minorLabel').first().text()).toBe('0M');
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('0M');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Verify values for labels without display units and precision', (done) => {
+
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: true, labelDisplayUnits: 0, labelPrecision: 2 },
+                categoryLabels: { show: false }
+            };
+
+            var dataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110.123, 120.123],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210.234, 220.234],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310.345, 320.345],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(dataChangedOptions);
+
+            setTimeout(() => {
+                expect($('.treemap .labels .minorLabel').length).toEqual(6);
+                expect($('.treemap .labels .minorLabel').first().text()).toBe('110.12');
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('320.35');
+                done();
+            }, DefaultWaitForRender);
+        });
+
+        it('Verify values for labels without display units and no precision', (done) => {
+
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: true, labelDisplayUnits: 0, labelPrecision: 0 },
+                categoryLabels: { show: false }
+            };
+
+            var dataChangedOptions = {
+                dataViews: [{
+                    metadata: dataViewMetadataCategorySeriesColumns,
+                    categorical: {
+                        categories: [{
+                            source: dataViewMetadataCategorySeriesColumns.columns[0],
+                            values: ['The Nuthatches', 'Skylarks'],
+                            identity: [
+                                mocks.dataViewScopeIdentity('The Nuthatches'),
+                                mocks.dataViewScopeIdentity('Skylarks'),
+                            ],
+                            identityFields: [categoryColumnRef],
+                        }],
+                        values: DataViewTransform.createValueColumns([
+                            {
+                                source: dataViewMetadataCategorySeriesColumns.columns[2],
+                                values: [110, 120],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201501')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[3],
+                                values: [210, 220],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201502')),
+                            }, {
+                                source: dataViewMetadataCategorySeriesColumns.columns[4],
+                                values: [310, 320],
+                                identity: data.createDataViewScopeIdentity(SQExprBuilder.text('201503')),
+                            }],
+                            undefined,
+                            dataViewMetadataCategorySeriesColumns.columns[1])
+                    }
+                }]
+            };
+            v.onDataChanged(dataChangedOptions);
+
+            setTimeout(() => {
+                expect($('.treemap .labels .minorLabel').length).toEqual(6);
+                expect($('.treemap .labels .minorLabel').first().text()).toBe('110');
+                expect($('.treemap .labels .minorLabel').last().text()).toBe('320');
                 done();
             }, DefaultWaitForRender);
         });
@@ -854,6 +1149,11 @@ module powerbitests {
         });
 
         it('treemap categories and series dom validation', (done) => {
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: false },
+                categoryLabels: { show: true }
+            };
+
             var dataChangedOptions = {
                 dataViews: [{
                     metadata: dataViewMetadataCategorySeriesColumns,
@@ -908,6 +1208,11 @@ module powerbitests {
         });
 
         it('treemap categories and series onDataChanged dom validation', (done) => {
+            dataViewMetadataCategorySeriesColumns.objects = {
+                labels: { show: false },
+                categoryLabels: { show: true }
+            };
+
             var initialDataViews: DataView[] = [{
                 metadata: dataViewMetadataCategorySeriesColumns,
                 categorical: {
@@ -940,12 +1245,18 @@ module powerbitests {
             }];
             var updatedMetadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'Squad', properties: { "Category": true }, type: dataTypeString },
-                    { displayName: 'Period', properties: { "Series": true }, type: dataTypeNumber },
+                    { displayName: 'Squad', queryName: 'select0', properties: { "Category": true }, type: dataTypeString },
+                    { displayName: 'Period', queryName: 'select0', properties: { "Series": true }, type: dataTypeNumber },
                     { displayName: null, groupName: '201503', isMeasure: true, properties: { "Y": true }, type: dataTypeNumber },
                     { displayName: null, groupName: '201504', isMeasure: true, properties: { "Y": true }, type: dataTypeNumber }
                 ]
             };
+
+            updatedMetadata.objects = {
+                labels: { show: false },
+                categoryLabels: { show: true }
+            };
+
             var updatedDataViews: DataView[] = [{
                 metadata: updatedMetadata,
                 categorical: {
@@ -2587,8 +2898,8 @@ module powerbitests {
 
             var metadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'Year', properties: { "Series": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
-                    { displayName: 'MedalCount', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }
+                    { displayName: 'Year', queryName: 'select0', properties: { "Series": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                    { displayName: 'MedalCount', queryName: 'select1', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) }
                 ]
             };
             var categoryIdentities = [
@@ -2739,7 +3050,7 @@ module powerbitests {
         it('treemap dataView multi category/series with null values',() => {
             var metadata: powerbi.DataViewMetadata = {
                 columns: [
-                    { displayName: 'Continent', properties: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
+                    { displayName: 'Continent', queryName: 'select1', properties: { "Category": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Text) },
                     { displayName: 'Year', properties: { "Series": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                     { displayName: null, groupName: '2004', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },
                     { displayName: null, groupName: '2008', isMeasure: true, properties: { "Y": true }, type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.Double) },

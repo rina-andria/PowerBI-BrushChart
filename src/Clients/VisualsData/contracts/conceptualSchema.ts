@@ -29,6 +29,7 @@
 module powerbi.data {
     export class ConceptualSchema {
         public entities: jsCommon.ArrayNamedItems<ConceptualEntity>;
+        public capabilities: ConceptualCapabilities;
 
         /** Indicates whether the user can edit this ConceptualSchema.  This is used to enable/disable model authoring UX. */
         public canEdit: boolean;
@@ -40,9 +41,17 @@ module powerbi.data {
         }
     }
 
+    export interface ConceptualCapabilities {
+        discourageQueryAggregateUsage: boolean;
+        supportsMedian: boolean;
+        supportsPercentile: boolean;
+    }
+
     export interface ConceptualEntity {
         name: string;
         hidden?: boolean;
+        calculated?: boolean;
+        queryable?: ConceptualQueryableState;
         properties: jsCommon.ArrayNamedItems<ConceptualProperty>;
         hierarchies: jsCommon.ArrayNamedItems<ConceptualHierarchy>;
     }

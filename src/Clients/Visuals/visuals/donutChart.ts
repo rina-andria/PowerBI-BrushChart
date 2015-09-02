@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  Power BI Visualizations
  *
  *  Copyright (c) Microsoft Corporation
@@ -195,7 +195,7 @@ module powerbi.visuals {
                 .value((d: DonutDataPoint) => {
                     return d.percentage;
                 });
-            var culledDataPoints = (disableGeometricCulling === false && viewport) ? DonutChart.cullDataByViewport(converter.dataPoints, converter.maxValue, viewport) : converter.dataPoints;
+            var culledDataPoints = (!disableGeometricCulling && viewport) ? DonutChart.cullDataByViewport(converter.dataPoints, converter.maxValue, viewport) : converter.dataPoints;
             var data: DonutData = {
                 dataPointsToDeprecate: culledDataPoints,
                 dataPoints: d3PieLayout(culledDataPoints),
@@ -1022,17 +1022,14 @@ module powerbi.visuals {
 
             if (donutData.dataLabelsSettings.show || donutData.dataLabelsSettings.showCategory) {
 
-                var value2: number = null;
+                var alternativeScale: number = null;
 
                 if (donutData.dataLabelsSettings.show) {
                     //use the model format
-                    if (donutData.dataLabelsSettings.displayUnits === 0) {
-                        var minY = <number>d3.min(donutData.dataPoints, d => d.data.measure);
-                        var maxY = <number>d3.max(donutData.dataPoints, d => d.data.measure);
-                        value2 = Math.max(Math.abs(minY), Math.abs(maxY));
-                    }
+                    if (donutData.dataLabelsSettings.displayUnits === 0)
+                        alternativeScale = <number>d3.max(donutData.dataPoints, d => Math.abs(d.data.measure));
                 }
-                var labelLayout = dataLabelUtils.getDonutChartLabelLayout(donutData.dataLabelsSettings, radius, outerArc, viewport, value2);
+                var labelLayout = dataLabelUtils.getDonutChartLabelLayout(donutData.dataLabelsSettings, radius, outerArc, viewport, alternativeScale);
 
                 dataLabelUtils.drawDefaultLabelsForDonutChart(donutData.dataPoints, graphicsContext, labelLayout, viewport, radius, arc, outerArc);
             }
@@ -1078,15 +1075,17 @@ module powerbi.visuals {
         }
 
         public static cullDataByViewport(dataPoints: DonutDataPoint[], maxValue: number, viewport: IViewport): DonutDataPoint[] {
-            var estimatedRadius = Math.min(viewport.width, viewport.height) / 2;
-            var cullableValue = ((this.invisibleArcLengthInPixels / estimatedRadius) / DonutChart.twoPi) * maxValue; // Value at which slices will be small enough to cull
-            var culledDataPoints: DonutDataPoint[] = [];
-            for (var i = 0, ilen = dataPoints.length; i < ilen; i++) {
-                var dataPoint = dataPoints[i];
-                if (dataPoint.measure >= cullableValue) {
-                    culledDataPoints.push(dataPoint);
+            let estimatedRadius = Math.min(viewport.width, viewport.height) / 2;
+            // Ratio of slice too small to show (invisible) = invisbleArcLength / circumference
+            let cullRatio = this.invisibleArcLengthInPixels / (estimatedRadius * DonutChart.twoPi);
+            let cullableValue = cullRatio * maxValue;
+            let culledDataPoints: DonutDataPoint[] = [];
+            for (let datapoint of dataPoints) {
+                if (datapoint.measure >= cullableValue) {
+                    culledDataPoints.push(datapoint);
                 }
             }
+
             return culledDataPoints;
         }
     }
@@ -1415,8 +1414,8 @@ module powerbi.visuals {
         interface ConvertedDataPoint {
             identity: SelectionId;
             measureFormat: string;
-            nonHighlight: MeasureAndValue;
-            highlight: MeasureAndValue;
+            measureValue: MeasureAndValue;
+            highlightMeasureValue: MeasureAndValue;
             index: number;
             label: any;
             categoryLabel: string;
@@ -1491,6 +1490,17 @@ module powerbi.visuals {
                         this.highlightTotal += this.hasHighlights ? Math.abs(seriesData.highlights[measureIndex]) : 0;
                     }
                 }
+
+                this.total = AxisHelper.normalizeNonFiniteNumber(this.total);
+                this.highlightTotal = AxisHelper.normalizeNonFiniteNumber(this.highlightTotal);
+            }
+
+            private static normalizedMeasureAndValue(measureAndValue: MeasureAndValue): MeasureAndValue {
+                let normalized: MeasureAndValue = $.extend(true, {}, measureAndValue);
+                normalized.measure = AxisHelper.normalizeNonFiniteNumber(normalized.measure);
+                normalized.value = AxisHelper.normalizeNonFiniteNumber(normalized.value);
+
+                return normalized;
             }
 
             public convert(): void {
@@ -1520,7 +1530,7 @@ module powerbi.visuals {
                 var highlightsOverflow = false;
                 for (var i = 0, dataPointCount = convertedData.length; i < dataPointCount && !highlightsOverflow; i++) {
                     var point = convertedData[i];
-                    if (Math.abs(point.highlight.measure) > Math.abs(point.nonHighlight.measure)) {
+                    if (Math.abs(point.highlightMeasureValue.measure) > Math.abs(point.measureValue.measure)) {
                         highlightsOverflow = true;
                     }
                 }
@@ -1541,24 +1551,30 @@ module powerbi.visuals {
 
                 for (var i = 0, dataPointCount = convertedData.length; i < dataPointCount; i++) {
                     var point = convertedData[i];
-                    var measure = point.nonHighlight.measure;
-                    var percentage = (this.total > 0) ? point.nonHighlight.value / this.total : 0.0;
+
+                    // Normalize the values here and then handle tooltip value as infinity
+                    let normalizedHighlight = DonutChartConverter.normalizedMeasureAndValue(point.highlightMeasureValue);
+                    let normalizedNonHighlight = DonutChartConverter.normalizedMeasureAndValue(point.measureValue);
+
+                    var measure = normalizedNonHighlight.measure;
+                    var percentage = (this.total > 0) ? normalizedNonHighlight.value / this.total : 0.0;
                     var highlightRatio = 0;
-                    if (point.nonHighlight.value > this.maxValue)
-                        this.maxValue = point.nonHighlight.value;
-                    if (point.highlight.value > this.maxValue)
-                        this.maxValue = point.nonHighlight.value;
+                    if (normalizedNonHighlight.value > this.maxValue)
+                        this.maxValue = normalizedNonHighlight.value;
+                    if (normalizedHighlight.value > this.maxValue)
+                        this.maxValue = normalizedHighlight.value;
 
                     if (this.hasHighlights) {
                         // When any highlight value is greater than the corresponding non-highlight value
                         // we just render all of the highlight values and discard the non-highlight values.
                         if (highlightsOverflow) {
-                            measure = point.highlight.measure;
-                            percentage = (this.highlightTotal > 0) ? point.highlight.value / this.highlightTotal : 0.0;
+                            measure = normalizedHighlight.measure;
+
+                            percentage = (this.highlightTotal > 0) ? normalizedHighlight.value / this.highlightTotal : 0.0;
                             highlightRatio = 1;
                         }
                         else {
-                            highlightRatio = point.highlight.value / point.nonHighlight.value;
+                            highlightRatio = normalizedHighlight.value / normalizedNonHighlight.value;
                         }
 
                         if (!highlightRatio) {
@@ -1566,13 +1582,14 @@ module powerbi.visuals {
                         }
                     }
 
-                    var value = measure;
+                    
                     var categoryValue = point.categoryLabel;
                     var categorical = this.dataViewCategorical;
                     var valueIndex: number = categorical.categories ? null : i;
                     valueIndex = point.seriesIndex !== undefined ? point.seriesIndex : valueIndex;
                     var valuesMetadata = categorical.values[valueIndex].source;
-                    var highlightedValue: number = this.hasHighlights && point.highlight.value !== 0 ? point.highlight.measure : undefined;
+                    var value: number = point.measureValue.measure;
+                    var highlightedValue: number = this.hasHighlights && point.highlightMeasureValue.value !== 0 ? point.highlightMeasureValue.measure : undefined;
                     var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(formatStringProp, categorical, categoryValue, value, null, null, valueIndex, i, highlightedValue);
 
                     this.dataPoints.push({
@@ -1638,25 +1655,29 @@ module powerbi.visuals {
                         var nonHighlight = seriesData.values[categoryIndex] || 0;
                         var highlight = this.hasHighlights ? seriesData.highlights[categoryIndex] || 0 : 0;
 
-                        let dataMap: SelectorForColumn = {};
-                        let measure: string = null;
-                        dataMap[dataViewCategorical.categories[0].source.queryName] = this.categoryIdentities[categoryIndex];
+                        let measure: string;
+                        let seriesGroup: any;
 
-                        if (this.isMultiMeasure)
+                        if (this.isMultiMeasure) {
                             measure = seriesData.source.queryName;
+                        }
                         else if (seriesData.identity)
-                            dataMap[seriesData.source.queryName] = seriesData.identity;
+                            seriesGroup = seriesData;
 
-                        var identity: SelectionId = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, measure);
+                        let identity: SelectionId = SelectionIdBuilder.builder()
+                            .withCategory(dataViewCategorical.categories[0], categoryIndex)
+                            .withSeries(seriesGroup, seriesGroup)
+                            .withMeasure(measure)
+                            .createSelectionId();
 
                         var dataPoint: ConvertedDataPoint = {
                             identity: identity,
                             measureFormat: valueFormatter.getFormatString(seriesData.source, formatStringProp, true),
-                            nonHighlight: <MeasureAndValue> {
+                            measureValue: <MeasureAndValue> {
                                 measure: nonHighlight,
                                 value: Math.abs(nonHighlight),
                             },
-                            highlight: <MeasureAndValue> {
+                            highlightMeasureValue: <MeasureAndValue> {
                                 measure: highlight,
                                 value: Math.abs(highlight),
                             },
@@ -1702,11 +1723,11 @@ module powerbi.visuals {
                     var dataPoint: ConvertedDataPoint = {
                         identity: identity,
                         measureFormat: measureFormat,
-                        nonHighlight: <MeasureAndValue> {
+                        measureValue: <MeasureAndValue> {
                             measure: nonHighlight,
                             value: Math.abs(nonHighlight),
                         },
-                        highlight: <MeasureAndValue> {
+                        highlightMeasureValue: <MeasureAndValue> {
                             measure: highlight,
                             value: Math.abs(highlight),
                         },
@@ -1752,11 +1773,11 @@ module powerbi.visuals {
                     var dataPoint: ConvertedDataPoint = {
                         identity: identity,
                         measureFormat: seriesFormat,
-                        nonHighlight: <MeasureAndValue> {
+                        measureValue: <MeasureAndValue> {
                             measure: nonHighlight,
                             value: Math.abs(nonHighlight),
                         },
-                        highlight: <MeasureAndValue> {
+                        highlightMeasureValue: <MeasureAndValue> {
                             measure: highlight,
                             value: Math.abs(highlight),
                         },

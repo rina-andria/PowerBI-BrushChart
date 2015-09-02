@@ -243,7 +243,7 @@ module powerbitests {
             });
         }
 
-        private buildDataView() {
+        public buildDataView() {
             this._dataView = {
                 metadata: this.dataViewMetadata,
                 single: {value: this.singleValue},
@@ -593,6 +593,157 @@ module powerbitests {
             };
 
             expect(data).toEqual(expectedValues);
+        });
+
+        it("Gauge_formatting_min_max_target", () => {
+            // 1
+            var dataViewMetadata: powerbi.DataViewMetadata = {
+                columns: [
+                    {
+                        displayName: "col1",
+                        roles: { "Y": true },
+                        isMeasure: true,
+                        objects: { general: { formatString: "$0" } },
+                    }, {
+                        displayName: "col2",
+                        roles: { "MinValue": true },
+                        isMeasure: true
+                    }, {
+                        displayName: "col3",
+                        roles: { "MaxValue": true },
+                        isMeasure: true
+                    }, {
+                        displayName: "col4",
+                        roles: { "TargetValue": true },
+                        isMeasure: true
+                    }],
+                groups: [],
+                measures: [0],
+                objects: {
+                    axis: {
+                        min: 1000,
+                        max: 300000,
+                        target: 12300
+                    }
+                }
+            };
+
+            gaugeDataBuilder.dataViewMetadata = dataViewMetadata;
+            gaugeDataBuilder.singleValue = 500;
+            gaugeDataBuilder.values = [[10], [0], [500], [200]];
+            gaugeDataBuilder.buildDataView();
+
+            // Values should not be overrided
+            var data = GaugeVisual.converter(gaugeDataBuilder.dataView);
+            expect(data.targetSettings.min).toEqual(0);
+            expect(data.targetSettings.max).toEqual(500);
+            expect(data.targetSettings.target).toEqual(200);
+
+            // 2
+            dataViewMetadata = {
+                columns: [
+                    {
+                        displayName: "col1",
+                        roles: { "Y": true },
+                        isMeasure: true,
+                        objects: { general: { formatString: "$0" } },
+                    }],
+                groups: [],
+                measures: [0],
+                objects: {
+                    axis: {
+                        min: 10,
+                        max: 1000,
+                        target: 300
+                    }
+                }
+            };
+
+            gaugeDataBuilder.dataViewMetadata = dataViewMetadata;
+            gaugeDataBuilder.singleValue = 10;
+            gaugeDataBuilder.values = [[10]];
+            gaugeDataBuilder.buildDataView();
+
+            // All values should be overrided
+            data = GaugeVisual.converter(gaugeDataBuilder.dataView);
+            expect(data.targetSettings.min).toEqual(10);
+            expect(data.targetSettings.max).toEqual(1000);
+            expect(data.targetSettings.target).toEqual(300);
+
+            // 3
+            dataViewMetadata = {
+                columns: [
+                    {
+                        displayName: "col1",
+                        roles: { "Y": true },
+                        isMeasure: true,
+                        objects: { general: { formatString: "$0" } },
+                    }, {
+                        displayName: "col2",
+                        roles: { "MinValue": true },
+                        isMeasure: true
+                    },
+                ],
+                groups: [],
+                measures: [0],
+                objects: {
+                    axis: {
+                        min: 10,
+                        max: 1000,
+                        target: 300
+                    }
+                }
+            };
+
+            gaugeDataBuilder.dataViewMetadata = dataViewMetadata;
+            gaugeDataBuilder.singleValue = 10;
+            gaugeDataBuilder.values = [[10], [0]];
+            gaugeDataBuilder.buildDataView();
+
+            // All except Min value should be overrided
+            data = GaugeVisual.converter(gaugeDataBuilder.dataView);
+            expect(data.targetSettings.min).toEqual(0);
+            expect(data.targetSettings.max).toEqual(1000);
+            expect(data.targetSettings.target).toEqual(300);
+
+            // 4
+            dataViewMetadata = {
+                columns: [
+                    {
+                        displayName: "col1",
+                        roles: { "Y": true },
+                        isMeasure: true,
+                        objects: { general: { formatString: "$0" } },
+                    }, {
+                        displayName: "col2",
+                        roles: { "MinValue": true },
+                        isMeasure: true
+                    }, {
+                        displayName: "col4",
+                        roles: { "TargetValue": true },
+                        isMeasure: true
+                    }],
+                groups: [],
+                measures: [0],
+                objects: {
+                    axis: {
+                        min: 10,
+                        max: 1000,
+                        target: 300
+                    }
+                }
+            };
+
+            gaugeDataBuilder.dataViewMetadata = dataViewMetadata;
+            gaugeDataBuilder.singleValue = 10;
+            gaugeDataBuilder.values = [[10], [0], [100]];
+            gaugeDataBuilder.buildDataView();
+
+            // Only Max value should be overrided
+            data = GaugeVisual.converter(gaugeDataBuilder.dataView);
+            expect(data.targetSettings.min).toEqual(0);
+            expect(data.targetSettings.max).toEqual(1000);
+            expect(data.targetSettings.target).toEqual(100);
         });
 
         describe("Gauge Rendering Tests", () => {

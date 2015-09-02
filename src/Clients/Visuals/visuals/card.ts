@@ -197,12 +197,13 @@ module powerbi.visuals {
 
             var metaDataColumn = this.metaDataColumn;
             var labelSettings = this.cardFormatSetting.labelSettings;
+            var isDefaultDisplayUnit = labelSettings.displayUnits === 0;
             var formatter = valueFormatter.create({
                 format: this.getFormatString(metaDataColumn),
-                value: labelSettings.displayUnits === 0 ? target : labelSettings.displayUnits,
+                value: isDefaultDisplayUnit ? target : labelSettings.displayUnits,
                 precision: labelSettings.precision,
-                displayUnitSystemType: labelSettings.displayUnits === 0 && labelSettings.precision === 0 ? this.displayUnitSystemType : DisplayUnitSystemType.WholeUnits, // keeps this.displayUnitSystemType as the displayUnitSystemType unless the user changed the displayUnits or the precision
-                formatSingleValues: false,
+                displayUnitSystemType: isDefaultDisplayUnit && labelSettings.precision === 0 ? this.displayUnitSystemType : DisplayUnitSystemType.WholeUnits, // keeps this.displayUnitSystemType as the displayUnitSystemType unless the user changed the displayUnits or the precision
+                formatSingleValues: isDefaultDisplayUnit ? true : false,
                 allowFormatBeautification: true,
                 columnType: metaDataColumn ? metaDataColumn.type : undefined
             });

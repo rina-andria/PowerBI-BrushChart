@@ -236,11 +236,10 @@ module powerbi.visuals {
                 for (var i = 0, ilen = categoryValues.length; i < ilen; i++) {
                     var measureName = values[0].source.queryName;
 
-                    let dataMap: SelectorForColumn = {};
-                    if (category.identity)
-                        dataMap[category.source.queryName] = category.identity[i];
-
-                    let identity = SelectionId.createWithSelectorForColumnAndMeasure(dataMap, measureName);
+                    let identity = SelectionIdBuilder.builder()
+                        .withCategory(category, i)
+                        .withMeasure(measureName)
+                        .createSelectionId();
 
                     var value = d3.sum(values.map(d => d.values[i]));
                     var formattedCategoryValue = valueFormatter.format(categoryValues[i], categorySourceFormatString);

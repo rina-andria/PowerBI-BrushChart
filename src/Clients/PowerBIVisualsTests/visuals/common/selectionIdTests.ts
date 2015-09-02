@@ -28,7 +28,94 @@
 
 module powerbitests {
     import SelectionId = powerbi.visuals.SelectionId;
+    import SelectionIdBuilder = powerbi.visuals.SelectionIdBuilder;
     import Selector = powerbi.data.Selector;
+
+    describe("SelectionIdBuilder tests", () => {
+        var categoryA = mocks.dataViewScopeIdentity("A");
+        let categoryQueryName = "categoryA";
+        let categoryColumn: powerbi.DataViewCategoryColumn = {
+            source: {
+                queryName: categoryQueryName,
+                displayName: 'testDisplayName'
+            },
+            identity: [categoryA],
+            values: []
+        };
+        var seriesa = mocks.dataViewScopeIdentity("a");
+        let seriesQueryName = "seriesA";
+
+        let seriesColumn: any = {
+            source: {
+                queryName: seriesQueryName,
+                displayName: 'testSeriesDisplayName'
+            }
+        };
+
+        let valueColumn: any = { identity: seriesa };
+
+        var measure1 = "measure1";
+
+        var idA = SelectionId.createWithId(categoryA);
+        var ida = SelectionId.createWithId(seriesa);
+        var id1 = SelectionId.createWithMeasure(measure1);
+        var idAll = SelectionId.createWithIdsAndMeasure(categoryA, seriesa, measure1);
+
+        it("SelectionIdBuilder -- empty", () => {
+            let id = SelectionIdBuilder.builder().createSelectionId();
+            expect(id.getSelector()).toBeNull();
+            expect(id.getSelectorsByColumn()).toEqual({});
+            expect(id.getKey()).toEqual('{"selector":null,"highlight":false}');
+        });
+
+        it("SelectionIdBuilder -- withCategory", () => {
+            let id = SelectionIdBuilder.builder()
+                .withCategory(categoryColumn, 0)
+                .createSelectionId();
+
+            expect(id.getSelector()).toEqual(idA.getSelector());
+            expect(id.getSelectorsByColumn()).toEqual({ dataMap: { categoryA: idA.getSelector()['data'][0] } });
+
+        });
+
+        it("SelectionIdBuilder -- withSeries", () => {
+            let id = SelectionIdBuilder.builder()
+                .withSeries(seriesColumn, valueColumn)
+                .createSelectionId();
+
+            expect(id.getSelector()).toEqual(ida.getSelector());
+            expect(id.getSelectorsByColumn()).toEqual({ dataMap: { seriesA: ida.getSelector()['data'][0] } });
+        });
+
+        it("SelectionIdBuilder -- withMeasure", () => {
+            let id = SelectionIdBuilder.builder()
+                .withMeasure(measure1)
+                .createSelectionId();
+
+            expect(id.getSelector()).toEqual(id1.getSelector());
+            expect(id.getSelectorsByColumn()).toEqual({ metadata: id1.getSelector()['metadata'] });
+        });
+
+        it("SelectionIdBuilder -- category, series, and measure", () => {
+            let id = SelectionIdBuilder.builder()
+                .withCategory(categoryColumn, 0)
+                .withSeries(seriesColumn, valueColumn)
+                .withMeasure(measure1)
+                .createSelectionId();
+            
+            let allSelector = idAll.getSelector();
+            expect(id.getSelector()).toEqual(allSelector);
+            expect(id.getSelectorsByColumn()).toEqual({
+                dataMap: {
+                    categoryA: allSelector['data'][0],
+                    seriesA: allSelector['data'][1]
+                },
+                metadata: allSelector['metadata']
+            });
+
+        });
+
+    });
 
     describe("SelectionId tests", () => {
         var categoryA = mocks.dataViewScopeIdentity("A");

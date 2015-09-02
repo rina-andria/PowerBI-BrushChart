@@ -47,6 +47,7 @@ var minimist = require("minimist");
 var os = require("os");
 var open = require("gulp-open");
 var gutil = require('gulp-util');
+require('require-dir')('./gulp'); 
 
 // Command line option:
 //  --fatal=[warning|error|off]
@@ -321,6 +322,7 @@ gulp.task("build:visuals", function (callback) {
 
 gulp.task("build:projects", function (callback) {
     runSequence(
+        "install:jquery-ui",
         "build:visuals_common",
         "build:visuals_data",
         "build:visuals",
@@ -442,7 +444,48 @@ gulp.task('continuous_build', function (callback) {
         callback);
 
 });
+
 /** ---------------------------------- DOWNLOADs ------------------------------------------*/
+
+function installExternalDependency(path, fileName, url, callback) {
+    var pathToFile = path + "/" + fileName;
+    
+    fs.exists(pathToFile, function (exists) {
+        if (!exists) {
+            console.log('Downloading dependency: ' + url);
+            download(url)
+                .pipe(gulp.dest(path))
+                .on("end", callback);
+        } else {
+            console.log('Dependency exists.');
+            callback();
+        }
+    });
+} 
+
+/** -------------------------- Download 'jquery-ui.min.js' --------------------------------*/
+gulp.task("install:jquery-ui:js", function(callback) {
+    installExternalDependency(
+        "src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4",
+        "jquery-ui.min.js",
+        "https://code.jquery.com/ui/1.11.4/jquery-ui.min.js",
+        callback);
+});
+
+/** -------------------------- Download 'jquery-ui.min.css' --------------------------------*/
+gulp.task("install:jquery-ui:css", function(callback) {
+    installExternalDependency(
+        "src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4",
+        "jquery-ui.min.css",
+        "https://code.jquery.com/ui/1.11.4/themes/black-tie/jquery-ui.min.css",
+        callback);
+});
+
+/** -------------------------- Download 'jquery-ui' --------------------------------*/
+gulp.task("install:jquery-ui", function(callback) {
+    runSequence("install:jquery-ui:js", "install:jquery-ui:css", callback);
+});
+
 /** --------------------------Download 'JASMINE-jquery.js' --------------------------------*/
 gulp.task('install:jasmine', function (callback) {
     fs.exists('src/Clients/Externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js', function (exists) {

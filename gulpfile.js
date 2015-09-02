@@ -379,10 +379,10 @@ const lintReporter = function (output, file, options) {
             .red(' line:' + output[i].endPosition.line + ', char:' + output[i].endPosition.character +
                 ', message: ' + output[i].failure));
     // options is a reference to the reporter options, e.g. including the emitError boolean 
+    gutil.log('', '', gutil.colors.magenta('Waiting for changes...'));
 };
 
 gulp.task('start:watchers', function (callback) {
-
     //do stuff
     gulp.watch(getBuildPaths("src/Clients/VisualsCommon", "VisualsCommon")).on("change", function (file) {
         lintErrors = false;
@@ -413,17 +413,21 @@ gulp.task('start:watchers', function (callback) {
         gulp.src(file.path).pipe(tslint()).pipe(tslint.report(lintReporter).on('error', function (error) {})
             .on('end', function () {
                 if (!lintErrors)
-                    runSequence("build:visuals_playground");
+                    runSequence("build:visuals_playground", function(e){ gutil.log('', '', gutil.colors.magenta('Waiting for changes...')); });
             }));
     });
 
     gulp.watch("src/Clients/Visuals/images/sprite-src/*.png", ['build:visuals_sprite']);
     gulp.watch(["src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.css", "src/Clients/Visuals/styles/*.less", "src/Clients/StyleLibrary/less/*.less", "src/Clients/PowerBI/styles/*.less",
      "src/Clients/Visuals/images/visuals.sprites.png", "src/Clients/Visuals/styles/sprites.less"], ["build:visuals_less"]);
-    gulp.watch(externalsPath, ['combine:external_js']);
-    gulp.watch(internalsPaths, ['combine:internal_js']);
-
-    gutil.log('', '', gutil.colors.magenta(' Continuous build successfully started'));
+    gulp.watch(externalsPath, ['combine:external_js']).on("change", function (file) {
+                    runSequence("combine:external_js", function(e){ gutil.log('', '', gutil.colors.magenta('Waiting for changes...')); });
+    });
+    gulp.watch(internalsPaths, ['combine:internal_js']).on("change", function (file) {
+                    runSequence("combine:internal_js", function(e){ gutil.log('', '', gutil.colors.magenta('Waiting for changes...')); });
+    });
+    gutil.log('', '', gutil.colors.magenta('Continuous build successfully started'));
+    gutil.log('', '', gutil.colors.magenta('Waiting for changes...'));
 
     });
 

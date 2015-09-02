@@ -423,6 +423,8 @@ gulp.task('start:watchers', function (callback) {
     gulp.watch(externalsPath, ['combine:external_js']);
     gulp.watch(internalsPaths, ['combine:internal_js']);
 
+    gutil.log('', '', gutil.colors.magenta(' Continuous build successfully started'));
+
     });
 
 gulp.task('continuous_build_debug', function (callback) {

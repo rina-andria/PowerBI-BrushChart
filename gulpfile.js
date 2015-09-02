@@ -379,6 +379,7 @@ const lintReporter = function (output, file, options) {
             .red(' line:' + output[i].endPosition.line + ', char:' + output[i].endPosition.character +
                 ', message: ' + output[i].failure));
     // options is a reference to the reporter options, e.g. including the emitError boolean 
+    gutil.log('', '', gutil.colors.magenta('Waiting for changes...'));
 };
 
 gulp.task('start:watchers', function (callback) {

@@ -62,7 +62,7 @@ Install [PhantomJS](http://phantomjs.org/) (PhantomJS is a headless WebKit scrip
 For Windows OS you can install PhantomJS using this command:
 
 ```
-gulp phantomjs-dependency
+gulp install:phantomjs
 ```
 As result, local version of the PhantomJS will be downloaded and installed into the project. For other OS you have to install PhantomJS manually.
 
@@ -78,7 +78,7 @@ gulp test  # Run unit tests (requires 'PhantomJS', see Prerequisites above)
 
 To run sample app:
 
-1. Open `src\PowerBIClients.sln` in Visual Studio then under src\Clients\PowerBIVisualsPlayground\, right click on index.html file and select 'Set As Start Page'.
+1. Open `src\PowerBIVisuals.sln` in Visual Studio then under src\Clients\PowerBIVisualsPlayground\, right click on index.html file and select 'Set As Start Page'.
 
 2. Right click on the project root folder then select 'Property Pages'. In the window opened select 'Build' and then in 'Before running startup page' select 'No Build'.
 

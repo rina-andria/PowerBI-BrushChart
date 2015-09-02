@@ -62,7 +62,7 @@ Install [PhantomJS](http://phantomjs.org/) (PhantomJS is a headless WebKit scrip
 For Windows OS you can install PhantomJS using this command:
 
 ```
-gulp phantomjs-dependency
+gulp install:phantomjs
 ```
 As result, local version of the PhantomJS will be downloaded and installed into the project. For other OS you have to install PhantomJS manually.
 

@@ -26,11 +26,13 @@
 
 /// <reference path="../../_references.ts"/>
 
+
 module powerbi.visuals.samples {
     export interface HelloViewModel {
         text: string;
         color: string;
         size: number;
+        selector: data.Selector;
         toolTipInfo: TooltipDataItem[];
     }
 
@@ -70,6 +72,7 @@ module powerbi.visuals.samples {
         private root: D3.Selection;
         private svgText: D3.Selection;
         private dataView: DataView;
+        private selectiionManager: SelectionManager;
 
         public static converter(dataView: DataView): HelloViewModel {
             var viewModel: HelloViewModel = {
@@ -79,12 +82,18 @@ module powerbi.visuals.samples {
                 toolTipInfo: [{
                     displayName: 'Test',
                     value: '1...2....3... can you see me? I am sending random strings to the tooltip',
-                }]
+                }],
+                selector: SelectionId.createNull().getSelector()
             };
             var table = dataView.table;
             if (!table) return viewModel;
 
             viewModel.text = table.rows[0][0];
+            if (dataView.categorical) {
+                viewModel.selector = dataView.categorical.categories[0].identity
+                    ? SelectionId.createWithId(dataView.categorical.categories[0].identity[0]).getSelector()
+                    : SelectionId.createNull().getSelector();
+            }
 
             return viewModel;
         }
@@ -97,7 +106,11 @@ module powerbi.visuals.samples {
             this.svgText = this.root
                 .append('text')
                 .style('cursor', 'pointer')
+                .style('stroke', 'green')
+                .style('stroke-width', '0px')
                 .attr('text-anchor', 'middle');
+
+            this.selectiionManager = new SelectionManager({ hostServices: options.host });
         }
 
         public update(options: VisualUpdateOptions) {
@@ -117,6 +130,7 @@ module powerbi.visuals.samples {
                 text: viewModel.text
             };
             var textHeight = TextMeasurementService.estimateSvgTextHeight(textProperties);
+            var selectionManager = this.selectiionManager;
 
             this.svgText.style({
                 'fill': viewModel.color,
@@ -125,7 +139,13 @@ module powerbi.visuals.samples {
             }).attr({
                 'y': viewport.height / 2 + textHeight / 3 + 'px',
                 'x': viewport.width / 2,
-                }).text(viewModel.text).data([viewModel]);
+            }).text(viewModel.text)
+                .on('click', function () {
+                    selectionManager
+                        .select(viewModel.selector)
+                        .then(ids => d3.select(this).style('stroke-width', ids.length > 0 ? '2px' : '0px'));
+                })
+                .data([viewModel]);
 
             TooltipManager.addTooltip(this.svgText, (tooltipEvent: TooltipEvent) => tooltipEvent.data.toolTipInfo);
         }

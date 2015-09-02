@@ -47,10 +47,8 @@ var minimist = require("minimist");
 var os = require("os");
 var open = require("gulp-open");
 var gutil = require('gulp-util');
+require('require-dir')('./gulp'); 
 
-// Command line option:
-//  --fatal=[warning|error|off]
-var fatalLevel = require('yargs').argv.fatal;
 var isDebug = false;
 var cliOptions = {
     string: [
@@ -202,10 +200,9 @@ gulp.task("build:visuals_sprite", function () {
 
     return spriteData.pipe(gulp.dest("src/Clients/Visuals/"));
 });
-
 gulp.task("build:visuals_less", function () {
     var css = gulp.src(["src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.css",
-        "src/Clients/Visuals/styles/visuals.less"])
+       			 "src/Clients/Visuals/styles/visuals.less"])
         .pipe(less())
         .pipe(concat("visuals.css"));
 
@@ -321,6 +318,7 @@ gulp.task("build:visuals", function (callback) {
 
 gulp.task("build:projects", function (callback) {
     runSequence(
+        "install:jquery-ui",
         "build:visuals_common",
         "build:visuals_data",
         "build:visuals",
@@ -420,7 +418,8 @@ gulp.task('start:watchers', function (callback) {
     });
 
     gulp.watch("src/Clients/Visuals/images/sprite-src/*.png", ['build:visuals_sprite']);
-    gulp.watch(["src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.css", "src/Clients/Visuals/styles/visuals.less", "src/Clients/Visuals/images/visuals.sprites.png", "src/Clients/Visuals/styles/sprites.less"], ["build:visuals_less"]);
+    gulp.watch(["src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4/jquery-ui.min.css", "src/Clients/Visuals/styles/*.less", "src/Clients/StyleLibrary/less/*.less", "src/Clients/PowerBI/styles/*.less",
+     "src/Clients/Visuals/images/visuals.sprites.png", "src/Clients/Visuals/styles/sprites.less"], ["build:visuals_less"]);
     gulp.watch(externalsPath, ['combine:external_js']);
     gulp.watch(internalsPaths, ['combine:internal_js']);
 
@@ -442,7 +441,48 @@ gulp.task('continuous_build', function (callback) {
         callback);
 
 });
+
 /** ---------------------------------- DOWNLOADs ------------------------------------------*/
+
+function installExternalDependency(path, fileName, url, callback) {
+    var pathToFile = path + "/" + fileName;
+    
+    fs.exists(pathToFile, function (exists) {
+        if (!exists) {
+            console.log('Downloading dependency: ' + url);
+            download(url)
+                .pipe(gulp.dest(path))
+                .on("end", callback);
+        } else {
+            console.log('Dependency exists.');
+            callback();
+        }
+    });
+} 
+
+/** -------------------------- Download 'jquery-ui.min.js' --------------------------------*/
+gulp.task("install:jquery-ui:js", function(callback) {
+    installExternalDependency(
+        "src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4",
+        "jquery-ui.min.js",
+        "https://code.jquery.com/ui/1.11.4/jquery-ui.min.js",
+        callback);
+});
+
+/** -------------------------- Download 'jquery-ui.min.css' --------------------------------*/
+gulp.task("install:jquery-ui:css", function(callback) {
+    installExternalDependency(
+        "src/Clients/Externals/ThirdPartyIP/jqueryui/1.11.4",
+        "jquery-ui.min.css",
+        "https://code.jquery.com/ui/1.11.4/themes/black-tie/jquery-ui.min.css",
+        callback);
+});
+
+/** -------------------------- Download 'jquery-ui' --------------------------------*/
+gulp.task("install:jquery-ui", function(callback) {
+    runSequence("install:jquery-ui:js", "install:jquery-ui:css", callback);
+});
+
 /** --------------------------Download 'JASMINE-jquery.js' --------------------------------*/
 gulp.task('install:jasmine', function (callback) {
     fs.exists('src/Clients/Externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js', function (exists) {
@@ -626,145 +666,3 @@ gulp.task("test", function (callback) {
         callback);
 });
 
-/**
- * Type DOC.
- */
-
-gulp.task("createdocs", function () {
-    return gulp
-        .src([
-            "src/Clients/Visuals/**/*.ts",
-            "!src/Clients/Visuals*/obj/*.*"
-        ])
-        .pipe(typedoc({
-            // Output options (see typedoc docs)
-            target: "ES5",
-            //includeDeclarations: true,
-            mode: "file",
-            // TypeDoc options (see typedoc docs)
-            out: "docs",
-            json: "docs/to/file.json",
-            // TypeDoc options (see typedoc docs)
-            name: "PowerBI-Visuals",
-            ignoreCompilerErrors: true,
-            version: true,
-        }));
-});
-
-gulp.task("gendocs", function (callback) {
-    runSequence(
-        "build",
-        "combine:internal_d_ts",
-        "createdocs",
-        callback);
-});
-
-/** ------------------------------ Git tasks. ---------------------------------- */
-gulp.task('pull_rebase', function () {
-    return  git.pull('origin', 'master', {args: '--rebase'}, function (err) {
-        if (err)
-            throw err;
-    });
-});
-
-var ERROR_LEVELS = ['error', 'warning'];
-// Return true if the given level is equal to or more severe than
-// the configured fatality error level.
-// If the fatalLevel is 'off', then this will always return false.
-// Defaults the fatalLevel to 'error'.
-function isFatal(level) {
-    return ERROR_LEVELS.indexOf(level) <= ERROR_LEVELS.indexOf(fatalLevel || 'error');
-}
-// Handle an error based on its severity level.
-// Log all levels, and exit the process for fatal levels.
-function handleError(level, error) {
-    gutil.log('I\'ve got error: ' + error.message + ' Now thinking, what to do with it...');
-    if (isFatal(level))
-        process.exit(1);
-}
-
-// Convenience handler for error-level errors.
-function onError(error) {
-    handleError.call(this, 'error', error);
-}
-
-gulp.task('checkout_gh_pages', function () {
-    fs.exists('.docs', function (exists) {
-        if (!exists) {
-            console.log('cloning the repo/gh-pages into .docs');
-        } else {
-            return console.log('gh-pages repo exists in .docs folder.');
-        }
-    });
-});
-
-gulp.task('pull_gh_pages', function () {
-    exec('git -C .docs pull', function (err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
-    });
-});
-gulp.task('copy:docs', function () {
-    return gulp.src(['docs/**/*']).pipe(gulp.dest('.docs'));
-});
-gulp.task('add_all_gh_pages', function (cb) {
-    exec('git -C .docs add --all', function (err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
-        cb(err);
-    });
-});
-
-var doCommit = false;
-gulp.task('commit_gh_pages', function (callback) {
-
-    exec('git -C .docs status > node_modules/statuscheck.txt', function (err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
-    });
-
-    setTimeout(function () {
-
-        fs.readFile("node_modules/statuscheck.txt", "utf-8", function (err, _data) {
-            doCommit = _data.indexOf('nothing to commit') < 0;
-            del(['node_modules/statuscheck.txt'], function (err, paths) {
-            });
-            //console.log('Original git message: \n '+_data+ '\n end of original git message');
-            if (err)
-                console.log('Command exec ERROR: \n ' + err);
-
-            if (doCommit) {
-                console.log('Commiting changes');
-                exec('git -C .docs commit -m \'automatic-documentation-update\'', function (err, stdout, stderr) {
-                    console.log(stdout);
-                    console.log(stderr);
-                    callback(err);
-                });
-            } else {
-                console.log('Nothing to commit');
-                return true;
-            }
-        });
-    }, 10000);
-});
-gulp.task('push_gh_pages', function (cb) {
-    exec('git -C .docs push', function (err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
-        cb(err);
-    });
-});
-gulp.task('git_update_gh_pages', function (cb) {
-    runSequence(
-        "pull_rebase",
-        "build:projects",
-        "combine:internal_d_ts",
-        "checkout_gh_pages",
-        "pull_gh_pages",
-        "createdocs",
-        "copy:docs",
-        "add_all_gh_pages",
-        "commit_gh_pages",
-        "push_gh_pages",
-        cb);
-});

@@ -26,7 +26,6 @@
 
 /// <reference path="../../_references.ts"/>
 
-
 module powerbi.visuals.samples {
     export interface HelloViewModel {
         text: string;

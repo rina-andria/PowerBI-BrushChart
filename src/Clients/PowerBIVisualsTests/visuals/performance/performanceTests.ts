@@ -40,7 +40,7 @@ module powerbitests {
     const ESTIMATE_FOR_MEASURE_PLUGIN_NAME = "scatterChart";
     const DEFAULT_HEIGHT = "770";
     const DEFAULT_WIDTH = "770";
-    const EXCLUDED_VISUALS: string[] = [MEASURE_PLUGIN_NAME, "sunburstChart", "bingNews", "bingSocialNews", "bingSocialTweets", "partitionMap", "categoricalFilter", "map", "filledMap", "heatMap", undefined];
+    const EXCLUDED_VISUALS: string[] = [MEASURE_PLUGIN_NAME, "sunburstChart", "bingNews", "bingSocialNews", "bingSocialTweets", "partitionMap", "categoricalFilter", "map", "filledMap", "heatMap", undefined, "consoleWriter"];
     // Exclude map, filled map, and heat map because they require more advanced mocking in order to run in test mode
 
     describe("Performance measuring", () => {

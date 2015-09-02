@@ -94,7 +94,7 @@ module powerbi.visuals {
                 $('.topBar, #options').css({ "display": "none" });
                 Playground.onVisualTypeSelection(visualByDefault.toString());
             }
-
+            this.onVisualTypeSelection($('#visualTypes').val());
         }
 
         private static createVisualElement(element: JQuery, plugin: IVisualPlugin, dataView?: DataView[]) {
@@ -117,7 +117,7 @@ module powerbi.visuals {
         private static populateVisualTypeSelect(): void {
            
             let typeSelect = $('#visualTypes');
-            typeSelect.append('<option value="">(none)</option>');
+            //typeSelect.append('<option value="">(none)</option>');
 
             let visuals = this.pluginService.getVisuals();
             visuals.sort(function (a, b) {

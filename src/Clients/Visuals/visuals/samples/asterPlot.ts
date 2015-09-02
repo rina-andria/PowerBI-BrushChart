@@ -131,13 +131,16 @@ module powerbi.visuals.samples {
                     0);
 
                 if (values.length > 1) {
-                    tooltipInfo.push(TooltipBuilder.createTooltipInfo(
+                    var toolTip = TooltipBuilder.createTooltipInfo(
                         formatStringProp,
                         catDv.categories, formattedCategoryValue,
                         values,
                         values[1].values[i],
                         null,
-                        1)[1]);
+                        1)[1];
+                    if (toolTip) {
+                        tooltipInfo.push(toolTip);
+                    }
                 }
 
                 dataPoints.push({

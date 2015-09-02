@@ -92,11 +92,19 @@ module powerbi.visuals {
         private onResize(size: IViewport): void {
             this.viewport = {
                 height: size.height - 5,
-                width: size.width - 5,
+                width: size.width - 15,
             };
 
             if (this.visualElement) {
-                this.visualElement.onResizing(this.viewport);
+                if (this.visualElement.update) {
+                    this.visualElement.update({
+                        dataViews: this.sampleDataViews.getDataViews(),
+                        suppressAnimations: true,
+                        viewport: this.viewport
+                    });
+                } else if (this.visualElement.onResizing){
+                    this.visualElement.onResizing(this.viewport);
+                }
             }
         }
 

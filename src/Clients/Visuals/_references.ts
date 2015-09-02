@@ -111,6 +111,8 @@
 /// <reference path="cartesian/columnChartClustered.ts"/>
 /// <reference path="cartesian/columnChartStacked.ts"/>
 /// <reference path="capabilities/columnChart.capabilities.ts"/>
+/// <reference path="visuals/samples/helloIVisual.ts"/>
+/// <reference path="visuals/samples/asterPlot.ts"/>
 
 /// <reference path="capabilities/comboChart.capabilities.ts"/>
 /// <reference path="cartesian/comboChart.ts"/>
@@ -175,7 +177,6 @@
 /// <reference path="styles/visualStyles.ts"/>
 
 /// <reference path="visuals/donutChart.ts"/>
-/// <reference path="visuals/samples/helloIVisual.ts"/>
-/// <reference path="visuals/samples/asterPlot.ts"/>
+
 /// <reference path="pluginsCapabilities.ts"/>
 /// <reference path="plugins.ts"/>

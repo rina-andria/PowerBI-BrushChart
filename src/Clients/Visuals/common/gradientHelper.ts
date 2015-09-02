@@ -95,7 +95,7 @@ module powerbi.visuals {
         }
 
         export function getGradientMeasureIndex(dataViewCategorical: DataViewCategorical): number {
-            if (dataViewCategorical && dataViewCategorical.values) {
+            if (dataViewCategorical && dataViewCategorical.values && dataViewCategorical.values.grouped) {
                 var grouped = dataViewCategorical.values.grouped();
                 return DataRoleHelper.getMeasureIndexOfRole(grouped, 'Gradient');
             }

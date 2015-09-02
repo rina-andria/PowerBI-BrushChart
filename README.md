@@ -53,7 +53,7 @@ cd PowerBI-visuals
 Install dev dependencies:
 
 ```
-npm install  				# This command will install Gulp and all necessary modules
+npm install  # This command will install Gulp and all necessary modules
 ```
 You will also need to do the following to run unit tests:
 
@@ -70,8 +70,8 @@ As result, local version of the PhantomJS will be downloaded and installed into 
 
 Use the following commands to build and test:
 ```
-gulp build                               # Build Power BI visuals into `build` folder
-gulp test                                # Run unit tests (requires 'PhantomJS', see Prerequisites above)
+gulp build  # Build Power BI visuals into `build` folder
+gulp test  # Run unit tests (requires 'PhantomJS', see Prerequisites above)
 ```
 
 ### Running the sample app from VS

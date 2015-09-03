@@ -52,7 +52,7 @@ module powerbi.visuals.plugins {
         customizeQuery: ColumnChart.customizeQuery,
         getSortableRoles: (visualSortableOptions?: VisualSortableOptions) => ColumnChart.getSortableRoles(visualSortableOptions),
     };
-
+    
     export var basicShape: IVisualPlugin = {
         name: 'basicShape',
         capabilities: basicShapeCapabilities,

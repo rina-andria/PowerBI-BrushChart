@@ -93,8 +93,9 @@ module powerbi.visuals {
             if (visualByDefault) {
                 $('.topBar, #options').css({ "display": "none" });
                 Playground.onVisualTypeSelection(visualByDefault.toString());
+            } else {
+                this.onVisualTypeSelection($('#visualTypes').val());
             }
-            this.onVisualTypeSelection($('#visualTypes').val());
         }
 
         private static createVisualElement(element: JQuery, plugin: IVisualPlugin, dataView?: DataView[]) {

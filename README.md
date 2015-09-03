@@ -61,6 +61,8 @@ There are many ways in which you can contribute to Power BI visuals:
 
 ### Running PlayGround from Visual Studio
 
+Make sure you first follow the [Prerequisites](https://github.com/Microsoft/PowerBI-visuals#prerequisites) & [Onetime Setup](https://github.com/Microsoft/PowerBI-visuals#one-time-setup)
+
 To run sample app:
 
 1. Open `src\PowerBIVisuals.sln` in Visual Studio then under `src\Clients\PowerBIVisualsPlayground`, right click on `index.html` file and select 'Set As Start Page'.

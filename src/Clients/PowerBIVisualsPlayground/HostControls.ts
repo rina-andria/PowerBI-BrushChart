@@ -42,7 +42,7 @@ module powerbi.visuals {
         /** Represents sample data views used by visualization elements.*/
         private sampleDataViews;
         private animation_duration: number = 250;
-        private suppressAnimations: boolean = false;
+        private suppressAnimations: boolean = true;
 
         private suppressAnimationsElement: JQuery;
         private animationDurationElement: JQuery;
@@ -114,20 +114,20 @@ module powerbi.visuals {
 
         private randomize(): void {
             this.sampleDataViews.randomize();
-            this.onChange();
+            this.update();
         }
 
         private onChangeDuration(): void {
             this.animation_duration = parseInt(this.animationDurationElement.val(), 10);
-            this.onChange();
+            this.update();
         }
 
         private onChangeSuppressAnimations(): void {
-            this.suppressAnimations = this.suppressAnimationsElement.val();
-            this.onChange();
+            this.suppressAnimations = !this.suppressAnimationsElement.is(':checked');
+            this.update();
         }
                 
-        private onChange(): void {
+        public update(): void {
             if (this.visualElement.update) {
                 this.visualElement.update({
                     dataViews: this.sampleDataViews.getDataViews(),
@@ -172,7 +172,7 @@ module powerbi.visuals {
         
         private onChangeDataViewSelection(sampleName: string): void {
             this.sampleDataViews = SampleData.getDataViewsBySampleName(sampleName);
-            this.onChange();
+            this.update();
         }
 
     }

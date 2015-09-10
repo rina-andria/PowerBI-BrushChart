@@ -122,11 +122,12 @@ div.chart-content {
     width: 700px;
     display: block;
     border: 1px solid #CCC;
+    overflow: hidden;
 }
 
 #container .visual {
     overflow: hidden;
-    background-color': 'white';
+    background-color: white;
     padding: 10px;
 }
 

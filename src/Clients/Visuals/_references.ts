@@ -165,6 +165,7 @@
 /// <reference path="capabilities/treemap.capabilities.ts"/>
 /// <reference path="visuals/treemap.ts"/>
 /// <reference path="visuals/card.ts"/>
+/// <reference path="visuals/owlGauge.ts"/>
 /// <reference path="capabilities/card.capabilities.ts"/>
 
 /// <reference path="warnings/visualWarnings.ts"/>

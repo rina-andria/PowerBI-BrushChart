@@ -367,6 +367,88 @@ gulp.task('build_debug', function (callback) {
 
 gulp.task('default', ['build_debug']);
 
+/* ------------------------ BUILD PACKAGES ------------------------------- */
+
+gulp.task("build:package", function (callback) {
+    runSequence(
+	    "build:package_minified",
+		"copy:package_js_minified",
+		"copy:package_css_minified",
+		"build:package_unminified",
+		"copy:package_js_unminified",
+		"copy:package_css_unminified",
+		"combine:package_d_ts",
+		"copy:package_sprite",
+		callback);
+});
+
+gulp.task('copy:package_js_minified', function (callback) {
+    return copyPackageFile("build/scripts/powerbi-visuals.all.js", "powerbi-visuals.min.js");
+});
+
+gulp.task('copy:package_js_unminified', function (callback) {
+    return copyPackageFile("build/scripts/powerbi-visuals.all.js", "powerbi-visuals.js");
+});
+
+gulp.task('copy:package_css_minified', function (callback) {
+    return copyPackageFile("build/styles/visuals.css", "visuals.min.css");
+});
+
+gulp.task('copy:package_css_unminified', function (callback) {
+    return copyPackageFile("build/styles/visuals.css", "visuals.css");
+});
+
+gulp.task('copy:package_sprite', function (callback) {
+    return copyPackageFile("src/Clients/Visuals/images/visuals.sprites.png", "images/visuals.sprites.png");
+});
+
+gulp.task('build:package_minified', function (callback) {
+    isDebug = false;
+    runSequence(
+        "build:package_projects",
+        callback);
+});
+
+gulp.task('build:package_unminified', function (callback) {
+    isDebug = true;
+    runSequence(
+        "build:package_projects",
+        callback);
+});
+
+gulp.task("build:package_projects", function (callback) {
+    runSequence(
+        "install:jquery-ui",
+        "build:visuals_common",
+        "build:visuals_data",
+        "build:visuals",
+        "combine:internal_js",
+        "combine:external_js",
+		"combine:all",
+        callback);
+});
+
+gulp.task("combine:package_d_ts", function () {
+    return gulp.src([	    
+		"src/Clients/Typedefs/jquery/jquery.d.ts",
+		"src/Clients/Typedefs/d3/d3.d.ts",
+        "src/Clients/VisualsCommon/obj/VisualsCommon.d.ts",
+        "src/Clients/VisualsData/obj/VisualsData.d.ts",
+		"src/Clients/Visuals/obj/Visuals.d.ts"
+    ])
+        .pipe(concat("powerbi-visuals.d.ts"))
+        .pipe(gulp.dest("lib"));
+});
+
+function copyPackageFile(inputFile, outputFile) {
+	var src = [];
+    src.push(inputFile);
+	
+	return gulp.src(src)
+        .pipe(rename(outputFile))
+        .pipe(gulp.dest("lib"))
+}
+
 /* --------------------------- WATCHERS ---------------------------------- */
 var lintErrors = false;
 const lintReporter = function (output, file, options) {

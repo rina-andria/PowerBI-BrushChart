@@ -1258,3 +1258,83 @@ div.ql-toolbar {
 .clearCatcher {
     fill-opacity: 0;
 }
+
+.visual.owlGaugeVisual {
+    overflow: hidden;
+
+    &.sad {
+        .owlGaugeBg {
+            .st0{ fill:#EF4137; }
+            .st1{ fill:#FAAF42; }
+            .st2{ fill:#F15B2A; }
+            .st3{ fill:#F15B2A; }
+        }
+
+        .owlGaugeTail {
+            animation: owlTailAmbientAnimation 2.5s infinite;
+        }
+    }
+
+    &.meh {
+        .owlGaugeBg {
+            .st0{ fill:#F18D05; }
+            .st1{ fill:#FAAF42; }
+            .st2{ fill:#F15B2A; }
+            .st3{ fill:#F15B2A; }
+        }
+
+        .owlGaugeTail {
+            animation: owlTailAmbientAnimation 1.5s infinite;
+        }
+    }
+
+    &.happy {
+        .owlGaugeBg {
+            .st0{ fill:#32742C; }
+            .st1{ fill:#D0D102; }
+            .st2{ fill:#61AE24; }
+            .st3{ fill:#23AA65; }
+        }
+
+        .owlGaugeTail {
+            animation: owlTailAmbientAnimation .5s infinite;
+        }
+    }
+
+    > svg {
+        position:absolute;
+        transition: all 0.25s;
+    }
+
+    .owlGaugeBody {
+        width: 30%;
+        left: 35%;
+        bottom: 0;
+        transform: translate(0, 30%);
+    }
+
+    .owlGaugeTail {
+        width: 70%;
+        left: 15%;
+        bottom: 0;
+        transform-origin: 50% 100%;
+    }
+
+    .owlGaugeBg {
+        width: 120%;
+        left: -10%;
+        bottom: 0;
+        transform-origin: 50% 100%;
+        transform: rotate(-180deg);
+
+        path {
+            transition: fill 0.5s;
+        }
+    }
+
+    @keyframes owlTailAmbientAnimation {
+        0% { transform: rotate(2deg); }
+        50% { transform: rotate(-2deg); }
+        100% { transform: rotate(2deg); }
+    }
+}

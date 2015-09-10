@@ -34,7 +34,7 @@ module powerbi.visuals.sampleDataViews {
         public name: string = "SimpleGaugeData";
         public displayName: string = "Simple gauge data";
 
-        public visuals: string[] = ['gauge',
+        public visuals: string[] = ['gauge', 'owlGauge'
         ];
 
         private sampleData: number[] = [50, 250, 300, 500];

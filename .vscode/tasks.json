@@ -1,0 +1,19 @@
+{
+    "version": "0.1.0",
+    "command": "gulp",
+    "isShellCommand": true,
+    "args": [
+        "--no-color"
+    ],
+    "tasks": [
+        {
+            "taskName": "continuous_build_debug",
+            "isBuildCommand": true,
+            "isWatching": true
+        },
+        {
+            "taskName": "test",
+            "isTestCommand": true
+        }
+    ]
+}

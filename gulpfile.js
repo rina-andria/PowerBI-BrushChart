@@ -47,9 +47,14 @@ var minimist = require("minimist");
 var os = require("os");
 var open = require("gulp-open");
 var gutil = require('gulp-util');
-require('require-dir')('./gulp'); 
+var express = require("express");
+require('require-dir')('./gulp');
 
-var isDebug = false;
+var expressServer = express(); 
+
+var isDebug = false,
+    openInBrowser = false;
+
 var cliOptions = {
     string: [
         "files",
@@ -66,6 +71,7 @@ var cliOptions = {
 var cliArguments = minimist(process.argv.slice(2), cliOptions);
 
 isDebug = Boolean(cliArguments.debug);
+openInBrowser = Boolean(cliArguments.openInBrowser);
 
 function getOptionFromCli(cliArg) {
     if (cliArg && cliArg.length > 0) {
@@ -448,7 +454,6 @@ function copyPackageFile(inputFile, outputFile) {
         .pipe(rename(outputFile))
         .pipe(gulp.dest("lib"))
 }
-
 /* --------------------------- WATCHERS ---------------------------------- */
 var lintErrors = false;
 const lintReporter = function (output, file, options) {
@@ -650,7 +655,16 @@ gulp.task("copy:internal_dependencies_visuals_tests", function () {
 
 gulp.task("copy:external_dependencies_visuals_tests", function () {
     return gulp.src([
-        "build/scripts/powerbi-visuals.all.js"
+        "build/scripts/powerbi-visuals.all.js",
+        "src/Clients/externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js",
+        "src/Clients/externals/ThirdPartyIP/MomentJS/moment.min.js",
+        "src/Clients/externals/ThirdPartyIP/Velocity/velocity.min.js",
+        "src/Clients/externals/ThirdPartyIP/Velocity/velocity.ui.min.js",
+        "src/Clients/externals/ThirdPartyIP/QuillJS/quill.min.js",
+        "node_modules/jasmine-core/lib/jasmine-core/jasmine.js",
+        "node_modules/jasmine-core/lib/jasmine-core/jasmine-html.js",
+        "node_modules/jasmine-core/lib/jasmine-core/boot.js",
+        "node_modules/jasmine-core/lib/jasmine-core/jasmine.css"
     ])
         .pipe(gulp.dest("VisualsTests"));
 });
@@ -696,42 +710,46 @@ function createHtmlTestRunner(fileName, scripts, styles, testName) {
     fs.writeFileSync(fileName, html);
 }
 
-gulp.task("run:tests", function () {
+gulp.task("run:test", function (callback) {
+    var testFolder = "VisualsTests",
+        specRunnerFileName = "runner.html";
+
     var src = [
         "powerbi-visuals.all.js",
-        "../src/Clients/externals/ThirdPartyIP/JasmineJQuery/jasmine-jquery.js",
-        "../src/Clients/externals/ThirdPartyIP/MomentJS/moment.min.js",
-        "../src/Clients/externals/ThirdPartyIP/Velocity/velocity.min.js",
-        "../src/Clients/externals/ThirdPartyIP/Velocity/velocity.ui.min.js",
-        "../src/Clients/externals/ThirdPartyIP/QuillJS/quill.min.js",
+        "jasmine-jquery.js",
+        "moment.min.js",
+        "velocity.min.js",
+        "velocity.ui.min.js",
+        "quill.min.js",
         "powerbi-visuals-tests.js"
     ];
 
     var scripts = [
-        "../node_modules/jasmine-core/lib/jasmine-core/jasmine.js",
-        "../node_modules/jasmine-core/lib/jasmine-core/jasmine-html.js",
-        "../node_modules/jasmine-core/lib/jasmine-core/boot.js"
+        "jasmine.js",
+        "jasmine-html.js",
+        "boot.js"
     ];
 
     var links = [
-        "../node_modules/jasmine-core/lib/jasmine-core/jasmine.css"
+        "jasmine.css"
     ];
 
-    var specRunnerFileName = "VisualsTests/runner.html";
-
-    var openInBrowser = cliArguments.openInBrowser;
+    var specRunnerPath = testFolder + "/" + specRunnerFileName;
 
     createHtmlTestRunner(
-        specRunnerFileName,
+        specRunnerPath,
         scripts.concat(src),
         links,
         getOptionFromCli(openInBrowser)[0]);
 
     if (openInBrowser) {
-        return gulp.src(specRunnerFileName)
-            .pipe(open());
+        runHttpServer({
+            path: testFolder,
+            port: 3001,
+            index: specRunnerFileName
+        }, callback);
     } else {
-        return gulp.src(src, {cwd: "VisualsTests"})
+        return gulp.src(src, {cwd: testFolder})
             .pipe(jasmineBrowser.specRunner({console: true}))
             .pipe(jasmineBrowser.headless());
     }
@@ -750,7 +768,59 @@ gulp.task("test", function (callback) {
         "install:phantomjs",
         "combine:all",
         "copy:dependencies_visuals_tests",
-        "run:tests",
+        "run:test",
         callback);
 });
 
+gulp.task("open:test", function (callback) {
+    openInBrowser = true;
+    
+    runSequence("test", callback);
+});
+
+function runHttpServer(settings, callback) {
+    var server = null,
+        path = settings.path,
+        port = settings.port || 3000,
+        host = settings.host || "localhost",
+        index = settings.index || "index.html";
+    
+    expressServer.use(express.static(
+        path, {
+            index: index
+        }));
+
+    server = expressServer.listen(port, host, function () {
+        var uri =
+            "http://" +
+            server.address().address +
+            ":" +
+            server.address().port;
+        
+        console.log("Server started on %s", uri);
+        
+        gulp.src(path).pipe(open({
+            uri: uri
+        }));
+    });
+    
+    process.on("SIGINT", function () {
+        if (server && server.close) {
+            server.close();
+        }
+        
+        callback();
+        
+        process.exit();
+    });
+}
+
+gulp.task("run:playground", function (callback) {
+    runHttpServer({
+        path: "src/Clients/PowerBIVisualsPlayground"
+    }, callback);
+});
+
+gulp.task("build:run:playground", function (callback) {
+    runSequence("build", "run:playground", callback);
+});

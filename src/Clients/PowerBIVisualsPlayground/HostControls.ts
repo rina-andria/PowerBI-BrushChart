@@ -91,8 +91,8 @@ module powerbi.visuals {
 
         private onResize(size: IViewport): void {
             this.viewport = {
-                height: size.height - 5,
-                width: size.width - 15,
+                height: size.height - 20,
+                width: size.width - 20,
             };
 
             if (this.visualElement) {

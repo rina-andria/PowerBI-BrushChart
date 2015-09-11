@@ -51,4 +51,4 @@ test_script:
   - gulp install:phantomjs
   - gulp combine:all
   - gulp copy:dependencies_visuals_tests
-  - gulp run:tests
+  - gulp run:test

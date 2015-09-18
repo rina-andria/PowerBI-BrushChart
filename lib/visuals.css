@@ -2887,3 +2887,88 @@ div.ql-toolbar .ql-format-button.ql-link:hover {
 .clearCatcher {
   fill-opacity: 0;
 }
+.visual.owlGaugeVisual {
+  overflow: hidden;
+}
+.visual.owlGaugeVisual.sad .owlGaugeBg .st0 {
+  fill: #EF4137;
+}
+.visual.owlGaugeVisual.sad .owlGaugeBg .st1 {
+  fill: #FAAF42;
+}
+.visual.owlGaugeVisual.sad .owlGaugeBg .st2 {
+  fill: #F15B2A;
+}
+.visual.owlGaugeVisual.sad .owlGaugeBg .st3 {
+  fill: #F15B2A;
+}
+.visual.owlGaugeVisual.sad .owlGaugeTail {
+  animation: owlTailAmbientAnimation 2.5s infinite;
+}
+.visual.owlGaugeVisual.meh .owlGaugeBg .st0 {
+  fill: #F18D05;
+}
+.visual.owlGaugeVisual.meh .owlGaugeBg .st1 {
+  fill: #FAAF42;
+}
+.visual.owlGaugeVisual.meh .owlGaugeBg .st2 {
+  fill: #F15B2A;
+}
+.visual.owlGaugeVisual.meh .owlGaugeBg .st3 {
+  fill: #F15B2A;
+}
+.visual.owlGaugeVisual.meh .owlGaugeTail {
+  animation: owlTailAmbientAnimation 1.5s infinite;
+}
+.visual.owlGaugeVisual.happy .owlGaugeBg .st0 {
+  fill: #32742C;
+}
+.visual.owlGaugeVisual.happy .owlGaugeBg .st1 {
+  fill: #D0D102;
+}
+.visual.owlGaugeVisual.happy .owlGaugeBg .st2 {
+  fill: #61AE24;
+}
+.visual.owlGaugeVisual.happy .owlGaugeBg .st3 {
+  fill: #23AA65;
+}
+.visual.owlGaugeVisual.happy .owlGaugeTail {
+  animation: owlTailAmbientAnimation .5s infinite;
+}
+.visual.owlGaugeVisual > svg {
+  position: absolute;
+  transition: all 0.25s;
+}
+.visual.owlGaugeVisual .owlGaugeBody {
+  width: 30%;
+  left: 35%;
+  bottom: 0;
+  transform: translate(0, 30%);
+}
+.visual.owlGaugeVisual .owlGaugeTail {
+  width: 70%;
+  left: 15%;
+  bottom: 0;
+  transform-origin: 50% 100%;
+}
+.visual.owlGaugeVisual .owlGaugeBg {
+  width: 120%;
+  left: -10%;
+  bottom: 0;
+  transform-origin: 50% 100%;
+  transform: rotate(-180deg);
+}
+.visual.owlGaugeVisual .owlGaugeBg path {
+  transition: fill 0.5s;
+}
+@keyframes owlTailAmbientAnimation {
+  0% {
+    transform: rotate(2deg);
+  }
+  50% {
+    transform: rotate(-2deg);
+  }
+  100% {
+    transform: rotate(2deg);
+  }
+}

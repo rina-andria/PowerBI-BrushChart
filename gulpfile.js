@@ -252,15 +252,6 @@ gulp.task("combine:internal_js", function () {
             .pipe(gulp.dest("src/Clients/PowerBIVisualsPlayground"));
 });
 
-gulp.task("combine:internal_d_ts", function () {
-    return gulp.src([
-        "src/Clients/VisualsCommon/obj/VisualsCommon.d.ts",
-        "src/Clients/VisualsData/obj/VisualsData.d.ts"
-    ])
-        .pipe(concat("powerbi-visuals.d.ts"))
-        .pipe(gulp.dest("build"));
-});
-
 gulp.task("combine:all", function () {
     var src = [
         "build/scripts/externals.min.js"
@@ -375,36 +366,37 @@ gulp.task('default', ['build_debug']);
 
 /* ------------------------ BUILD PACKAGES ------------------------------- */
 
-gulp.task("build:package", function (callback) {
+gulp.task("build:package", function(callback) {
     runSequence(
-	    "build:package_minified",
-		"copy:package_js_minified",
-		"copy:package_css_minified",
-		"build:package_unminified",
-		"copy:package_js_unminified",
-		"copy:package_css_unminified",
-		"combine:package_d_ts",
-		"copy:package_sprite",
-		callback);
+        "build:package_minified",
+        "copy:package_js_minified",
+        "copy:package_css_minified",
+        "build:package_unminified",
+        "copy:package_js_unminified",
+        "copy:package_css_unminified",
+        "combine:internal_d_ts",
+        "combine:external_d_ts",
+        "copy:package_sprite",
+        callback);
 });
 
-gulp.task('copy:package_js_minified', function (callback) {
+gulp.task('copy:package_js_minified', function () {
     return copyPackageFile("build/scripts/powerbi-visuals.all.js", "powerbi-visuals.min.js");
 });
 
-gulp.task('copy:package_js_unminified', function (callback) {
+gulp.task('copy:package_js_unminified', function () {
     return copyPackageFile("build/scripts/powerbi-visuals.all.js", "powerbi-visuals.js");
 });
 
-gulp.task('copy:package_css_minified', function (callback) {
+gulp.task('copy:package_css_minified', function () {
     return copyPackageFile("build/styles/visuals.css", "visuals.min.css");
 });
 
-gulp.task('copy:package_css_unminified', function (callback) {
+gulp.task('copy:package_css_unminified', function () {
     return copyPackageFile("build/styles/visuals.css", "visuals.css");
 });
 
-gulp.task('copy:package_sprite', function (callback) {
+gulp.task('copy:package_sprite', function () {
     return copyPackageFile("src/Clients/Visuals/images/visuals.sprites.png", "images/visuals.sprites.png");
 });
 
@@ -430,21 +422,49 @@ gulp.task("build:package_projects", function (callback) {
         "build:visuals",
         "combine:internal_js",
         "combine:external_js",
-		"combine:all",
+        "combine:all",
         callback);
 });
 
-gulp.task("combine:package_d_ts", function () {
-    return gulp.src([	    
-		"src/Clients/Typedefs/jquery/jquery.d.ts",
-		"src/Clients/Typedefs/d3/d3.d.ts",
-        "src/Clients/VisualsCommon/obj/VisualsCommon.d.ts",
-        "src/Clients/VisualsData/obj/VisualsData.d.ts",
-		"src/Clients/Visuals/obj/Visuals.d.ts"
-    ])
-        .pipe(concat("powerbi-visuals.d.ts"))
-        .pipe(gulp.dest("lib"));
+gulp.task("combine:internal_d_ts", function() {
+    return combine({
+        src: [
+            "src/Clients/VisualsCommon/obj/VisualsCommon.d.ts",
+            "src/Clients/VisualsData/obj/VisualsData.d.ts",
+            "src/Clients/Visuals/obj/Visuals.d.ts"
+        ],
+        name: "powerbi-visuals.d.ts",
+        destinationPath: "lib"
+    });
 });
+
+gulp.task("combine:external_d_ts", function() {
+    return combine({
+        src: [
+            "src/Clients/Typedefs/jquery/jquery.d.ts",
+            "src/Clients/Typedefs/d3/d3.d.ts"
+        ],
+        name: "powerbi-externals.d.ts",
+        destinationPath: "lib"
+    });
+});
+
+/**
+ * Concatenate given files into one.
+ * <br/>
+ * <p>Option object props: <br/>
+ *  src {String[]} - Array of paths with files to combine <br/>
+ *  name {String} - Name of resulting file.<br/>
+ *  destinationPath {String} - Destination path where file will be placed.<br/>
+ * <p/>
+ * @
+ * @param {Object} options
+ */
+function combine(options) {
+    return gulp.src(options.src)
+        .pipe(concat(options.name))
+        .pipe(gulp.dest(options.destinationPath));
+}
 
 function copyPackageFile(inputFile, outputFile) {
 	var src = [];

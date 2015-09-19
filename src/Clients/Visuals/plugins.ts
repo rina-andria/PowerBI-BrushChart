@@ -300,4 +300,11 @@ module powerbi.visuals.plugins {
         capabilities: OwlGauge.capabilities,
         create: () => new OwlGauge()
     };
+    
+    export var streamGraph: IVisualPlugin = {
+        name: 'streamGraph',
+        watermarkKey: 'lineChart',
+        capabilities: samples.StreamGraph.capabilities,
+        create: () => new samples.StreamGraph()
+    };
 }

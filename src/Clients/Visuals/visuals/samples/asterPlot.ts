@@ -27,12 +27,13 @@
 /// <reference path="../../_references.ts"/>
 
 module powerbi.visuals.samples {
+        import SelectionManager = utility.SelectionManager;
     export interface AsterDatapoint {
         color: string;
         sliceHeight: number;
         sliceWidth: number;
         label: string;
-        selector: data.Selector;
+        selector: SelectionId;
         tooltipInfo: TooltipDataItem[];
     }
 
@@ -148,7 +149,7 @@ module powerbi.visuals.samples {
                     sliceWidth: values.length > 1 ? values[1].values[i] : 1,
                     label: catValues[i],
                     color: colors.getColorByIndex(i).value,
-                    selector: SelectionId.createWithId(cat.identity[i]).getSelector(),
+                    selector: SelectionId.createWithId(cat.identity[i]),
                     tooltipInfo: tooltipInfo
                 });
             }

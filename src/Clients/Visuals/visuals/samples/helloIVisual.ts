@@ -27,11 +27,12 @@
 /// <reference path="../../_references.ts"/>
 
 module powerbi.visuals.samples {
+    import SelectionManager = utility.SelectionManager;
     export interface HelloViewModel {
         text: string;
         color: string;
         size: number;
-        selector: data.Selector;
+        selector: SelectionId;
         toolTipInfo: TooltipDataItem[];
     }
 
@@ -82,7 +83,7 @@ module powerbi.visuals.samples {
                     displayName: 'Test',
                     value: '1...2....3... can you see me? I am sending random strings to the tooltip',
                 }],
-                selector: SelectionId.createNull().getSelector()
+                selector: SelectionId.createNull()
             };
             var table = dataView.table;
             if (!table) return viewModel;
@@ -90,8 +91,8 @@ module powerbi.visuals.samples {
             viewModel.text = table.rows[0][0];
             if (dataView.categorical) {
                 viewModel.selector = dataView.categorical.categories[0].identity
-                    ? SelectionId.createWithId(dataView.categorical.categories[0].identity[0]).getSelector()
-                    : SelectionId.createNull().getSelector();
+                    ? SelectionId.createWithId(dataView.categorical.categories[0].identity[0])
+                    : SelectionId.createNull();
             }
 
             return viewModel;

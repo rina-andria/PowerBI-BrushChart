@@ -205,6 +205,7 @@ module powerbitests {
 
                 if (visualPlugin.name !== "categoricalFilter" &&
                     visualPlugin.name !== "consoleWriter" && 
+                    visualPlugin.name !== "streamGraph" &&
                     visualPlugin.capabilities &&
                     visualPlugin.capabilities.dataViewMappings &&
                     visualPlugin.capabilities.dataViewMappings.length > 0 &&

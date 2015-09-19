@@ -27,6 +27,7 @@
 /// <reference path="../_references.ts"/>
  
 module powerbi.visuals {
+import SelectionManager = utility.SelectionManager;
 
     export var cheerMeterProps = {
         dataPoint: {
@@ -45,7 +46,7 @@ module powerbi.visuals {
         name: string;
         value: number;
         color: string;
-        identity: data.Selector;
+        identity: SelectionId;
     }
 
     export interface CheerData {
@@ -162,13 +163,13 @@ module powerbi.visuals {
                     name: catValues[0],
                     value: values[0],
                     color: color1,
-                    identity: idn1.getSelector()
+                    identity: idn1
                 },
                 teamB: {
                     name: catValues[1],
                     value: values[1],
                     color: color2,
-                    identity: idn2.getSelector()
+                    identity: idn2
                 },
                 background: backgroundColor
             };
@@ -295,7 +296,7 @@ module powerbi.visuals {
             this.textTwo.style('stroke', '#FFF').style('stroke-width', 0);
         }
 
-        private updateSelectionUI(ids: data.Selector[]) {
+        private updateSelectionUI(ids: SelectionId[]) {
             this.textOne.style('stroke', '#FFF').style('stroke-width', SelectionManager.containsSelection(ids, this.data.teamA.identity) ? '2px' : '0px');
             this.textTwo.style('stroke', '#FFF').style('stroke-width', SelectionManager.containsSelection(ids, this.data.teamB.identity) ? '2px' : '0px');
         }

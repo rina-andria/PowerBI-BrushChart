@@ -42,7 +42,8 @@ module powerbi.visuals.sampleData {
             new sampleDataViews.SimpleGaugeData(),
             new sampleDataViews.SimpleMatrixData(),
             new sampleDataViews.SimpleTableData(),
-            new sampleDataViews.TeamScoreData()
+            new sampleDataViews.TeamScoreData(),
+            new sampleDataViews.ProductSalesByDate()
         ];
 
         /**

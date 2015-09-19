@@ -431,7 +431,7 @@ module powerbitests.performanceTestsHelpers {
             case "pieChart":
                 return 100;
             default:
-                return 5;
+                return 6;
         }
     }
 

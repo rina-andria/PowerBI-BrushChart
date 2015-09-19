@@ -24,62 +24,85 @@
 *  THE SOFTWARE.
 */
 
-module powerbi.visuals{
+module powerbi.visuals.utility {
     export interface SelectionManagerOptions{
         hostServices: IVisualHostServices;
     };
 
     export class SelectionManager {
-        private selectors: powerbi.data.Selector[];
+        private selectedIds: SelectionId[];
         private hostServices: IVisualHostServices;
 
         public constructor(options: SelectionManagerOptions) {
             this.hostServices = options.hostServices;
-            this.selectors = [];
+            this.selectedIds = [];
         }
 
-        public select(selector: powerbi.data.Selector, multiSelect: boolean = false): JQueryDeferred<data.Selector[]> {
+        public select(selectionId: SelectionId, multiSelect: boolean = false): JQueryDeferred<SelectionId[]> {
             var defered: JQueryDeferred<data.Selector[]> = $.Deferred();
 
-            this.selectInternal(selector, multiSelect);
+            // Enable when host service feature is ported to master
+            //if (this.hostServices.shouldRetainSelection()) {
+                //this.sendSelectionToHost([selectionId]);
+            //}
+            //else {
+                this.selectInternal(selectionId, multiSelect);
+                this.sendSelectionToHost(this.selectedIds);
+            //}
 
-            this.hostServices.onSelect({
-                data: this.selectors
-            });
-
-            defered.resolve(this.selectors);
-
+            defered.resolve(this.selectedIds);
             return defered;
         }
 
         public hasSelection(): boolean {
-            return this.selectors.length > 0;
+            return this.selectedIds.length > 0;
         }
 
         public clear(): JQueryDeferred<{}> {
             var defered = $.Deferred();
-            this.selectors = [];
-            this.hostServices.onSelect({ data: []});
+            this.selectedIds = [];
+            this.sendSelectionToHost([]);
             defered.resolve();
             return defered;
         }
 
-        private selectInternal(selector: data.Selector, multiSelect: boolean) {
-            if (SelectionManager.containsSelection(this.selectors, selector)) {
-                this.selectors = multiSelect
-                    ? this.selectors.filter(d => !data.Selector.equals(d, selector))
-                    : this.selectors.length > 1
-                        ? [selector] : [];
+        public getSelectionIds(): SelectionId[] {
+            return this.selectedIds;
+        }
+
+        private sendSelectionToHost(ids: SelectionId[]) {
+            var selectArgs: SelectEventArgs = {
+                data: ids
+                    .filter((value: SelectionId) => value.hasIdentity())
+                    .map((value: SelectionId) => value.getSelector())
+            };
+
+            var data2: SelectorsByColumn[] = ids
+                .filter((value: SelectionId) => value.getSelectorsByColumn() && value.hasIdentity())
+                .map((value: SelectionId) => value.getSelectorsByColumn());
+
+            if (data2 && data2.length > 0)
+                selectArgs.data2 = data2;
+
+            this.hostServices.onSelect(selectArgs);
+        }
+
+        private selectInternal(selectionId: SelectionId, multiSelect: boolean) {
+            if (SelectionManager.containsSelection(this.selectedIds, selectionId)) {
+                this.selectedIds = multiSelect
+                    ? this.selectedIds.filter(d => !data.Selector.equals(d, selectionId))
+                    : this.selectedIds.length > 1
+                        ? [selectionId] : [];
             } else {
                 if (multiSelect)
-                    this.selectors.push(selector);
+                    this.selectedIds.push(selectionId);
                 else
-                    this.selectors = [selector];
+                    this.selectedIds = [selectionId];
             }
         }
 
-        public static containsSelection(list: data.Selector[], selector: data.Selector) {
-            return list.some(d => data.Selector.equals(d, selector));
+        public static containsSelection(list: SelectionId[], id: SelectionId) {
+            return list.some(d => data.Selector.equals(d.getSelector(), id.getSelector()));
         }
     }
 } 

@@ -36,7 +36,7 @@ module powerbi.visuals.sampleDataViews {
         public name: string = "ProductSalesByDate";
         public displayName: string = "Product sales by date";
 
-        public visuals: string[] = ['streamGraph'];
+        public visuals: string[] = ['streamGraph', 'brushChart'];
 
         private sampleData;
         private dates: any[];

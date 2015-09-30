@@ -180,5 +180,7 @@
 
 /// <reference path="visuals/donutChart.ts"/>
 
+/// <reference path="visuals/brushChart.ts"/>
+
 /// <reference path="pluginsCapabilities.ts"/>
 /// <reference path="plugins.ts"/>

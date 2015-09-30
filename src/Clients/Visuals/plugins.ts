@@ -229,7 +229,7 @@ module powerbi.visuals.plugins {
         name: 'scatterChart',
         watermarkKey: 'scatterplot',
         capabilities: capabilities.scatterChart,
-        create: () => new CartesianChart({ chartType: CartesianChartType.Scatter })
+        create: () => new CartesianChart({ chartType: CartesianChartType.Scatter, isScrollable: true, cartesianSmallViewPortProperties: { hideAxesOnSmallViewPort: false, hideLegendOnSmallViewPort: false, MinHeightAxesVisible: 1, MinHeightLegendVisible: 1 } })
     };
 
     export var table: IVisualPlugin = {
@@ -306,5 +306,12 @@ module powerbi.visuals.plugins {
         watermarkKey: 'lineChart',
         capabilities: samples.StreamGraph.capabilities,
         create: () => new samples.StreamGraph()
+    };
+
+    export var brushChart: IVisualPlugin = {
+        name: 'brushChart',
+        class: 'brushChart',
+        capabilities: BrushChart.capabilities,
+        create: () => new BrushChart()
     };
 }

@@ -294,7 +294,7 @@ module powerbi.visuals {
                 }
             }
 
-            return { solid: { color: '#333' } };
+            return { solid: { color: '#005496' } };
         }
 
         private getSlicerFill(dataView: DataView): Fill {
@@ -305,7 +305,7 @@ module powerbi.visuals {
                 }
             }
 
-            return { solid: { color: '#333' } };
+            return { solid: { color: '#BBBDC0' } };
         }
     }
 }

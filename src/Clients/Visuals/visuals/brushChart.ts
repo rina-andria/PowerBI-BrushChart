@@ -107,6 +107,7 @@ module powerbi.visuals {
         private focusY: D3.Selection;
         private contextY: D3.Selection;
         private rect: D3.Selection;
+        private axisYRect: D3.Selection;
         private dataView: DataView;
 
         public init(options: VisualInitOptions): void {
@@ -117,7 +118,7 @@ module powerbi.visuals {
             this.rect = this.svg.append("defs").append("clipPath")
                 .attr("id", "clip")
                 .append("rect");
-
+            
             this.focus = this.svg.append('g');
             this.context = this.svg.append('g');
 
@@ -128,6 +129,7 @@ module powerbi.visuals {
             this.contextX = this.context.append('g');
 
             this.focusY = this.focus.append('g');
+            this.axisYRect = this.focusY.append('rect');
             this.contextY = this.context.append('g');
         }
 
@@ -137,7 +139,6 @@ module powerbi.visuals {
             var data = BrushChart.converter(options.dataViews[0]);
 
             this.dataView = options.dataViews[0];
-
             var viewport = options.viewport;
 
             var margin = { top: 10, right: 10, bottom: 100, left: 40 },
@@ -184,6 +185,12 @@ module powerbi.visuals {
             this.rect
                 .attr("width", width)
                 .attr("height", height);
+
+            this.axisYRect
+                .attr("width", margin.left)
+                .attr("height", height)
+                .attr("x", -1 * margin.left)
+                .attr("fill", "#fff");
 
             var focus = this.focus;
             focus.attr("class", "focus")
@@ -232,7 +239,8 @@ module powerbi.visuals {
                 .attr('stroke', '#000')
                 .attr('shape-rendering', 'crispEdges');
 
-            this.focusY.attr('background-color', 'white');
+            this.focusY.attr('background-color', '#fff');
+            this.focusY.append("rect");
 
             this.contextArea.datum(data)
                 .attr("class", "area brush")

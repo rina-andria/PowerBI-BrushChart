@@ -28,14 +28,23 @@
 
 module powerbi.visuals {
 
+    // Brush chart data model
     export interface BrushChartData {
         x: Date;
         y: number;
     }
 
+    export interface BrushFillColors {
+         detailsFillColour: string;
+         slicerFillColour: string;
+    }
+
+    // Visual definition
     export class BrushChart implements IVisual {
         
+        // Brush chart capabilities
         public static capabilities: VisualCapabilities = {
+            // roles
             dataRoles: [
                 {
                     name: 'Category',
@@ -46,6 +55,7 @@ module powerbi.visuals {
                     kind: powerbi.VisualDataRoleKind.Measure,
                 },
             ],
+            // mapping
             dataViewMappings: [{
                 categorical: {
                     categories: { for: { in: 'Category' } },
@@ -54,6 +64,7 @@ module powerbi.visuals {
                     }
                 }
             }],
+            // Visual properties
             objects: {
                 general: {
                     displayName: data.createDisplayNameGetter('Visual_General'),
@@ -79,6 +90,7 @@ module powerbi.visuals {
             }
         };
         
+        // Convert dataview object to model
         public static converter(dataView: DataView): any {
 
             var catDv: DataViewCategorical = dataView.categorical;
@@ -111,6 +123,9 @@ module powerbi.visuals {
         private axisYRectRight: D3.Selection;
         private dataView: DataView;
 
+        private brushFillColors: BrushFillColors = { detailsFillColour: '#005496', slicerFillColour: '#BBBDC0'};
+
+        // Initialize visual components
         public init(options: VisualInitOptions): void {
             var element = options.element;
 
@@ -135,11 +150,13 @@ module powerbi.visuals {
             this.contextY = this.context.append('g');
         }
 
+        // Update visual components
         public update(options: VisualUpdateOptions) {
             if (!options.dataViews || !options.dataViews[0]) return;
 
             var data = BrushChart.converter(options.dataViews[0]);
 
+            // apply visual style and set functionalities
             this.dataView = options.dataViews[0];
             var viewport = options.viewport;
 
@@ -282,6 +299,7 @@ module powerbi.visuals {
                 .attr('shape-rendering', 'crispEdges');
         }
 
+        // Define visual properties
         public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
             var instances: VisualObjectInstance[] = [];
             switch (options.objectName) {
@@ -302,6 +320,7 @@ module powerbi.visuals {
             return instances;
         }
 
+        // Get properties values
         private getFill(dataView: DataView, fieldName: string): Fill {
             if (dataView && dataView.metadata.objects) {                
                 var label = dataView.metadata.objects['label'];
@@ -311,7 +330,7 @@ module powerbi.visuals {
                 }
             }
 
-            return { solid: { color: fieldName === 'fill' ? '#005496' : '#BBBDC0' } };
+            return { solid: { color: fieldName === 'fill' ? this.brushFillColors.detailsFillColour : this.brushFillColors.slicerFillColour } };
         }
     }
 }

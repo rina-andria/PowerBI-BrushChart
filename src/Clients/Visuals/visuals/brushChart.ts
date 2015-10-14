@@ -108,6 +108,7 @@ module powerbi.visuals {
         private contextY: D3.Selection;
         private rect: D3.Selection;
         private axisYRect: D3.Selection;
+        private axisYRectRight: D3.Selection;
         private dataView: DataView;
 
         public init(options: VisualInitOptions): void {
@@ -130,6 +131,7 @@ module powerbi.visuals {
 
             this.focusY = this.focus.append('g');
             this.axisYRect = this.focusY.append('rect');
+            this.axisYRectRight = this.focusY.append('rect');
             this.contextY = this.context.append('g');
         }
 
@@ -190,6 +192,12 @@ module powerbi.visuals {
                 .attr("width", margin.left)
                 .attr("height", height)
                 .attr("x", -1 * margin.left)
+                .attr("fill", "#fff");
+
+            this.axisYRectRight
+                .attr("width", margin.left)
+                .attr("height", height)
+                .attr("x", width)
                 .attr("fill", "#fff");
 
             var focus = this.focus;

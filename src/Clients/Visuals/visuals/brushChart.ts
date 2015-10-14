@@ -217,7 +217,7 @@ module powerbi.visuals {
                 .datum(data)
                 .attr("class", "area")
                 .attr("d", area)
-                .attr('fill', this.getDetailsFill(this.dataView).solid.color)
+                .attr('fill', this.getFill(this.dataView, 'fill').solid.color)
                 .attr('clip-path', 'url(#clip)');
 
             this.focusX.attr("class", "x axis")
@@ -253,7 +253,7 @@ module powerbi.visuals {
             this.contextArea.datum(data)
                 .attr("class", "area brush")
                 .attr("d", area2)
-                .attr('fill', this.getSlicerFill(this.dataView).solid.color)
+                .attr('fill', this.getFill(this.dataView, 'fill1').solid.color)
                 .attr('clip-path', 'url(#clip)');
 
             this.contextX.attr("class", "x axis")
@@ -291,8 +291,8 @@ module powerbi.visuals {
                         displayName: 'BrushChart Colors',
                         selector: null,
                         properties: {
-                            fill: this.getDetailsFill(this.dataView),
-                            fill1: this.getSlicerFill(this.dataView)
+                            fill: this.getFill(this.dataView, 'fill'),
+                            fill1: this.getFill(this.dataView, 'fill1')
                         }
                     };
                     instances.push(label);
@@ -302,26 +302,16 @@ module powerbi.visuals {
             return instances;
         }
 
-        private getDetailsFill(dataView: DataView): Fill {
-            if (dataView && dataView.metadata.objects) {
+        private getFill(dataView: DataView, fieldName: string): Fill {
+            if (dataView && dataView.metadata.objects) {                
                 var label = dataView.metadata.objects['label'];
                 if (label) {
-                    return <Fill>label['fill'];
+                    if (label[fieldName])
+                        return <Fill>label[fieldName];
                 }
             }
 
-            return { solid: { color: '#005496' } };
-        }
-
-        private getSlicerFill(dataView: DataView): Fill {
-            if (dataView && dataView.metadata.objects) {
-                var label = dataView.metadata.objects['label'];
-                if (label) {
-                    return <Fill>label['fill1'];
-                }
-            }
-
-            return { solid: { color: '#BBBDC0' } };
+            return { solid: { color: fieldName === 'fill' ? '#005496' : '#BBBDC0' } };
         }
     }
 }

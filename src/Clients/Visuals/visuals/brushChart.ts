@@ -100,10 +100,12 @@ module powerbi.visuals {
             var dataPoints: BrushChartData[] = [];
 
             for (var i = 0, len = catValues.length; i < len; i++) {
-                dataPoints.push({
-                    x: catValues[i],
-                    y: values[0].values[i]
-                });
+                if ((catValues[i] instanceof Date) && !isNaN(values[0].values[i])){
+                    dataPoints.push({
+                        x: catValues[i],
+                        y: values[0].values[i]
+                    });
+                }
             }
 
             return dataPoints;

@@ -177,9 +177,9 @@ module powerbi.visuals {
             
             var area = d3.svg.area()
                 .interpolate("monotone")
-                .x(function (d) { return x(d.x); })
+                .x(function (d) { return Number(x(d.x))?x(d.x):0; })
                 .y0(height)
-                .y1(function (d) { return y(+d.y); });
+                .y1(function (d) { return Number(y(+d.y)) ? y(+d.y) : 0; });
 
             var area2 = d3.svg.area()
                 .interpolate("monotone")
@@ -224,7 +224,7 @@ module powerbi.visuals {
             var context = this.context;
             context.attr("class", "context")
                 .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
-            
+
             x.domain(d3.extent(data.map(function (d) { return d.x; })));
             y.domain([0, d3.max(data.map(function (d) { return +d.y; }))]);
             x2.domain(x.domain());
@@ -279,9 +279,10 @@ module powerbi.visuals {
 
             this.contextY.attr("class", "x brush")
                 .call(brush)
-                .selectAll("rect")
-                .attr("y", -6)
-                .attr("height", height2 + 7);
+                .selectAll('rect')
+                .attr('y', -6)
+                .attr('height', height2 + 7)
+                .attr('drag-resize-disabled', true);
 
             this.contextX.select('path')
                 .attr('fill', 'none')
@@ -332,5 +333,6 @@ module powerbi.visuals {
 
             return { solid: { color: fieldName === 'fill' ? this.brushFillColors.detailsFillColour : this.brushFillColors.slicerFillColour } };
         }
+        
     }
 }

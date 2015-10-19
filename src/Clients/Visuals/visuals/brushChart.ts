@@ -177,9 +177,9 @@ module powerbi.visuals {
             
             var area = d3.svg.area()
                 .interpolate("monotone")
-                .x(function (d) { return Number(x(d.x))?x(d.x):0; })
+                .x(function (d) { return x(d.x); })
                 .y0(height)
-                .y1(function (d) { return Number(y(+d.y)) ? y(+d.y) : 0; });
+                .y1(function (d) { return y(+d.y); });
 
             var area2 = d3.svg.area()
                 .interpolate("monotone")

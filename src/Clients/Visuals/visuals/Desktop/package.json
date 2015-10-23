@@ -1,0 +1,65 @@
+﻿{
+    "build": "11.0.9168.396",
+    "version": "0.1.0",
+    "author": {
+        "name": "CTP",
+        "email": "rina@ctp.com"
+    },
+    "licenseTerms": "http://go.microsoft.com/fwlink/?LinkID=627540",
+    "privacyTerms": "http://go.microsoft.com/fwlink/?LinkID=627541",
+    "resources": [
+        {
+            "resourceId": "rId1",
+            "sourceType": 3,
+            "file": "resources/icon.png"
+        },
+        {
+            "resourceId": "rId2",
+            "sourceType": 2,
+            "file": "resources/1.png"
+        },
+        {
+            "resourceId": "rId3",
+            "sourceType": 2,
+            "file": "resources/2.png"
+        },
+        {
+            "resourceId": "rId4",
+            "sourceType": 5,
+            "file": "resources/BrushChart.ts"
+        },
+        {
+            "resourceId": "rId7",
+            "sourceType": 6,
+            "file": "resources/thumb.png"
+        }
+    ],
+    "visual": {
+        "name": "BrushChart",
+        "displayName": "Brush Chart",
+        "version": "0.1.0",
+        "guid": "BrushChart1446119667547",
+        "description": "BRUSH CHART!"
+    },
+    "images": {
+        "icon": {
+            "resourceId": "rId1"
+        },
+		"thumbnail": {
+            "resourceId": "rId7"
+        },
+        "screenshots": [
+            {
+                "resourceId": "rId2"
+            },
+            {
+                "resourceId": "rId3"
+            }
+        ]
+    },
+    "code": {
+        "typeScript": {
+            "resourceId": "rId4"
+        }
+    }
+}

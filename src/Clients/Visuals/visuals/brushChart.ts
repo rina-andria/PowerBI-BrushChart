@@ -130,6 +130,8 @@ module powerbi.visuals {
         // Initialize visual components
         public init(options: VisualInitOptions): void {
             var element = options.element;
+			
+			this.svg.classed("brushChart", true); // added
 
             this.svg = d3.select(element.get(0)).append('svg');
 

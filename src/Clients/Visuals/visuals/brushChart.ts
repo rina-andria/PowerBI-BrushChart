@@ -57,6 +57,10 @@ module powerbi.visuals {
             ],
             // mapping
             dataViewMappings: [{
+                conditions: [
+                    { 'Category': { max: 1 }, 'Y': { max: 0 } },
+                    { 'Category': { max: 1 }, 'Y': { min: 0, max: 1 } }
+                ],
                 categorical: {
                     categories: { for: { in: 'Category' } },
                     values: {
@@ -127,12 +131,14 @@ module powerbi.visuals {
 
         private brushFillColors: BrushFillColors = { detailsFillColour: '#005496', slicerFillColour: '#BBBDC0'};
 
+        
+        
         // Initialize visual components
         public init(options: VisualInitOptions): void {
             var element = options.element;
 			
-			this.svg.classed("brushChart", true); // added
-
+			//this.svg.classed("brushChart", true); // added
+            
             this.svg = d3.select(element.get(0)).append('svg');
 
             this.rect = this.svg.append("defs").append("clipPath")
@@ -153,7 +159,7 @@ module powerbi.visuals {
             this.axisYRectRight = this.focusY.append('rect');
             this.contextY = this.context.append('g');
         }
-
+        
         // Update visual components
         public update(options: VisualUpdateOptions) {
             if (!options.dataViews || !options.dataViews[0]) return;
@@ -191,6 +197,26 @@ module powerbi.visuals {
                 .y0(height2)
                 .y1(function (d) { return y2(+d.y); });
 
+            var generateTooltipInfo = function (extentX: any, data: BrushChartData[]): TooltipDataItem[] {
+                var ySum = 0;
+                for (var i = 0; i < data.length; i++) {
+                    if (extentX[0] <= data[i].x && data[i].x <= extentX[1]) {
+                        ySum = ySum + data[i].y;
+                    }
+                }
+
+                return [
+                    {
+                        displayName: 'Time Range',
+                        value: extentX[0].toDateString() + ' - ' + extentX[1].toDateString()
+                    },
+                    {
+                        displayName: 'Sum',
+                        value: ySum.toFixed(2)
+                    }];
+
+            };
+
             var brush = d3.svg.brush()
                 .x(x2)
                 .on("brush", function brushed() {
@@ -198,8 +224,10 @@ module powerbi.visuals {
                     focus.select(".area").empty();
                     focus.select(".area").attr("d", area);
                     focus.select(".x.axis").call(xAxis);
+                    var tooltip = generateTooltipInfo(brush.extent(), data);
+                    TooltipManager.addTooltip(focus, (tooltipEvent: TooltipEvent) => tooltip);
                 }, false);
-
+            
             this.svg.attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .style("position", "absolute")
@@ -302,6 +330,8 @@ module powerbi.visuals {
                 .attr('stroke', '#fff')
                 .attr('fill-opacity', '.125')
                 .attr('shape-rendering', 'crispEdges');
+
+            TooltipManager.addTooltip(this.focusArea, (tooltipEvent: TooltipEvent) => generateTooltipInfo(x2.domain(), data));
         }
 
         // Define visual properties

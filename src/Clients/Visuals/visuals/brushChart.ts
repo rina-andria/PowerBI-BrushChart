@@ -59,7 +59,7 @@ module powerbi.visuals {
             dataViewMappings: [{
                 conditions: [
                     { 'Category': { max: 1 }, 'Y': { max: 0 } },
-                    { 'Category': { max: 1 }, 'Y': { min: 0, max: 1 } }
+                    { 'Category': { max: 1 }, 'Y': { min: 1, max: 1 } }
                 ],
                 categorical: {
                     categories: { for: { in: 'Category' } },
@@ -211,7 +211,7 @@ module powerbi.visuals {
                         value: extentX[0].toDateString() + ' - ' + extentX[1].toDateString()
                     },
                     {
-                        displayName: 'Sum',
+                        displayName: 'Total',
                         value: ySum.toFixed(2)
                     }];
 

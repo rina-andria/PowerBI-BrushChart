@@ -170,8 +170,8 @@ module powerbi.visuals {
             this.dataView = options.dataViews[0];
             var viewport = options.viewport;
 
-            var margin = { top: 10, right: 10, bottom: 100, left: 40 },
-                margin2 = { top: (viewport.height * 0.8), right: 10, bottom: 20, left: 40 },
+            var margin = { top: 10, right: 10, bottom: 110, left: 40 },
+                margin2 = { top: viewport.height - 85, right: 10, bottom: 20, left: 40 },
                 width = viewport.width - margin.left - margin.right,
                 height = viewport.height - margin.top - margin.bottom,
                 height2 = viewport.height - margin2.top - margin2.bottom;
@@ -212,7 +212,7 @@ module powerbi.visuals {
                     },
                     {
                         displayName: 'Total',
-                        value: ySum.toFixed(2)
+                        value: ySum.toLocaleString()
                     }];
 
             };

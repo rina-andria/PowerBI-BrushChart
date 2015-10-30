@@ -188,7 +188,9 @@ module powerbi.visuals {
                     erroMessage = "An error occured. Please contact the support.";
                     break;
             }
+
             this.svg.append('rect').attr('class', 'errorRectangle').attr('width', viewport.width).attr('height', viewport.height).attr('fill', 'white');
+
             var text = this.svg.append('text')
                 .attr('class', 'errorMessage')
                 .attr('text-anchor', 'middle')
@@ -322,7 +324,11 @@ module powerbi.visuals {
                 .attr("class", "area")
                 .attr("d", area)
                 .attr('fill', this.getFill(this.dataView, 'fill').solid.color)
-                .attr('clip-path', 'url(#clip)');
+                .attr('fill-opacity', .5)
+                .attr('clip-path', 'url(#clip)')
+                .attr('fill-opacity', .4)
+                .attr('stroke', this.getFill(this.dataView, 'fill').solid.color)
+                .attr('stroke-width', 1.8);
 
             this.focusX.attr("class", "x axis")
                 .attr("transform", "translate(0," + height + ")")
@@ -358,7 +364,10 @@ module powerbi.visuals {
                 .attr("class", "area brush")
                 .attr("d", area2)
                 .attr('fill', this.getFill(this.dataView, 'fill1').solid.color)
-                .attr('clip-path', 'url(#clip)');
+                .attr('clip-path', 'url(#clip)')
+                .attr('fill-opacity', .4)
+                .attr('stroke', this.getFill(this.dataView, 'fill1').solid.color)
+                .attr('stroke-width', 1.8);
 
             this.contextX.attr("class", "x axis")
                 .attr("transform", "translate(0," + height2 + ")")

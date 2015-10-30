@@ -34,9 +34,18 @@ module powerbi.visuals {
         y: number;
     }
 
+    // view model
+    export interface BrushChartViewModel {
+        points: BrushChartData[];
+        xLabel: string;
+        yLabel: string;
+        yFormat: string;
+    }
+    
+    // chart colors
     export interface BrushFillColors {
-         detailsFillColour: string;
-         slicerFillColour: string;
+        detailsFillColour: string;
+        slicerFillColour: string;
     }
 
     // Visual definition
@@ -95,16 +104,17 @@ module powerbi.visuals {
         };
         
         // Convert dataview object to model
-        public static converter(dataView: DataView): any {
+        public static converter(dataView: DataView): BrushChartViewModel {
 
             var catDv: DataViewCategorical = dataView.categorical;
+
             var cat = catDv.categories[0];
             var catValues = cat.values;
             var values = catDv.values;
             var dataPoints: BrushChartData[] = [];
 
             for (var i = 0, len = catValues.length; i < len; i++) {
-                if ((catValues[i] instanceof Date) && !isNaN(values[0].values[i])){
+                if ((catValues[i] instanceof Date) && !isNaN(values[0].values[i])) {
                     dataPoints.push({
                         x: catValues[i],
                         y: values[0].values[i]
@@ -112,7 +122,14 @@ module powerbi.visuals {
                 }
             }
 
-            return dataPoints;
+            var viewModel: BrushChartViewModel = {
+                points: dataPoints,
+                xLabel: cat.source.displayName,
+                yLabel: values[0].source.displayName,
+                yFormat: values[0].source.format
+            };
+
+            return viewModel;
         }
 
         private svg: D3.Selection;
@@ -129,22 +146,19 @@ module powerbi.visuals {
         private axisYRectRight: D3.Selection;
         private dataView: DataView;
 
-        private brushFillColors: BrushFillColors = { detailsFillColour: '#005496', slicerFillColour: '#BBBDC0'};
-
-        
+        // default colors
+        private brushFillColors: BrushFillColors = { detailsFillColour: '#005496', slicerFillColour: '#BBBDC0' };        
         
         // Initialize visual components
         public init(options: VisualInitOptions): void {
             var element = options.element;
-			
-			//this.svg.classed("brushChart", true); // added
-            
+
             this.svg = d3.select(element.get(0)).append('svg');
 
             this.rect = this.svg.append("defs").append("clipPath")
                 .attr("id", "clip")
                 .append("rect");
-            
+
             this.focus = this.svg.append('g');
             this.context = this.svg.append('g');
 
@@ -159,12 +173,52 @@ module powerbi.visuals {
             this.axisYRectRight = this.focusY.append('rect');
             this.contextY = this.context.append('g');
         }
+
+        // add error message
+        private generateError(type: number, viewport: IViewport): void {
+            var erroMessage: string;
+            switch (type) {
+                case 1:
+                    erroMessage = "The category data should be a date.";
+                    break;
+                case 2:
+                    erroMessage = "The Y axis should be numeric.";
+                    break;
+                default:
+                    erroMessage = "An error occured. Please contact the support.";
+                    break;
+            }
+            this.svg.append('rect').attr('class', 'errorRectangle').attr('width', viewport.width).attr('height', viewport.height).attr('fill', 'white');
+            var text = this.svg.append('text')
+                .attr('class', 'errorMessage')
+                .attr('text-anchor', 'middle')
+                .style("font", "20px sans-serif")
+                .attr('transform', 'translate(' + viewport.width / 2 + ',' + viewport.height / 2 + ')')
+                .attr('fill', 'red');
+            text.text(erroMessage);
+        }
         
         // Update visual components
         public update(options: VisualUpdateOptions) {
             if (!options.dataViews || !options.dataViews[0]) return;
+            var viewport = options.viewport;
+            var viewModel: BrushChartViewModel;
 
-            var data = BrushChart.converter(options.dataViews[0]);
+            // category field is not datetime
+            if (!options.dataViews[0].categorical.categories[0].source.type.dateTime) {
+                this.generateError(1, viewport);
+            }
+            // Y is not numeric
+            else if (!options.dataViews[0].categorical.values[0].source.type.numeric) {
+                this.generateError(2, viewport);
+            }
+            else {
+                viewModel = BrushChart.converter(options.dataViews[0]);
+                this.svg.selectAll(".errorMessage").remove();
+                this.svg.selectAll(".errorRectangle").remove();
+            }
+
+            var data = viewModel.points;
 
             // apply visual style and set functionalities
             this.dataView = options.dataViews[0];
@@ -184,7 +238,7 @@ module powerbi.visuals {
             var xAxis = d3.svg.axis().scale(x).orient("bottom"),
                 xAxis2 = d3.svg.axis().scale(x2).orient("bottom"),
                 yAxis = d3.svg.axis().scale(y).orient("left");
-            
+
             var area = d3.svg.area()
                 .interpolate("monotone")
                 .x(function (d) { return x(d.x); })
@@ -197,8 +251,9 @@ module powerbi.visuals {
                 .y0(height2)
                 .y1(function (d) { return y2(+d.y); });
 
-            var generateTooltipInfo = function (extentX: any, data: BrushChartData[]): TooltipDataItem[] {
+            var generateTooltipInfo = function (extentX: any, viewModel: BrushChartViewModel): TooltipDataItem[] {
                 var ySum = 0;
+                var data = viewModel.points;
                 for (var i = 0; i < data.length; i++) {
                     if (extentX[0] <= data[i].x && data[i].x <= extentX[1]) {
                         ySum = ySum + data[i].y;
@@ -207,14 +262,13 @@ module powerbi.visuals {
 
                 return [
                     {
-                        displayName: 'Time Range',
+                        displayName: 'Time Range (' + viewModel.xLabel + ')',
                         value: extentX[0].toDateString() + ' - ' + extentX[1].toDateString()
                     },
                     {
-                        displayName: 'Total',
-                        value: ySum.toLocaleString()
+                        displayName: 'Total (' + viewModel.yLabel + ')',
+                        value: valueFormatter.format(ySum, viewModel.yFormat)
                     }];
-
             };
 
             var brush = d3.svg.brush()
@@ -224,10 +278,11 @@ module powerbi.visuals {
                     focus.select(".area").empty();
                     focus.select(".area").attr("d", area);
                     focus.select(".x.axis").call(xAxis);
-                    var tooltip = generateTooltipInfo(brush.extent(), data);
+                    // generate back the tooltip
+                    var tooltip = generateTooltipInfo(brush.extent(), viewModel);
                     TooltipManager.addTooltip(focus, (tooltipEvent: TooltipEvent) => tooltip);
                 }, false);
-            
+
             this.svg.attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .style("position", "absolute")
@@ -331,7 +386,7 @@ module powerbi.visuals {
                 .attr('fill-opacity', '.125')
                 .attr('shape-rendering', 'crispEdges');
 
-            TooltipManager.addTooltip(this.focusArea, (tooltipEvent: TooltipEvent) => generateTooltipInfo(x2.domain(), data));
+            TooltipManager.addTooltip(this.focusArea, (tooltipEvent: TooltipEvent) => generateTooltipInfo(x2.domain(), viewModel));
         }
 
         // Define visual properties
@@ -357,7 +412,7 @@ module powerbi.visuals {
 
         // Get properties values
         private getFill(dataView: DataView, fieldName: string): Fill {
-            if (dataView && dataView.metadata.objects) {                
+            if (dataView && dataView.metadata.objects) {
                 var label = dataView.metadata.objects['label'];
                 if (label) {
                     if (label[fieldName])
@@ -367,6 +422,6 @@ module powerbi.visuals {
 
             return { solid: { color: fieldName === 'fill' ? this.brushFillColors.detailsFillColour : this.brushFillColors.slicerFillColour } };
         }
-        
+
     }
 }

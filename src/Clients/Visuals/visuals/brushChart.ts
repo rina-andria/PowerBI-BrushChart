@@ -48,6 +48,42 @@ module powerbi.visuals {
         slicerFillColour: string;
     }
 
+    // error message for invalid category
+    export class NotDateCategoryField {//implements IVisualWarning {
+        public get code(): string {
+            return 'NotDateCategoryField';
+        }
+
+        public getMessages(resourceProvider: any): IVisualErrorMessage {
+
+            var visualMessage: IVisualErrorMessage = {
+                message: BrushChart.category_error_message,
+                title: BrushChart.category_error_title,
+                detail: BrushChart.category_error_message,
+            };
+
+            return visualMessage;
+        }
+    }
+
+    // error message for invalid Y axis
+    export class NotNumericYField {//implements IVisualWarning {
+        public get code(): string {
+            return 'NotNumericYAxisField';
+        }
+
+        public getMessages(resourceProvider: any): IVisualErrorMessage {
+
+            var visualMessage: IVisualErrorMessage = {
+                message: BrushChart.yaxis_error_message,
+                title: BrushChart.yaxis_error_title,
+                detail: BrushChart.yaxis_error_message,
+            };
+
+            return visualMessage;
+        }
+    }
+    
     // Visual definition
     export class BrushChart implements IVisual {
         
@@ -100,7 +136,10 @@ module powerbi.visuals {
                         }
                     }
                 }
-            }
+            },
+            sorting: {
+                custom: {}
+            } 
         };
         
         // Convert dataview object to model
@@ -145,6 +184,11 @@ module powerbi.visuals {
         private axisYRect: D3.Selection;
         private axisYRectRight: D3.Selection;
         private dataView: DataView;
+        private host: IVisualHostServices;
+        public static category_error_message: string = 'The category data should be a date.';
+        public static yaxis_error_message: string = 'The Y axis should be numeric.';
+        public static category_error_title = 'Invalid Category';
+        public static yaxis_error_title = 'Invalid Y Axis';
 
         // default colors
         private brushFillColors: BrushFillColors = { detailsFillColour: '#005496', slicerFillColour: '#BBBDC0' };        
@@ -172,6 +216,8 @@ module powerbi.visuals {
             this.axisYRect = this.focusY.append('rect');
             this.axisYRectRight = this.focusY.append('rect');
             this.contextY = this.context.append('g');
+
+            this.host = options.host;
         }
 
         // add error message
@@ -194,25 +240,28 @@ module powerbi.visuals {
             var text = this.svg.append('text')
                 .attr('class', 'errorMessage')
                 .attr('text-anchor', 'middle')
-                .style("font", "20px sans-serif")
+                .style("font", "16px sans-serif")
                 .attr('transform', 'translate(' + viewport.width / 2 + ',' + viewport.height / 2 + ')')
                 .attr('fill', 'red');
             text.text(erroMessage);
+
         }
-        
+       
         // Update visual components
         public update(options: VisualUpdateOptions) {
             if (!options.dataViews || !options.dataViews[0]) return;
             var viewport = options.viewport;
             var viewModel: BrushChartViewModel;
-
+                                    
             // category field is not datetime
             if (!options.dataViews[0].categorical.categories[0].source.type.dateTime) {
                 this.generateError(1, viewport);
+                this.host.setWarnings([new NotDateCategoryField()]);
             }
             // Y is not numeric
             else if (!options.dataViews[0].categorical.values[0].source.type.numeric) {
                 this.generateError(2, viewport);
+                this.host.setWarnings([new NotNumericYField()]);
             }
             else {
                 viewModel = BrushChart.converter(options.dataViews[0]);

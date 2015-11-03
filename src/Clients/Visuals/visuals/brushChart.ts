@@ -47,43 +47,7 @@ module powerbi.visuals {
         detailsFillColour: string;
         slicerFillColour: string;
     }
-
-    // error message for invalid category
-    export class NotDateCategoryField {//implements IVisualWarning {
-        public get code(): string {
-            return 'NotDateCategoryField';
-        }
-
-        public getMessages(resourceProvider: any): IVisualErrorMessage {
-
-            var visualMessage: IVisualErrorMessage = {
-                message: BrushChart.category_error_message,
-                title: BrushChart.category_error_title,
-                detail: BrushChart.category_error_message,
-            };
-
-            return visualMessage;
-        }
-    }
-
-    // error message for invalid Y axis
-    export class NotNumericYField {//implements IVisualWarning {
-        public get code(): string {
-            return 'NotNumericYAxisField';
-        }
-
-        public getMessages(resourceProvider: any): IVisualErrorMessage {
-
-            var visualMessage: IVisualErrorMessage = {
-                message: BrushChart.yaxis_error_message,
-                title: BrushChart.yaxis_error_title,
-                detail: BrushChart.yaxis_error_message,
-            };
-
-            return visualMessage;
-        }
-    }
-    
+        
     // Visual definition
     export class BrushChart implements IVisual {
         
@@ -219,21 +183,70 @@ module powerbi.visuals {
 
             this.host = options.host;
         }
+        
+        // validate the category and y axis data types
+        private validateAxis(dataView: DataView, host: IVisualHostServices, viewport: IViewport): void {
+            var warnings: IVisualWarning[] = [];
+                                    
+            // category field is not datetime
+            if (!dataView.categorical.categories[0].source.type.dateTime) {
+                warnings.push({
+                    code: 'NotDateCategoryField',
+
+                    getMessages(resourceProvider: any): IVisualErrorMessage {
+
+                        var visualMessage: IVisualErrorMessage = {
+                            message: BrushChart.category_error_message,
+                            title: BrushChart.category_error_title,
+                            detail: BrushChart.category_error_message,
+                        };
+
+                        return visualMessage;
+                    }
+                });
+                this.host.setWarnings(warnings);
+                this.generateError(1, viewport);
+            }
+
+            // Y is not numeric
+            else if (!dataView.categorical.values[0].source.type.numeric) {
+                warnings.push({
+                    code: 'NotNumericYAxisField',
+
+                    getMessages(resourceProvider: any): IVisualErrorMessage {
+
+                        var visualMessage: IVisualErrorMessage = {
+                            message: BrushChart.yaxis_error_message,
+                            title: BrushChart.yaxis_error_title,
+                            detail: BrushChart.yaxis_error_message,
+                        };
+
+                        return visualMessage;
+                    }
+                });
+                this.host.setWarnings(warnings);
+                this.generateError(2, viewport);
+            } else {
+                this.cleanError();
+            }
+        }
 
         // add error message
         private generateError(type: number, viewport: IViewport): void {
             var erroMessage: string;
             switch (type) {
                 case 1:
-                    erroMessage = "The category data should be a date.";
+                    erroMessage = BrushChart.category_error_message;
                     break;
                 case 2:
-                    erroMessage = "The Y axis should be numeric.";
+                    erroMessage = BrushChart.category_error_title;
                     break;
                 default:
                     erroMessage = "An error occured. Please contact the support.";
                     break;
             }
+
+            this.cleanError();
 
             this.svg.append('rect').attr('class', 'errorRectangle').attr('width', viewport.width).attr('height', viewport.height).attr('fill', 'white');
 
@@ -246,41 +259,42 @@ module powerbi.visuals {
             text.text(erroMessage);
 
         }
+
+        private cleanError(): void {
+            this.svg.selectAll(".errorMessage").remove();
+            this.svg.selectAll(".errorRectangle").remove();
+        }
        
         // Update visual components
         public update(options: VisualUpdateOptions) {
             if (!options.dataViews || !options.dataViews[0]) return;
-            var viewport = options.viewport;
-            var viewModel: BrushChartViewModel;
-                                    
-            // category field is not datetime
-            if (!options.dataViews[0].categorical.categories[0].source.type.dateTime) {
-                this.generateError(1, viewport);
-                this.host.setWarnings([new NotDateCategoryField()]);
-            }
-            // Y is not numeric
-            else if (!options.dataViews[0].categorical.values[0].source.type.numeric) {
-                this.generateError(2, viewport);
-                this.host.setWarnings([new NotNumericYField()]);
-            }
-            else {
-                viewModel = BrushChart.converter(options.dataViews[0]);
-                this.svg.selectAll(".errorMessage").remove();
-                this.svg.selectAll(".errorRectangle").remove();
-            }
 
-            var data = viewModel.points;
-
-            // apply visual style and set functionalities
             this.dataView = options.dataViews[0];
+
             var viewport = options.viewport;
 
+            // margins settings
             var margin = { top: 10, right: 10, bottom: 110, left: 40 },
                 margin2 = { top: viewport.height - 85, right: 10, bottom: 20, left: 40 },
                 width = viewport.width - margin.left - margin.right,
                 height = viewport.height - margin.top - margin.bottom,
                 height2 = viewport.height - margin2.top - margin2.bottom;
 
+            this.svg.attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .style("position", "absolute")
+                .style("font", "10px sans-serif");
+
+            var viewModel: BrushChartViewModel;
+
+            // validate category and y axis
+            this.validateAxis(this.dataView, this.host, viewport);
+
+            viewModel = BrushChart.converter(this.dataView);
+            
+            var data = viewModel.points;
+
+            // apply visual style and set functionalities
             var x = d3.time.scale().range([0, width]),
                 x2 = d3.time.scale().range([0, width]),
                 y = d3.scale.linear().range([height, 0]),
@@ -333,11 +347,6 @@ module powerbi.visuals {
                     var tooltip = generateTooltipInfo(brush.extent(), viewModel);
                     TooltipManager.addTooltip(focus, (tooltipEvent: TooltipEvent) => tooltip);
                 }, false);
-
-            this.svg.attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .style("position", "absolute")
-                .style("font", "10px sans-serif");
 
             this.rect
                 .attr("width", width)
